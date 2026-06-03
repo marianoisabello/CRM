@@ -4,13 +4,13 @@ const express = require('express');
 const router = express.Router();
 const supabase = require('../db/client');
 
-// GET /api/leads?classification=hot&status=new&limit=50&offset=0
+// GET /api/leads?classification=hot&status=new&source=manychat&limit=50&offset=0
 router.get('/', async (req, res) => {
   const { classification, status, source, limit = 50, offset = 0 } = req.query;
 
   let query = supabase
     .from('leads')
-    .select('id, name, email, contact, contact_type, source, status, score, classification, next_action, sdr_notes, created_at')
+    .select('id, name, email, contact, contact_type, source, status, score, classification, next_action, sdr_notes, message, created_at')
     .order('created_at', { ascending: false })
     .range(Number(offset), Number(offset) + Number(limit) - 1);
 
@@ -18,33 +18,44 @@ router.get('/', async (req, res) => {
   if (status) query = query.eq('status', status);
   if (source) query = query.eq('source', source);
 
-  const { data, error, count } = await query;
+  const { data, error } = await query;
   if (error) return res.status(500).json({ ok: false, error: error.message });
 
-  return res.json({ ok: true, leads: data, total: count });
+  return res.json({ ok: true, leads: data });
 });
 
 // GET /api/leads/stats
 router.get('/stats', async (req, res) => {
-  const { data, error } = await supabase
-    .from('leads')
-    .select('classification, status, source');
+  const [allLeads, recentLeads] = await Promise.all([
+    supabase.from('leads').select('classification, status, source, score'),
+    supabase
+      .from('leads')
+      .select('id, name, email, source, status, score, classification, created_at')
+      .order('created_at', { ascending: false })
+      .limit(5),
+  ]);
 
-  if (error) return res.status(500).json({ ok: false, error: error.message });
+  if (allLeads.error) return res.status(500).json({ ok: false, error: allLeads.error.message });
 
+  const data = allLeads.data;
   const stats = {
     total: data.length,
     by_classification: { hot: 0, warm: 0, cold: 0, unqualified: 0, pending: 0 },
     by_status: { new: 0, contacted: 0, qualified: 0, lost: 0, won: 0 },
     by_source: {},
+    avg_score: 0,
+    recent_leads: recentLeads.data || [],
   };
 
+  let scoreSum = 0, scoreCount = 0;
   for (const lead of data) {
     if (lead.classification) stats.by_classification[lead.classification] = (stats.by_classification[lead.classification] || 0) + 1;
     else stats.by_classification.pending++;
     if (lead.status) stats.by_status[lead.status] = (stats.by_status[lead.status] || 0) + 1;
     if (lead.source) stats.by_source[lead.source] = (stats.by_source[lead.source] || 0) + 1;
+    if (lead.score) { scoreSum += lead.score; scoreCount++; }
   }
+  stats.avg_score = scoreCount ? Math.round(scoreSum / scoreCount) : 0;
 
   return res.json({ ok: true, stats });
 });

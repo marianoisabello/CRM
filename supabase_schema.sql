@@ -153,6 +153,17 @@ create table if not exists agent_runs (
 create index if not exists agent_runs_agent_id on agent_runs (agent_id, created_at desc);
 create index if not exists agent_runs_lead_id on agent_runs (lead_id);
 
+-- ─── Users ──────────────────────────────────────────────────────
+create table if not exists users (
+  id            uuid primary key default gen_random_uuid(),
+  name          text,
+  email         text unique not null,
+  password_hash text not null,
+  role          text not null default 'admin'
+                check (role in ('admin', 'viewer')),
+  created_at    timestamptz not null default now()
+);
+
 -- ─── Trigger updated_at ─────────────────────────────────────────
 create or replace function update_updated_at()
 returns trigger as $$

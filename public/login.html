@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRM Dana — Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen flex items-center justify-center">
+  <div class="w-full max-w-sm">
+    <div class="text-center mb-8">
+      <div class="w-14 h-14 rounded-2xl bg-violet-600 flex items-center justify-center font-bold text-2xl mx-auto mb-4">D</div>
+      <h1 class="text-2xl font-bold">Marketing Dana</h1>
+      <p class="text-gray-500 text-sm mt-1">CRM · Plataforma de Agentes</p>
+    </div>
+
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-8">
+      <form id="login-form" class="space-y-4">
+        <div>
+          <label class="text-xs text-gray-400 uppercase tracking-wider mb-1 block">Email</label>
+          <input id="email" type="email" required placeholder="admin@tudominio.com"
+            class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500 transition">
+        </div>
+        <div>
+          <label class="text-xs text-gray-400 uppercase tracking-wider mb-1 block">Password</label>
+          <input id="password" type="password" required placeholder="••••••••"
+            class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500 transition">
+        </div>
+        <p id="error-msg" class="text-red-400 text-sm hidden"></p>
+        <button type="submit"
+          class="w-full bg-violet-600 hover:bg-violet-500 transition rounded-lg py-2.5 text-sm font-semibold">
+          Ingresar
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Si ya hay token, ir directo al app
+    if (localStorage.getItem('crm_token')) window.location.href = '/app.html';
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector('button');
+      btn.textContent = 'Ingresando...';
+      btn.disabled = true;
+
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: document.getElementById('email').value,
+          password: document.getElementById('password').value,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.ok) {
+        localStorage.setItem('crm_token', data.token);
+        localStorage.setItem('crm_user', JSON.stringify(data.user));
+        window.location.href = '/app.html';
+      } else {
+        document.getElementById('error-msg').textContent = data.error;
+        document.getElementById('error-msg').classList.remove('hidden');
+        btn.textContent = 'Ingresar';
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

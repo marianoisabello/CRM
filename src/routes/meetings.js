@@ -2,16 +2,24 @@
 
 const express = require('express');
 const router = express.Router();
-const { createMeeting, updateMeetingStatus, getMeetingsByLead } = require('../db/meetings');
+const { createMeeting, updateMeetingStatus, getMeetingsByLead, getAllMeetings } = require('../db/meetings');
 const logger = require('../lib/logger');
 
-// GET /api/meetings?lead_id=<id>
+// GET /api/meetings?lead_id=<id>  (lead_id opcional)
 router.get('/', async (req, res) => {
   const { lead_id } = req.query;
-  if (!lead_id) return res.status(400).json({ ok: false, error: 'lead_id requerido' });
-
   try {
-    const meetings = await getMeetingsByLead(lead_id);
+    const meetings = lead_id ? await getMeetingsByLead(lead_id) : await getAllMeetings();
+    return res.json({ ok: true, meetings });
+  } catch (err) {
+    return res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// GET /api/meetings/all — alias explícito
+router.get('/all', async (req, res) => {
+  try {
+    const meetings = await getAllMeetings();
     return res.json({ ok: true, meetings });
   } catch (err) {
     return res.status(500).json({ ok: false, error: err.message });

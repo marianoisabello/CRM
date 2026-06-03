@@ -49,4 +49,15 @@ async function getMeetingsByLead(leadId) {
   return data;
 }
 
-module.exports = { createMeeting, updateMeetingStatus, getMeetingsByLead };
+async function getAllMeetings() {
+  const { data, error } = await supabase
+    .from('meetings')
+    .select('*, leads(name, email, contact, source)')
+    .order('scheduled_at', { ascending: false })
+    .limit(100);
+
+  if (error) throw new Error(`Error obteniendo Meetings: ${error.message}`);
+  return data;
+}
+
+module.exports = { createMeeting, updateMeetingStatus, getMeetingsByLead, getAllMeetings };
