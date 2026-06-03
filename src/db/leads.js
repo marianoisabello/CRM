@@ -10,9 +10,30 @@ async function upsertLead(leadData) {
       .maybeSingle();
 
     if (existing) {
+      // Solo actualizar campos que llegaron con valor — nunca pisar datos existentes con null
+      const { data: current } = await supabase
+        .from('leads')
+        .select('*')
+        .eq('id', existing.id)
+        .single();
+
+      const merged = { updated_at: new Date().toISOString() };
+      for (const [key, val] of Object.entries(leadData)) {
+        if (val !== null && val !== undefined && val !== '') {
+          merged[key] = val;
+        } else if (current[key]) {
+          // conservar el valor existente si el nuevo viene vacío
+          merged[key] = current[key];
+        }
+      }
+      // El mensaje siempre se actualiza (es el último mensaje recibido)
+      if (leadData.message) merged.message = leadData.message;
+      // El raw_payload siempre se actualiza
+      if (leadData.raw_payload) merged.raw_payload = leadData.raw_payload;
+
       const { data, error } = await supabase
         .from('leads')
-        .update({ ...leadData, updated_at: new Date().toISOString() })
+        .update(merged)
         .eq('id', existing.id)
         .select()
         .single();
