@@ -6,108 +6,163 @@
   <title>CRM Dana</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    .nav-item { @apply flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition cursor-pointer; }
-    .nav-item.active { @apply bg-violet-900/50 text-violet-300 border border-violet-800/50; }
-    .nav-section { @apply text-xs text-gray-600 uppercase tracking-widest px-3 mt-5 mb-1; }
-    .badge { @apply text-xs font-semibold px-2 py-0.5 rounded-full; }
-    .card { @apply bg-gray-900 border border-gray-800 rounded-xl p-5; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    * { font-family: 'Inter', system-ui, sans-serif; }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 10px; border-radius: 8px; font-size: 13.5px;
+      color: rgb(156,163,175); cursor: pointer;
+      transition: background 0.12s, color 0.12s;
+      user-select: none;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+    .nav-item.active {
+      background: rgba(124,58,237,0.18);
+      color: rgb(196,181,253);
+      border: 1px solid rgba(124,58,237,0.3);
+    }
+    .nav-sub {
+      display: flex; align-items: center; gap: 8px;
+      padding: 5px 10px 5px 30px; border-radius: 8px; font-size: 12.5px;
+      color: rgb(107,114,128); cursor: pointer;
+      transition: background 0.12s, color 0.12s;
+      user-select: none;
+    }
+    .nav-sub:hover { color: rgb(209,213,219); }
+    .nav-sub.active { color: rgb(196,181,253); }
+
+    .nav-section { font-size: 10px; color: rgb(75,85,99); text-transform: uppercase; letter-spacing: 0.1em; padding: 0 10px; margin: 18px 0 4px; }
+
+    .card { background: rgb(17,24,39); border: 1px solid rgb(31,41,55); border-radius: 12px; padding: 20px; }
+    .card-sm { background: rgb(17,24,39); border: 1px solid rgb(31,41,55); border-radius: 10px; padding: 14px 16px; }
+
+    .badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+
     .spinning { animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgb(55,65,81); border-radius: 4px; }
+
+    .kpi-card { background: rgb(17,24,39); border: 1px solid rgb(31,41,55); border-radius: 14px; padding: 18px 20px; transition: border-color 0.15s; }
+    .kpi-card:hover { border-color: rgb(55,65,81); }
+
+    tr.lead-row:hover td { background: rgba(255,255,255,0.025); }
+    th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: rgb(75,85,99); }
+
+    .btn-primary { background: rgb(124,58,237); color: white; border-radius: 8px; padding: 7px 16px; font-size: 13px; font-weight: 600; transition: background 0.15s; border: none; cursor: pointer; }
+    .btn-primary:hover { background: rgb(109,40,217); }
+    .btn-ghost { background: rgba(255,255,255,0.05); color: rgb(156,163,175); border-radius: 8px; padding: 7px 14px; font-size: 13px; font-weight: 500; transition: background 0.15s; border: 1px solid rgb(31,41,55); cursor: pointer; }
+    .btn-ghost:hover { background: rgba(255,255,255,0.08); color: white; }
+    .input { background: rgb(17,24,39); border: 1px solid rgb(55,65,81); border-radius: 8px; padding: 8px 12px; font-size: 13px; color: #f9fafb; outline: none; transition: border-color 0.15s; width: 100%; }
+    .input:focus { border-color: rgb(124,58,237); }
+    .input::placeholder { color: rgb(75,85,99); }
+    select.input { cursor: pointer; }
   </style>
 </head>
 <body class="bg-gray-950 text-gray-100 min-h-screen flex">
 
   <!-- Sidebar -->
-  <aside id="sidebar" class="w-60 min-h-screen bg-gray-900 border-r border-gray-800 flex flex-col fixed left-0 top-0 z-30">
+  <aside class="w-56 min-h-screen bg-gray-900 border-r border-gray-800/80 flex flex-col fixed left-0 top-0 z-30">
     <!-- Logo -->
-    <div class="px-4 py-5 border-b border-gray-800 flex items-center gap-3">
-      <div class="w-8 h-8 rounded-lg bg-violet-600 flex items-center justify-center font-bold text-sm shrink-0">D</div>
-      <div>
-        <p class="font-semibold text-sm leading-tight">Marketing Dana</p>
-        <p class="text-xs text-gray-500">CRM · Agentes IA</p>
+    <div class="px-4 py-4 border-b border-gray-800/80 flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center font-bold text-sm shrink-0 shadow shadow-violet-900/50">D</div>
+      <div class="min-w-0">
+        <p class="font-semibold text-sm leading-tight truncate">Marketing Dana</p>
+        <p class="text-xs text-gray-600 leading-tight">CRM · Agentes IA</p>
       </div>
     </div>
 
     <!-- Nav -->
-    <nav class="flex-1 overflow-y-auto px-3 py-3">
+    <nav class="flex-1 overflow-y-auto px-2 py-3">
       <div onclick="navigate('dashboard')" class="nav-item" data-view="dashboard">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v2a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10-3a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1v-7z"/></svg>
         Dashboard
       </div>
 
-      <p class="nav-section">Leads por canal</p>
+      <p class="nav-section">Leads</p>
       <div onclick="navigate('leads')" class="nav-item" data-view="leads">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-        Todos los leads
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        Todos
       </div>
-      <div onclick="navigate('leads/web_form')" class="nav-item pl-7 text-xs" data-view="leads/web_form">🌐 Formulario web</div>
-      <div onclick="navigate('leads/manychat')" class="nav-item pl-7 text-xs" data-view="leads/manychat">💬 ManyChat</div>
-      <div onclick="navigate('leads/instagram')" class="nav-item pl-7 text-xs" data-view="leads/instagram">📸 Instagram</div>
-      <div onclick="navigate('leads/whatsapp')" class="nav-item pl-7 text-xs" data-view="leads/whatsapp">📱 WhatsApp</div>
-      <div onclick="navigate('leads/linkedin')" class="nav-item pl-7 text-xs" data-view="leads/linkedin">💼 LinkedIn</div>
-      <div onclick="navigate('leads/email')" class="nav-item pl-7 text-xs" data-view="leads/email">✉️ Email</div>
-      <div onclick="navigate('leads/database_import')" class="nav-item pl-7 text-xs" data-view="leads/database_import">📂 Importación</div>
+      <div onclick="navigate('leads/web_form')"   class="nav-sub" data-view="leads/web_form">🌐 Formulario web</div>
+      <div onclick="navigate('leads/manychat')"   class="nav-sub" data-view="leads/manychat">💬 ManyChat</div>
+      <div onclick="navigate('leads/instagram')"  class="nav-sub" data-view="leads/instagram">📸 Instagram</div>
+      <div onclick="navigate('leads/whatsapp')"   class="nav-sub" data-view="leads/whatsapp">📱 WhatsApp</div>
+      <div onclick="navigate('leads/linkedin')"   class="nav-sub" data-view="leads/linkedin">💼 LinkedIn</div>
+      <div onclick="navigate('leads/email')"      class="nav-sub" data-view="leads/email">✉️ Email</div>
+      <div onclick="navigate('leads/database_import')" class="nav-sub" data-view="leads/database_import">📂 Importación</div>
 
       <p class="nav-section">Agentes IA</p>
-      <div onclick="navigate('agent/sdr')" class="nav-item" data-view="agent/sdr">
-        <span class="text-lg leading-none">🎯</span> SDR
+      <div onclick="navigate('agent/sdr')"         class="nav-item" data-view="agent/sdr">
+        <span class="text-base leading-none shrink-0">🎯</span> SDR
       </div>
-      <div onclick="navigate('agent/analyst')" class="nav-item" data-view="agent/analyst">
-        <span class="text-lg leading-none">🔍</span> Analista
+      <div onclick="navigate('agent/analyst')"     class="nav-item" data-view="agent/analyst">
+        <span class="text-base leading-none shrink-0">🔍</span> Analista
       </div>
-      <div onclick="navigate('agent/proposal')" class="nav-item" data-view="agent/proposal">
-        <span class="text-lg leading-none">📋</span> Propuestas
+      <div onclick="navigate('agent/proposal')"    class="nav-item" data-view="agent/proposal">
+        <span class="text-base leading-none shrink-0">📋</span> Propuestas
       </div>
       <div onclick="navigate('agent/performance')" class="nav-item" data-view="agent/performance">
-        <span class="text-lg leading-none">📈</span> Performance
+        <span class="text-base leading-none shrink-0">📈</span> Performance
       </div>
-      <div onclick="navigate('agent/reporting')" class="nav-item" data-view="agent/reporting">
-        <span class="text-lg leading-none">📊</span> Reporting
+      <div onclick="navigate('agent/reporting')"   class="nav-item" data-view="agent/reporting">
+        <span class="text-base leading-none shrink-0">📊</span> Reporting
       </div>
 
       <p class="nav-section">Herramientas</p>
       <div onclick="navigate('calendar')" class="nav-item" data-view="calendar">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
         Calendario
       </div>
       <div onclick="navigate('settings')" class="nav-item" data-view="settings">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         Configuración
       </div>
     </nav>
 
-    <!-- User -->
-    <div class="border-t border-gray-800 px-4 py-3 flex items-center justify-between">
-      <div>
-        <p id="user-name" class="text-sm font-medium">—</p>
-        <p id="user-email" class="text-xs text-gray-500">—</p>
+    <!-- User footer -->
+    <div class="border-t border-gray-800/80 px-3 py-3 flex items-center gap-2.5">
+      <div class="w-7 h-7 rounded-full bg-violet-700 flex items-center justify-center text-xs font-bold shrink-0" id="user-avatar">M</div>
+      <div class="min-w-0 flex-1">
+        <p id="user-name" class="text-xs font-medium truncate">—</p>
+        <p id="user-email" class="text-xs text-gray-600 truncate">—</p>
       </div>
-      <button onclick="logout()" class="text-gray-500 hover:text-red-400 transition text-xs">Salir</button>
+      <button onclick="logout()" title="Salir" class="text-gray-600 hover:text-red-400 transition shrink-0">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+      </button>
     </div>
   </aside>
 
   <!-- Main -->
-  <main class="ml-60 flex-1 min-h-screen">
-    <div id="view-root" class="p-6 max-w-7xl mx-auto"></div>
+  <main class="ml-56 flex-1 min-h-screen bg-gray-950">
+    <div id="view-root" class="p-7 max-w-7xl mx-auto"></div>
   </main>
 
   <!-- Modal Lead -->
-  <div id="lead-modal" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-    <div class="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-      <div class="flex items-start justify-between">
-        <h2 id="modal-name" class="font-semibold text-lg"></h2>
-        <button onclick="closeModal()" class="text-gray-500 hover:text-white">✕</button>
+  <div id="lead-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-gray-900 border border-gray-700/80 rounded-2xl w-full max-w-lg shadow-2xl max-h-[88vh] flex flex-col">
+      <div class="flex items-start justify-between p-5 border-b border-gray-800">
+        <div>
+          <h2 id="modal-name" class="font-semibold text-base"></h2>
+          <p id="modal-source" class="text-gray-500 text-xs mt-0.5"></p>
+        </div>
+        <button onclick="closeModal()" class="text-gray-600 hover:text-white transition p-1 rounded-lg hover:bg-gray-800">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
       </div>
-      <div id="modal-body"></div>
-      <div class="border-t border-gray-800 pt-4">
-        <p class="text-xs text-gray-500 mb-2">Cambiar estado</p>
-        <div class="flex gap-2 flex-wrap" id="modal-status-buttons"></div>
+      <div id="modal-body" class="overflow-y-auto p-5 space-y-4 flex-1"></div>
+      <div class="border-t border-gray-800 p-4">
+        <p class="text-xs text-gray-600 mb-2.5 font-medium uppercase tracking-wider">Cambiar estado</p>
+        <div class="flex gap-1.5 flex-wrap" id="modal-status-buttons"></div>
       </div>
     </div>
   </div>
 
   <!-- Toast -->
-  <div id="toast" class="hidden fixed bottom-6 right-6 bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm z-50 shadow-xl"></div>
+  <div id="toast" class="hidden fixed bottom-5 right-5 rounded-xl px-4 py-3 text-sm z-50 shadow-2xl flex items-center gap-2.5 min-w-48"></div>
 
   <script src="/js/api.js"></script>
   <script src="/js/components.js"></script>
@@ -117,13 +172,13 @@
   <script src="/js/views/calendar.js"></script>
   <script src="/js/views/settings.js"></script>
   <script>
-    // Auth check
     const token = localStorage.getItem('crm_token');
     if (!token) window.location.href = '/login.html';
 
     const user = JSON.parse(localStorage.getItem('crm_user') || '{}');
     document.getElementById('user-name').textContent = user.name || user.email || 'Admin';
     document.getElementById('user-email').textContent = user.email || '';
+    document.getElementById('user-avatar').textContent = (user.name || user.email || 'A')[0].toUpperCase();
 
     function logout() {
       localStorage.removeItem('crm_token');
@@ -131,26 +186,27 @@
       window.location.href = '/login.html';
     }
 
-    // Router
-    function navigate(view) {
-      window.location.hash = view;
-    }
+    function navigate(view) { window.location.hash = view; }
 
     function renderView(hash) {
       const view = hash.replace('#', '') || 'dashboard';
 
-      // Actualizar nav activo
-      document.querySelectorAll('.nav-item').forEach(el => {
+      document.querySelectorAll('.nav-item, .nav-sub').forEach(el => {
         el.classList.toggle('active', el.dataset.view === view);
       });
 
       const root = document.getElementById('view-root');
-      root.innerHTML = '<div class="flex items-center justify-center h-64 text-gray-500">Cargando...</div>';
+      root.innerHTML = `<div class="flex items-center justify-center h-64">
+        <div class="flex flex-col items-center gap-3 text-gray-600">
+          <svg class="w-5 h-5 spinning" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+          <span class="text-sm">Cargando...</span>
+        </div>
+      </div>`;
 
-      if (view === 'dashboard') return renderDashboard(root);
-      if (view === 'calendar') return renderCalendar(root);
-      if (view === 'settings') return renderSettings(root);
-      if (view.startsWith('agent/')) return renderAgent(root, view.split('/')[1]);
+      if (view === 'dashboard')           return renderDashboard(root);
+      if (view === 'calendar')            return renderCalendar(root);
+      if (view === 'settings')            return renderSettings(root);
+      if (view.startsWith('agent/'))      return renderAgent(root, view.split('/')[1]);
       if (view.startsWith('leads')) {
         const source = view.includes('/') ? view.split('/')[1] : null;
         return renderLeads(root, source);
@@ -165,6 +221,7 @@
     function openLeadModal(lead) {
       currentLeadId = lead.id;
       document.getElementById('modal-name').textContent = lead.name || 'Sin nombre';
+      document.getElementById('modal-source').textContent = (sourceLabel[lead.source] || lead.source) + ' · ' + fmtDate(lead.created_at);
       document.getElementById('modal-body').innerHTML = renderLeadDetail(lead);
       const statuses = ['new','contacted','qualified','won','lost'];
       document.getElementById('modal-status-buttons').innerHTML = statuses.map(s => `
@@ -186,21 +243,23 @@
     async function changeLeadStatus(id, status) {
       await api(`/api/leads/${id}/status`, { method: 'PATCH', body: { status } });
       closeModal();
-      showToast(`Estado actualizado: ${statusLabel[status]}`);
+      showToast(`Estado: ${statusLabel[status]}`);
       renderView(window.location.hash);
     }
 
     function showToast(msg, type = 'success') {
       const t = document.getElementById('toast');
-      t.textContent = msg;
-      t.className = `fixed bottom-6 right-6 rounded-xl px-4 py-3 text-sm z-50 shadow-xl border ${
-        type === 'error' ? 'bg-red-900/80 border-red-700 text-red-200' : 'bg-gray-800 border-gray-700 text-white'
+      const isError = type === 'error';
+      t.innerHTML = `
+        <div class="w-1.5 h-1.5 rounded-full shrink-0 ${isError ? 'bg-red-400' : 'bg-green-400'}"></div>
+        <span>${msg}</span>`;
+      t.className = `fixed bottom-5 right-5 rounded-xl px-4 py-3 text-sm z-50 shadow-2xl flex items-center gap-2.5 min-w-48 border ${
+        isError ? 'bg-gray-900 border-red-800/60 text-red-300' : 'bg-gray-900 border-gray-700 text-gray-100'
       }`;
       t.classList.remove('hidden');
-      setTimeout(() => t.classList.add('hidden'), 3000);
+      setTimeout(() => t.classList.add('hidden'), 3500);
     }
 
-    // Auto-refresh dashboard cada 60s
     setInterval(() => {
       if ((window.location.hash || '#dashboard') === '#dashboard') renderView('#dashboard');
     }, 60000);

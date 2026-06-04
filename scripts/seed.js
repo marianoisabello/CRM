@@ -33,13 +33,13 @@ async function seed() {
   console.log('🌱 Iniciando seed de datos ficticios...');
 
   // 1. Crear usuario admin
-  const passwordHash = await bcrypt.hash('Dana2024!', 10);
+  const passwordHash = await bcrypt.hash('123456', 10);
   const { error: userError } = await supabase
     .from('users')
     .upsert({ email: 'marianoisabello@pampai.com', password_hash: passwordHash, role: 'admin', name: 'Mariano' }, { onConflict: 'email' });
 
   if (userError) console.error('Error creando usuario:', userError.message);
-  else console.log('✓ Usuario admin creado: marianoisabello@pampai.com / Dana2024!');
+  else console.log('✓ Usuario admin creado: marianoisabello@pampai.com / 123456');
 
   // 2. Insertar leads
   for (const lead of leads) {

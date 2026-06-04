@@ -1,85 +1,105 @@
 function renderSettings(root) {
   const user = JSON.parse(localStorage.getItem('crm_user') || '{}');
+  const initial = (user.name || user.email || 'A')[0].toUpperCase();
+
   root.innerHTML = `
     <div class="space-y-6 max-w-2xl">
+      <!-- Header -->
       <div>
-        <h1 class="text-2xl font-bold">⚙️ Configuración</h1>
-        <p class="text-gray-500 text-sm">Gestión de usuarios y ajustes del sistema</p>
+        <h1 class="text-xl font-semibold">Configuración</h1>
+        <p class="text-gray-500 text-sm mt-0.5">Usuarios e integraciones del sistema</p>
       </div>
 
       <!-- Usuario actual -->
       <div class="card">
-        <h2 class="font-semibold text-sm mb-4">Usuario actual</h2>
+        <h2 class="font-semibold text-sm mb-4 text-gray-300">Tu cuenta</h2>
         <div class="flex items-center gap-4">
-          <div class="w-12 h-12 rounded-full bg-violet-600 flex items-center justify-center text-lg font-bold">
-            ${(user.name || user.email || 'A')[0].toUpperCase()}
+          <div class="w-11 h-11 rounded-full bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center text-base font-bold shrink-0">
+            ${initial}
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="font-medium text-gray-100">${user.name || '—'}</p>
+            <p class="text-gray-500 text-sm truncate">${user.email || '—'}</p>
+          </div>
+          <span class="badge bg-violet-900/40 text-violet-300 border border-violet-800/60">${user.role || 'admin'}</span>
+        </div>
+      </div>
+
+      <!-- Crear usuario -->
+      <div class="card">
+        <h2 class="font-semibold text-sm mb-4 text-gray-300">Crear usuario admin</h2>
+        <div class="space-y-3">
+          <div>
+            <label class="text-xs text-gray-600 font-medium mb-1.5 block uppercase tracking-wider">Nombre</label>
+            <input id="new-name" placeholder="Nombre completo" class="input">
           </div>
           <div>
-            <p class="font-medium">${user.name || '—'}</p>
-            <p class="text-gray-400 text-sm">${user.email || '—'}</p>
-            <span class="badge bg-violet-900/50 text-violet-300 border border-violet-800 mt-1 inline-block">${user.role || 'admin'}</span>
+            <label class="text-xs text-gray-600 font-medium mb-1.5 block uppercase tracking-wider">Email</label>
+            <input id="new-email" type="email" placeholder="email@pampai.com" class="input">
+          </div>
+          <div>
+            <label class="text-xs text-gray-600 font-medium mb-1.5 block uppercase tracking-wider">Contraseña</label>
+            <input id="new-password" type="password" placeholder="Mínimo 8 caracteres" class="input">
+          </div>
+          <div class="flex items-center gap-3 pt-1">
+            <button onclick="createUser()" class="btn-primary">Crear usuario</button>
+            <p id="create-msg" class="text-sm hidden"></p>
           </div>
         </div>
       </div>
 
-      <!-- Crear usuario admin -->
+      <!-- Integraciones -->
       <div class="card">
-        <h2 class="font-semibold text-sm mb-4">Crear nuevo usuario admin</h2>
-        <div class="space-y-3">
-          <div><label class="text-xs text-gray-400 mb-1 block">Nombre</label>
-            <input id="new-name" placeholder="Nombre completo" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-violet-500"></div>
-          <div><label class="text-xs text-gray-400 mb-1 block">Email</label>
-            <input id="new-email" type="email" placeholder="email@ejemplo.com" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-violet-500"></div>
-          <div><label class="text-xs text-gray-400 mb-1 block">Password</label>
-            <input id="new-password" type="password" placeholder="Mínimo 8 caracteres" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-violet-500"></div>
-          <button onclick="createUser()" class="bg-violet-600 hover:bg-violet-500 transition px-4 py-2 rounded-lg text-sm font-semibold">
-            Crear usuario
-          </button>
-          <p id="create-msg" class="text-sm hidden"></p>
-        </div>
-      </div>
-
-      <!-- Estado integraciones -->
-      <div class="card">
-        <h2 class="font-semibold text-sm mb-4">Estado de integraciones</h2>
-        <div class="space-y-3">
-          ${renderIntegration('Supabase', true, 'Base de datos conectada')}
-          ${renderIntegration('Anthropic Claude', true, 'Agentes IA activos')}
-          ${renderIntegration('ManyChat', true, 'Canal WhatsApp / Instagram')}
-          ${renderIntegration('Google Sheets', false, 'Configurar GOOGLE_SHEETS_SA_KEY')}
-          ${renderIntegration('Calendly', false, 'Configurar CALENDLY_TOKEN')}
-          ${renderIntegration('Meta Ads', false, 'Configurar META_ADS_ACCESS_TOKEN')}
-          ${renderIntegration('Google Ads', false, 'Configurar GOOGLE_ADS_*')}
+        <h2 class="font-semibold text-sm mb-4 text-gray-300">Integraciones</h2>
+        <div class="space-y-1">
+          ${renderIntegration('Supabase',          true,  'Base de datos · PostgreSQL')}
+          ${renderIntegration('Anthropic Claude',  true,  'Agentes IA · claude-opus-4-6')}
+          ${renderIntegration('Google Calendar',   true,  'Reuniones con Meet automático')}
+          ${renderIntegration('Google Sheets',     true,  'Export de leads')}
+          ${renderIntegration('ManyChat',          true,  'Canal WhatsApp / Instagram')}
+          ${renderIntegration('Meta Ads',          false, 'Pendiente configuración')}
+          ${renderIntegration('Google Ads',        false, 'Pendiente configuración')}
         </div>
       </div>
     </div>`;
 }
 
 function renderIntegration(name, active, note) {
-  return `<div class="flex items-center justify-between py-2 border-b border-gray-800/50 last:border-0">
-    <div>
-      <p class="text-sm font-medium">${name}</p>
-      <p class="text-xs text-gray-500">${note}</p>
+  return `<div class="flex items-center justify-between py-3 border-b border-gray-800/40 last:border-0">
+    <div class="flex items-center gap-3">
+      <div class="w-1.5 h-1.5 rounded-full shrink-0 ${active ? 'bg-green-400' : 'bg-gray-700'}"></div>
+      <div>
+        <p class="text-sm font-medium text-gray-200">${name}</p>
+        <p class="text-xs text-gray-600">${note}</p>
+      </div>
     </div>
-    <span class="text-xs font-semibold px-2 py-1 rounded-full ${active ? 'bg-green-900/50 text-green-300 border border-green-800' : 'bg-gray-800 text-gray-500 border border-gray-700'}">
-      ${active ? '● Activo' : '○ Inactivo'}
+    <span class="text-xs font-medium px-2.5 py-1 rounded-lg ${active
+      ? 'bg-green-900/30 text-green-400 border border-green-800/40'
+      : 'bg-gray-800/60 text-gray-600 border border-gray-700/40'}">
+      ${active ? 'Activo' : 'Inactivo'}
     </span>
   </div>`;
 }
 
 async function createUser() {
-  const name = document.getElementById('new-name').value;
-  const email = document.getElementById('new-email').value;
+  const name     = document.getElementById('new-name').value;
+  const email    = document.getElementById('new-email').value;
   const password = document.getElementById('new-password').value;
-  const msg = document.getElementById('create-msg');
+  const msg      = document.getElementById('create-msg');
 
-  if (!email || !password) { msg.textContent = 'Email y password son requeridos'; msg.className = 'text-sm text-red-400'; msg.classList.remove('hidden'); return; }
+  if (!email || !password) {
+    msg.textContent = 'Email y contraseña son requeridos';
+    msg.className = 'text-sm text-red-400';
+    msg.classList.remove('hidden');
+    return;
+  }
 
   const res = await api('/api/auth/register', { method: 'POST', body: { name, email, password } });
   if (res?.ok) {
-    msg.textContent = '✓ Usuario creado correctamente';
+    msg.textContent = '✓ Usuario creado';
     msg.className = 'text-sm text-green-400';
     ['new-name','new-email','new-password'].forEach(id => document.getElementById(id).value = '');
+    showToast('Usuario creado correctamente');
   } else {
     msg.textContent = res?.error || 'Error creando usuario';
     msg.className = 'text-sm text-red-400';
