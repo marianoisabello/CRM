@@ -4,18 +4,21 @@ const express = require('express');
 const router = express.Router();
 const { google } = require('googleapis');
 const supabase = require('../db/client');
-const config = require('../config');
+const calendar = require('../integrations/calendar');
 const logger = require('../lib/logger');
 
 // POST /api/export/sheets  { source?, classification?, status? }
 router.post('/sheets', async (req, res) => {
-  if (!config.googleSheets.serviceAccountKey) {
-    return res.status(400).json({ ok: false, error: 'Google Sheets no configurado (GOOGLE_SHEETS_SA_KEY)' });
+  const auth = calendar.getAuthenticatedClient();
+  if (!auth) {
+    return res.status(400).json({
+      ok: false,
+      error: 'Google no configurado. Autorizá en /api/auth/google-calendar primero.',
+    });
   }
 
   const { source, classification, status } = req.body;
 
-  // Obtener leads con filtros
   let query = supabase
     .from('leads')
     .select('name, email, contact, contact_type, source, status, score, classification, next_action, message, created_at')
@@ -30,16 +33,9 @@ router.post('/sheets', async (req, res) => {
   if (error) return res.status(500).json({ ok: false, error: error.message });
 
   try {
-    const saKey = JSON.parse(config.googleSheets.serviceAccountKey);
-    const auth = new google.auth.GoogleAuth({
-      credentials: saKey,
-      scopes: ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive'],
-    });
-
     const sheets = google.sheets({ version: 'v4', auth });
-    const drive = google.drive({ version: 'v3', auth });
+    const drive  = google.drive({ version: 'v3', auth });
 
-    // Crear nueva hoja
     const title = `CRM Dana — Leads ${new Date().toLocaleDateString('es-AR')}`;
     const spreadsheet = await sheets.spreadsheets.create({
       requestBody: {
@@ -50,7 +46,6 @@ router.post('/sheets', async (req, res) => {
 
     const spreadsheetId = spreadsheet.data.spreadsheetId;
 
-    // Headers + datos
     const headers = ['Nombre', 'Email', 'Contacto', 'Tipo', 'Fuente', 'Estado', 'Score', 'Clasificación', 'Próxima acción', 'Mensaje', 'Fecha'];
     const rows = leads.map(l => [
       l.name || '',
@@ -59,7 +54,7 @@ router.post('/sheets', async (req, res) => {
       l.contact_type || '',
       l.source || '',
       l.status || '',
-      l.score || '',
+      l.score ?? '',
       l.classification || '',
       l.next_action || '',
       l.message || '',
@@ -73,7 +68,7 @@ router.post('/sheets', async (req, res) => {
       requestBody: { values: [headers, ...rows] },
     });
 
-    // Hacer la hoja accesible con el link
+    // Hacer la hoja accesible con el link (solo lectura para cualquiera)
     await drive.permissions.create({
       fileId: spreadsheetId,
       requestBody: { role: 'reader', type: 'anyone' },

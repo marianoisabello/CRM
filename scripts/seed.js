@@ -36,10 +36,10 @@ async function seed() {
   const passwordHash = await bcrypt.hash('Dana2024!', 10);
   const { error: userError } = await supabase
     .from('users')
-    .upsert({ email: 'admin@dana.com', password_hash: passwordHash, role: 'admin', name: 'Admin Dana' }, { onConflict: 'email' });
+    .upsert({ email: 'marianoisabello@pampai.com', password_hash: passwordHash, role: 'admin', name: 'Mariano' }, { onConflict: 'email' });
 
   if (userError) console.error('Error creando usuario:', userError.message);
-  else console.log('✓ Usuario admin creado: admin@dana.com / Dana2024!');
+  else console.log('✓ Usuario admin creado: marianoisabello@pampai.com / Dana2024!');
 
   // 2. Insertar leads
   for (const lead of leads) {

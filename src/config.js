@@ -48,9 +48,7 @@ module.exports = {
 
   // Google Calendar / Calendly
   calendar: {
-    provider: process.env.CALENDAR_PROVIDER || 'calendly',
-    calendlyToken: optional('CALENDLY_TOKEN'),
-    calendlyEventUrl: optional('CALENDLY_EVENT_URL'),
+    provider: process.env.CALENDAR_PROVIDER || 'google',
     googleClientId: optional('GOOGLE_CALENDAR_CLIENT_ID'),
     googleClientSecret: optional('GOOGLE_CALENDAR_CLIENT_SECRET'),
     googleRefreshToken: optional('GOOGLE_CALENDAR_REFRESH_TOKEN'),
@@ -59,10 +57,5 @@ module.exports = {
   // Auth JWT
   jwt: {
     secret: process.env.JWT_SECRET || 'dev-secret-change-in-production',
-  },
-
-  // Google Sheets export (Service Account JSON como string)
-  googleSheets: {
-    serviceAccountKey: optional('GOOGLE_SHEETS_SA_KEY'),
   },
 };
