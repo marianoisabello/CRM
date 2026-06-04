@@ -5,109 +5,169 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CRM Dana</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
   <style>
-    .nav-item { @apply flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition cursor-pointer; }
-    .nav-item.active { @apply bg-violet-900/50 text-violet-300 border border-violet-800/50; }
-    .nav-section { @apply text-xs text-gray-600 uppercase tracking-widest px-3 mt-5 mb-1; }
-    .badge { @apply text-xs font-semibold px-2 py-0.5 rounded-full; }
-    .card { @apply bg-gray-900 border border-gray-800 rounded-xl p-5; }
+    .nav-item { @apply flex items-center gap-2.5 px-3 py-1.5 rounded-md text-[13px] text-gray-400 hover:text-gray-200 hover:bg-gray-800/60 transition-all duration-150 cursor-pointer; }
+    .nav-item.active { @apply bg-violet-600/20 text-violet-300 border border-violet-500/30; }
+    .nav-section { @apply text-[10px] font-medium text-gray-500 uppercase tracking-widest px-3 mt-6 mb-2; }
+    .badge { @apply text-[11px] font-medium px-2 py-0.5 rounded-md; }
+    .card { @apply bg-gray-900/80 border border-gray-800/80 rounded-xl p-5 backdrop-blur-sm; }
     .spinning { animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
+    
+    /* Scrollbar styling */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+    
+    /* Table hover */
+    .table-row-hover:hover { background: rgba(55, 65, 81, 0.3); }
+    
+    /* Input focus */
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #7c3aed; box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.3); }
+    
+    /* Button transitions */
+    button { transition: all 0.15s ease; }
   </style>
 </head>
-<body class="bg-gray-950 text-gray-100 min-h-screen flex">
+<body class="bg-gray-950 text-gray-100 min-h-screen flex font-sans antialiased">
 
   <!-- Sidebar -->
-  <aside id="sidebar" class="w-60 min-h-screen bg-gray-900 border-r border-gray-800 flex flex-col fixed left-0 top-0 z-30">
+  <aside id="sidebar" class="w-64 min-h-screen bg-gray-900/95 border-r border-gray-800/60 flex flex-col fixed left-0 top-0 z-30">
     <!-- Logo -->
-    <div class="px-4 py-5 border-b border-gray-800 flex items-center gap-3">
-      <div class="w-8 h-8 rounded-lg bg-violet-600 flex items-center justify-center font-bold text-sm shrink-0">D</div>
+    <div class="px-4 py-4 border-b border-gray-800/60 flex items-center gap-3">
+      <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center font-bold text-base shrink-0 shadow-lg shadow-violet-900/30">D</div>
       <div>
-        <p class="font-semibold text-sm leading-tight">Marketing Dana</p>
-        <p class="text-xs text-gray-500">CRM · Agentes IA</p>
+        <p class="font-semibold text-sm leading-tight text-white">Marketing Dana</p>
+        <p class="text-[11px] text-gray-500">CRM · Agentes IA</p>
       </div>
     </div>
 
     <!-- Nav -->
-    <nav class="flex-1 overflow-y-auto px-3 py-3">
+    <nav class="flex-1 overflow-y-auto px-3 py-2">
       <div onclick="navigate('dashboard')" class="nav-item" data-view="dashboard">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
         Dashboard
       </div>
 
       <p class="nav-section">Leads por canal</p>
       <div onclick="navigate('leads')" class="nav-item" data-view="leads">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         Todos los leads
       </div>
-      <div onclick="navigate('leads/web_form')" class="nav-item pl-7 text-xs" data-view="leads/web_form">🌐 Formulario web</div>
-      <div onclick="navigate('leads/manychat')" class="nav-item pl-7 text-xs" data-view="leads/manychat">💬 ManyChat</div>
-      <div onclick="navigate('leads/instagram')" class="nav-item pl-7 text-xs" data-view="leads/instagram">📸 Instagram</div>
-      <div onclick="navigate('leads/whatsapp')" class="nav-item pl-7 text-xs" data-view="leads/whatsapp">📱 WhatsApp</div>
-      <div onclick="navigate('leads/linkedin')" class="nav-item pl-7 text-xs" data-view="leads/linkedin">💼 LinkedIn</div>
-      <div onclick="navigate('leads/email')" class="nav-item pl-7 text-xs" data-view="leads/email">✉️ Email</div>
-      <div onclick="navigate('leads/database_import')" class="nav-item pl-7 text-xs" data-view="leads/database_import">📂 Importación</div>
+      <div onclick="navigate('leads/web_form')" class="nav-item pl-8 text-[12px]" data-view="leads/web_form">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+        Formulario web
+      </div>
+      <div onclick="navigate('leads/manychat')" class="nav-item pl-8 text-[12px]" data-view="leads/manychat">
+        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+        ManyChat
+      </div>
+      <div onclick="navigate('leads/instagram')" class="nav-item pl-8 text-[12px]" data-view="leads/instagram">
+        <span class="w-1.5 h-1.5 rounded-full bg-pink-500"></span>
+        Instagram
+      </div>
+      <div onclick="navigate('leads/whatsapp')" class="nav-item pl-8 text-[12px]" data-view="leads/whatsapp">
+        <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+        WhatsApp
+      </div>
+      <div onclick="navigate('leads/linkedin')" class="nav-item pl-8 text-[12px]" data-view="leads/linkedin">
+        <span class="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
+        LinkedIn
+      </div>
+      <div onclick="navigate('leads/email')" class="nav-item pl-8 text-[12px]" data-view="leads/email">
+        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+        Email
+      </div>
+      <div onclick="navigate('leads/database_import')" class="nav-item pl-8 text-[12px]" data-view="leads/database_import">
+        <span class="w-1.5 h-1.5 rounded-full bg-gray-500"></span>
+        Importacion
+      </div>
 
       <p class="nav-section">Agentes IA</p>
       <div onclick="navigate('agent/sdr')" class="nav-item" data-view="agent/sdr">
-        <span class="text-lg leading-none">🎯</span> SDR
+        <span class="w-5 h-5 rounded bg-red-500/20 flex items-center justify-center text-[10px]">SDR</span>
+        Calificador
       </div>
       <div onclick="navigate('agent/analyst')" class="nav-item" data-view="agent/analyst">
-        <span class="text-lg leading-none">🔍</span> Analista
+        <span class="w-5 h-5 rounded bg-blue-500/20 flex items-center justify-center text-[10px]">ANL</span>
+        Analista
       </div>
       <div onclick="navigate('agent/proposal')" class="nav-item" data-view="agent/proposal">
-        <span class="text-lg leading-none">📋</span> Propuestas
+        <span class="w-5 h-5 rounded bg-violet-500/20 flex items-center justify-center text-[10px]">PRO</span>
+        Propuestas
       </div>
       <div onclick="navigate('agent/performance')" class="nav-item" data-view="agent/performance">
-        <span class="text-lg leading-none">📈</span> Performance
+        <span class="w-5 h-5 rounded bg-emerald-500/20 flex items-center justify-center text-[10px]">PER</span>
+        Performance
       </div>
       <div onclick="navigate('agent/reporting')" class="nav-item" data-view="agent/reporting">
-        <span class="text-lg leading-none">📊</span> Reporting
+        <span class="w-5 h-5 rounded bg-amber-500/20 flex items-center justify-center text-[10px]">REP</span>
+        Reporting
       </div>
 
       <p class="nav-section">Herramientas</p>
       <div onclick="navigate('calendar')" class="nav-item" data-view="calendar">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
         Calendario
       </div>
       <div onclick="navigate('settings')" class="nav-item" data-view="settings">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-        Configuración
+        <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        Configuracion
       </div>
     </nav>
 
     <!-- User -->
-    <div class="border-t border-gray-800 px-4 py-3 flex items-center justify-between">
-      <div>
-        <p id="user-name" class="text-sm font-medium">—</p>
-        <p id="user-email" class="text-xs text-gray-500">—</p>
+    <div class="border-t border-gray-800/60 px-4 py-3 flex items-center justify-between bg-gray-900/50">
+      <div class="flex items-center gap-2.5">
+        <div class="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center text-[11px] font-semibold" id="user-avatar">A</div>
+        <div>
+          <p id="user-name" class="text-[13px] font-medium text-gray-200 leading-tight">-</p>
+          <p id="user-email" class="text-[11px] text-gray-500 leading-tight">-</p>
+        </div>
       </div>
-      <button onclick="logout()" class="text-gray-500 hover:text-red-400 transition text-xs">Salir</button>
+      <button onclick="logout()" class="text-gray-500 hover:text-red-400 transition text-[11px] px-2 py-1 rounded hover:bg-red-500/10">Salir</button>
     </div>
   </aside>
 
   <!-- Main -->
-  <main class="ml-60 flex-1 min-h-screen">
-    <div id="view-root" class="p-6 max-w-7xl mx-auto"></div>
+  <main class="ml-64 flex-1 min-h-screen bg-gray-950">
+    <div id="view-root" class="p-6 max-w-[1400px] mx-auto"></div>
   </main>
 
   <!-- Modal Lead -->
-  <div id="lead-modal" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-    <div class="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+  <div id="lead-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-gray-900 border border-gray-700/60 rounded-2xl w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl">
       <div class="flex items-start justify-between">
-        <h2 id="modal-name" class="font-semibold text-lg"></h2>
-        <button onclick="closeModal()" class="text-gray-500 hover:text-white">✕</button>
+        <h2 id="modal-name" class="font-semibold text-lg text-white"></h2>
+        <button onclick="closeModal()" class="text-gray-500 hover:text-white transition w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-800">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
       </div>
       <div id="modal-body"></div>
       <div class="border-t border-gray-800 pt-4">
-        <p class="text-xs text-gray-500 mb-2">Cambiar estado</p>
+        <p class="text-[11px] text-gray-500 uppercase tracking-wider mb-3">Cambiar estado</p>
         <div class="flex gap-2 flex-wrap" id="modal-status-buttons"></div>
       </div>
     </div>
   </div>
 
   <!-- Toast -->
-  <div id="toast" class="hidden fixed bottom-6 right-6 bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm z-50 shadow-xl"></div>
+  <div id="toast" class="hidden fixed bottom-6 right-6 bg-gray-800/95 backdrop-blur-sm border border-gray-700/60 rounded-xl px-4 py-3 text-sm z-50 shadow-2xl"></div>
 
   <script src="/js/api.js"></script>
   <script src="/js/components.js"></script>
@@ -122,8 +182,10 @@
     if (!token) window.location.href = '/login.html';
 
     const user = JSON.parse(localStorage.getItem('crm_user') || '{}');
-    document.getElementById('user-name').textContent = user.name || user.email || 'Admin';
+    const userName = user.name || user.email || 'Admin';
+    document.getElementById('user-name').textContent = userName;
     document.getElementById('user-email').textContent = user.email || '';
+    document.getElementById('user-avatar').textContent = userName[0].toUpperCase();
 
     function logout() {
       localStorage.removeItem('crm_token');
@@ -145,7 +207,10 @@
       });
 
       const root = document.getElementById('view-root');
-      root.innerHTML = '<div class="flex items-center justify-center h-64 text-gray-500">Cargando...</div>';
+      root.innerHTML = `<div class="flex items-center justify-center h-64 text-gray-500">
+        <svg class="w-5 h-5 spinning mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        Cargando...
+      </div>`;
 
       if (view === 'dashboard') return renderDashboard(root);
       if (view === 'calendar') return renderCalendar(root);
@@ -169,7 +234,7 @@
       const statuses = ['new','contacted','qualified','won','lost'];
       document.getElementById('modal-status-buttons').innerHTML = statuses.map(s => `
         <button onclick="changeLeadStatus('${lead.id}','${s}')"
-          class="badge ${s === lead.status ? statusColors[s] : 'bg-gray-800 text-gray-500 border border-gray-700'} cursor-pointer hover:opacity-80 transition py-1 px-3">
+          class="badge ${s === lead.status ? statusColors[s] : 'bg-gray-800 text-gray-500 border border-gray-700'} cursor-pointer hover:opacity-80 transition py-1.5 px-3">
           ${statusLabel[s]}
         </button>`).join('');
       document.getElementById('lead-modal').classList.remove('hidden');
@@ -193,8 +258,8 @@
     function showToast(msg, type = 'success') {
       const t = document.getElementById('toast');
       t.textContent = msg;
-      t.className = `fixed bottom-6 right-6 rounded-xl px-4 py-3 text-sm z-50 shadow-xl border ${
-        type === 'error' ? 'bg-red-900/80 border-red-700 text-red-200' : 'bg-gray-800 border-gray-700 text-white'
+      t.className = `fixed bottom-6 right-6 rounded-xl px-4 py-3 text-sm z-50 shadow-2xl backdrop-blur-sm border ${
+        type === 'error' ? 'bg-red-900/90 border-red-700/60 text-red-200' : 'bg-gray-800/95 border-gray-700/60 text-white'
       }`;
       t.classList.remove('hidden');
       setTimeout(() => t.classList.add('hidden'), 3000);
