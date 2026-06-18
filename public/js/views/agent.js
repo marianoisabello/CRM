@@ -1,32 +1,37 @@
 async function renderAgent(root, agentId) {
   const info = agentInfo[agentId] || { emoji: '🤖', name: agentId, desc: '' };
+  const agentColors = {
+    sdr: '#2563EB', analyst: '#7C3AED', proposal: '#0EA5E9',
+    performance: '#10B981', reporting: '#F59E0B',
+  };
+  const accentColor = agentColors[agentId] || '#2563EB';
 
   root.innerHTML = `
-    <div class="space-y-6">
+    <div class="space-y-5">
       <!-- Header -->
       <div class="flex items-center gap-4">
-        <div class="w-12 h-12 rounded-xl bg-gray-900 border border-gray-800 flex items-center justify-center text-2xl">${info.emoji}</div>
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:white;border:1px solid #E5E7EB;">${info.emoji}</div>
         <div>
-          <h1 class="text-xl font-semibold">Agente ${info.name}</h1>
-          <p class="text-gray-500 text-sm mt-0.5">${info.desc}</p>
+          <h1 class="text-xl font-semibold" style="color:#111827;">Agente ${info.name}</h1>
+          <p class="text-sm mt-0.5" style="color:#6B7280;">${info.desc}</p>
         </div>
       </div>
 
       <div class="grid lg:grid-cols-3 gap-5">
         <!-- Formulario -->
         <div class="card lg:col-span-1">
-          <h2 class="font-semibold text-sm mb-4 text-gray-300">Ejecutar manualmente</h2>
+          <h2 class="font-semibold text-sm mb-4" style="color:#374151;">Ejecutar manualmente</h2>
           ${buildAgentForm(agentId)}
         </div>
 
         <!-- Historial -->
         <div class="lg:col-span-2">
           <div class="flex items-center justify-between mb-3">
-            <h2 class="font-semibold text-sm text-gray-300">Historial de ejecuciones</h2>
-            <button onclick="loadAgentRuns('${agentId}')" class="text-xs text-gray-600 hover:text-gray-400 transition">Actualizar</button>
+            <h2 class="font-semibold text-sm" style="color:#374151;">Historial de ejecuciones</h2>
+            <button onclick="loadAgentRuns('${agentId}')" class="text-xs transition" style="color:#6B7280;">Actualizar</button>
           </div>
-          <div id="runs-table" class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-            <div class="flex items-center justify-center h-24 text-gray-600 text-sm">Cargando...</div>
+          <div id="runs-table" class="bg-white border overflow-hidden" style="border-color:#E5E7EB;border-radius:8px;">
+            <div class="flex items-center justify-center h-24 text-sm" style="color:#9CA3AF;">Cargando...</div>
           </div>
         </div>
       </div>
@@ -43,7 +48,7 @@ function buildAgentForm(agentId) {
     case 'sdr':
       return `<div class="space-y-3">
         <div>
-          <label class="text-xs text-gray-600 font-medium mb-1.5 block uppercase tracking-wider">Lead ID</label>
+          <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Lead ID</label>
           <input id="ag-lead-id" placeholder="uuid del lead" class="${inputCls}">
         </div>
         <button onclick="runAgent('sdr')" class="${btnCls}">🎯 Ejecutar SDR</button>
@@ -52,11 +57,11 @@ function buildAgentForm(agentId) {
     case 'analyst':
       return `<div class="space-y-3">
         <div>
-          <label class="text-xs text-gray-600 font-medium mb-1.5 block uppercase tracking-wider">Lead ID</label>
+          <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Lead ID</label>
           <input id="ag-lead-id" placeholder="uuid del lead" class="${inputCls}">
         </div>
         <div>
-          <label class="text-xs text-gray-600 font-medium mb-1.5 block uppercase tracking-wider">Notas de reunión</label>
+          <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Notas de reunión</label>
           <textarea id="ag-meeting-notes" rows="4" placeholder="Qué se habló en la reunión..." class="${inputCls}" style="resize:vertical"></textarea>
         </div>
         <button onclick="runAgent('analyst')" class="${btnCls}">🔍 Generar diagnóstico</button>
@@ -65,15 +70,15 @@ function buildAgentForm(agentId) {
     case 'proposal':
       return `<div class="space-y-3">
         <div>
-          <label class="text-xs text-gray-600 font-medium mb-1.5 block uppercase tracking-wider">Lead ID</label>
+          <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Lead ID</label>
           <input id="ag-lead-id" placeholder="uuid del lead" class="${inputCls}">
         </div>
         <div>
-          <label class="text-xs text-gray-600 font-medium mb-1.5 block uppercase tracking-wider">Notas de call</label>
+          <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Notas de call</label>
           <textarea id="ag-call-notes" rows="3" placeholder="Resumen de la llamada..." class="${inputCls}" style="resize:vertical"></textarea>
         </div>
         <div>
-          <label class="text-xs text-gray-600 font-medium mb-1.5 block uppercase tracking-wider">Presupuesto estimado (USD)</label>
+          <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Presupuesto estimado (USD)</label>
           <input id="ag-budget" type="number" placeholder="1500" class="${inputCls}">
         </div>
         <button onclick="runAgent('proposal')" class="${btnCls}">📋 Generar propuesta</button>
@@ -85,11 +90,11 @@ function buildAgentForm(agentId) {
       return `<div class="space-y-3">
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="text-xs text-gray-600 font-medium mb-1.5 block uppercase tracking-wider">Desde</label>
+            <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Desde</label>
             <input id="ag-since" type="date" value="${weekAgo}" class="${inputCls}">
           </div>
           <div>
-            <label class="text-xs text-gray-600 font-medium mb-1.5 block uppercase tracking-wider">Hasta</label>
+            <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Hasta</label>
             <input id="ag-until" type="date" value="${today}" class="${inputCls}">
           </div>
         </div>
@@ -102,15 +107,15 @@ function buildAgentForm(agentId) {
       const monthStr = `${prevMonth.getFullYear()}-${String(prevMonth.getMonth()+1).padStart(2,'0')}`;
       return `<div class="space-y-3">
         <div>
-          <label class="text-xs text-gray-600 font-medium mb-1.5 block uppercase tracking-wider">Client ID</label>
+          <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Client ID</label>
           <input id="ag-client-id" placeholder="uuid del cliente" class="${inputCls}">
         </div>
         <div>
-          <label class="text-xs text-gray-600 font-medium mb-1.5 block uppercase tracking-wider">Mes (YYYY-MM)</label>
+          <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Mes (YYYY-MM)</label>
           <input id="ag-month" value="${monthStr}" class="${inputCls}">
         </div>
         <div>
-          <label class="text-xs text-gray-600 font-medium mb-1.5 block uppercase tracking-wider">Notas del equipo</label>
+          <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Notas del equipo</label>
           <textarea id="ag-team-notes" rows="3" placeholder="Eventos relevantes del mes..." class="${inputCls}" style="resize:vertical"></textarea>
         </div>
         <button onclick="runAgent('reporting')" class="${btnCls}">📊 Generar reporte</button>
@@ -118,7 +123,7 @@ function buildAgentForm(agentId) {
     }
 
     default:
-      return '<p class="text-gray-600 text-sm">Agente no configurado</p>';
+      return '<p class="text-sm" style="color:#9CA3AF;">Agente no configurado</p>';
   }
 }
 
@@ -150,22 +155,22 @@ async function loadAgentRuns(agentId) {
   if (!wrap) return;
 
   if (!runs?.length) {
-    wrap.innerHTML = `<div class="flex flex-col items-center justify-center py-12 text-gray-700">
+    wrap.innerHTML = `<div class="flex flex-col items-center justify-center py-12" style="color:#D1D5DB;">
       <svg class="w-8 h-8 mb-2 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-      <p class="text-sm">Sin ejecuciones aún</p>
+      <p class="text-sm" style="color:#9CA3AF;">Sin ejecuciones aún</p>
     </div>`;
     return;
   }
 
   const statusBadge = {
-    running:   'bg-yellow-900/40 text-yellow-300 border border-yellow-800/50',
-    completed: 'bg-green-900/40 text-green-300 border border-green-800/50',
-    failed:    'bg-red-900/40 text-red-300 border border-red-800/50',
+    running:   'bg-amber-100 text-amber-700 border border-amber-200',
+    completed: 'bg-green-100 text-green-700 border border-green-200',
+    failed:    'bg-red-100 text-red-700 border border-red-200',
   };
 
   wrap.innerHTML = `<table class="w-full text-sm">
     <thead>
-      <tr class="border-b border-gray-800">
+      <tr style="border-bottom:1px solid #E5E7EB;">
         <th class="text-left px-4 py-3">Lead</th>
         <th class="text-left px-4 py-3">Estado</th>
         <th class="text-left px-4 py-3">Tokens</th>
@@ -174,17 +179,17 @@ async function loadAgentRuns(agentId) {
       </tr>
     </thead>
     <tbody>
-      ${runs.map(r => `<tr class="border-t border-gray-800/50">
+      ${runs.map(r => `<tr class="data-row transition" style="border-top:1px solid #F3F4F6;">
         <td class="px-4 py-3">
-          <p class="font-medium text-gray-200 leading-tight">${r.leads?.name || '<span class="text-gray-600">Sin nombre</span>'}</p>
-          <p class="text-gray-600 text-xs">${r.leads?.source || ''}</p>
+          <p class="font-medium leading-tight" style="color:#111827;">${r.leads?.name || '<span style="color:#9CA3AF;">Sin nombre</span>'}</p>
+          <p class="text-xs" style="color:#9CA3AF;">${r.leads?.source || ''}</p>
         </td>
         <td class="px-4 py-3">
-          <span class="badge ${statusBadge[r.status] || 'bg-gray-800 text-gray-500'}">${r.status}</span>
+          <span class="badge ${statusBadge[r.status] || 'bg-gray-100 text-gray-500'}">${r.status}</span>
         </td>
-        <td class="px-4 py-3 text-gray-500 font-mono text-xs">${r.tokens_used ? r.tokens_used.toLocaleString() : '—'}</td>
-        <td class="px-4 py-3 text-gray-500 text-xs">${r.duration_ms ? `${(r.duration_ms/1000).toFixed(1)}s` : '—'}</td>
-        <td class="px-4 py-3 text-gray-600 text-xs">${fmtDate(r.created_at)}</td>
+        <td class="px-4 py-3 font-data text-xs" style="color:#6B7280;">${r.tokens_used ? r.tokens_used.toLocaleString() : '—'}</td>
+        <td class="px-4 py-3 font-data text-xs" style="color:#6B7280;">${r.duration_ms ? `${(r.duration_ms/1000).toFixed(1)}s` : '—'}</td>
+        <td class="px-4 py-3 font-data text-xs" style="color:#9CA3AF;">${fmtDate(r.created_at)}</td>
       </tr>`).join('')}
     </tbody>
   </table>`;

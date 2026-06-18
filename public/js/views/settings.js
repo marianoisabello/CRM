@@ -3,42 +3,41 @@ function renderSettings(root) {
   const initial = (user.name || user.email || 'A')[0].toUpperCase();
 
   root.innerHTML = `
-    <div class="space-y-6 max-w-2xl">
-      <!-- Header -->
+    <div class="space-y-5 max-w-2xl">
       <div>
-        <h1 class="text-xl font-semibold">Configuración</h1>
-        <p class="text-gray-500 text-sm mt-0.5">Usuarios e integraciones del sistema</p>
+        <h1 class="text-xl font-semibold" style="color:#111827;">Configuración</h1>
+        <p class="text-sm mt-0.5" style="color:#6B7280;">Usuarios e integraciones del sistema</p>
       </div>
 
       <!-- Usuario actual -->
       <div class="card">
-        <h2 class="font-semibold text-sm mb-4 text-gray-300">Tu cuenta</h2>
+        <h2 class="font-semibold text-sm mb-4" style="color:#374151;">Tu cuenta</h2>
         <div class="flex items-center gap-4">
-          <div class="w-11 h-11 rounded-full bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center text-base font-bold shrink-0">
+          <div class="w-11 h-11 rounded-full flex items-center justify-center text-base font-bold shrink-0 text-white" style="background:#2563EB;">
             ${initial}
           </div>
           <div class="flex-1 min-w-0">
-            <p class="font-medium text-gray-100">${user.name || '—'}</p>
-            <p class="text-gray-500 text-sm truncate">${user.email || '—'}</p>
+            <p class="font-medium" style="color:#111827;">${user.name || '—'}</p>
+            <p class="text-sm truncate" style="color:#6B7280;">${user.email || '—'}</p>
           </div>
-          <span class="badge bg-violet-900/40 text-violet-300 border border-violet-800/60">${user.role || 'admin'}</span>
+          <span class="badge bg-blue-100 text-blue-700 border border-blue-200">${user.role || 'admin'}</span>
         </div>
       </div>
 
       <!-- Crear usuario -->
       <div class="card">
-        <h2 class="font-semibold text-sm mb-4 text-gray-300">Crear usuario admin</h2>
+        <h2 class="font-semibold text-sm mb-4" style="color:#374151;">Crear usuario admin</h2>
         <div class="space-y-3">
           <div>
-            <label class="text-xs text-gray-600 font-medium mb-1.5 block uppercase tracking-wider">Nombre</label>
+            <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Nombre</label>
             <input id="new-name" placeholder="Nombre completo" class="input">
           </div>
           <div>
-            <label class="text-xs text-gray-600 font-medium mb-1.5 block uppercase tracking-wider">Email</label>
+            <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Email</label>
             <input id="new-email" type="email" placeholder="email@pampai.com" class="input">
           </div>
           <div>
-            <label class="text-xs text-gray-600 font-medium mb-1.5 block uppercase tracking-wider">Contraseña</label>
+            <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Contraseña</label>
             <input id="new-password" type="password" placeholder="Mínimo 8 caracteres" class="input">
           </div>
           <div class="flex items-center gap-3 pt-1">
@@ -50,7 +49,7 @@ function renderSettings(root) {
 
       <!-- Integraciones -->
       <div class="card">
-        <h2 class="font-semibold text-sm mb-4 text-gray-300">Integraciones</h2>
+        <h2 class="font-semibold text-sm mb-4" style="color:#374151;">Integraciones</h2>
         <div class="space-y-1">
           ${renderIntegration('Supabase',          true,  'Base de datos · PostgreSQL')}
           ${renderIntegration('Anthropic Claude',  true,  'Agentes IA · claude-opus-4-6')}
@@ -65,17 +64,17 @@ function renderSettings(root) {
 }
 
 function renderIntegration(name, active, note) {
-  return `<div class="flex items-center justify-between py-3 border-b border-gray-800/40 last:border-0">
+  return `<div class="flex items-center justify-between py-3" style="border-bottom:1px solid #F3F4F6;">
     <div class="flex items-center gap-3">
-      <div class="w-1.5 h-1.5 rounded-full shrink-0 ${active ? 'bg-green-400' : 'bg-gray-700'}"></div>
+      <div class="w-2 h-2 rounded-full shrink-0" style="background:${active ? '#10B981' : '#D1D5DB'};"></div>
       <div>
-        <p class="text-sm font-medium text-gray-200">${name}</p>
-        <p class="text-xs text-gray-600">${note}</p>
+        <p class="text-sm font-medium" style="color:#111827;">${name}</p>
+        <p class="text-xs" style="color:#9CA3AF;">${note}</p>
       </div>
     </div>
-    <span class="text-xs font-medium px-2.5 py-1 rounded-lg ${active
-      ? 'bg-green-900/30 text-green-400 border border-green-800/40'
-      : 'bg-gray-800/60 text-gray-600 border border-gray-700/40'}">
+    <span class="text-xs font-semibold px-2.5 py-1 rounded-lg" style="${active
+      ? 'background:#F0FDF4;color:#15803D;border:1px solid #BBF7D0;'
+      : 'background:#F9FAFB;color:#9CA3AF;border:1px solid #E5E7EB;'}">
       ${active ? 'Activo' : 'Inactivo'}
     </span>
   </div>`;
@@ -89,7 +88,7 @@ async function createUser() {
 
   if (!email || !password) {
     msg.textContent = 'Email y contraseña son requeridos';
-    msg.className = 'text-sm text-red-400';
+    msg.style.color = '#EF4444';
     msg.classList.remove('hidden');
     return;
   }
@@ -97,12 +96,12 @@ async function createUser() {
   const res = await api('/api/auth/register', { method: 'POST', body: { name, email, password } });
   if (res?.ok) {
     msg.textContent = '✓ Usuario creado';
-    msg.className = 'text-sm text-green-400';
+    msg.style.color = '#10B981';
     ['new-name','new-email','new-password'].forEach(id => document.getElementById(id).value = '');
     showToast('Usuario creado correctamente');
   } else {
     msg.textContent = res?.error || 'Error creando usuario';
-    msg.className = 'text-sm text-red-400';
+    msg.style.color = '#EF4444';
   }
   msg.classList.remove('hidden');
 }

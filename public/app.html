@@ -4,81 +4,78 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CRM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     * { font-family: 'Inter', system-ui, sans-serif; }
+    .font-data { font-family: 'JetBrains Mono', monospace !important; }
 
     .nav-item {
       display: flex; align-items: center; gap: 8px;
-      padding: 7px 10px; border-radius: 8px; font-size: 13.5px;
+      padding: 6px 10px; border-radius: 6px; font-size: 13px;
       color: rgb(156,163,175); cursor: pointer;
-      transition: background 0.12s, color 0.12s;
-      user-select: none;
+      transition: background 0.12s, color 0.12s; user-select: none;
     }
-    .nav-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
-    .nav-item.active {
-      background: rgba(124,58,237,0.18);
-      color: rgb(196,181,253);
-      border: 1px solid rgba(124,58,237,0.3);
-    }
+    .nav-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
+    .nav-item.active { background: rgba(37,99,235,0.2); color: #93C5FD; border: 1px solid rgba(37,99,235,0.3); }
     .nav-sub {
       display: flex; align-items: center; gap: 8px;
-      padding: 5px 10px 5px 30px; border-radius: 8px; font-size: 12.5px;
+      padding: 5px 10px 5px 28px; border-radius: 6px; font-size: 12px;
       color: rgb(107,114,128); cursor: pointer;
-      transition: background 0.12s, color 0.12s;
-      user-select: none;
+      transition: background 0.12s, color 0.12s; user-select: none;
     }
-    .nav-sub:hover { color: rgb(209,213,219); }
-    .nav-sub.active { color: rgb(196,181,253); }
+    .nav-sub:hover { color: rgb(209,213,219); background: rgba(255,255,255,0.04); }
+    .nav-sub.active { color: #93C5FD; }
+    .nav-section { font-size: 10px; color: rgb(75,85,99); text-transform: uppercase; letter-spacing: 0.1em; padding: 0 10px; margin: 16px 0 4px; }
 
-    .nav-section { font-size: 10px; color: rgb(75,85,99); text-transform: uppercase; letter-spacing: 0.1em; padding: 0 10px; margin: 18px 0 4px; }
+    .card { background: white; border: 1px solid #E5E7EB; border-radius: 8px; padding: 20px; }
+    .card-sm { background: white; border: 1px solid #E5E7EB; border-radius: 8px; padding: 14px 16px; }
+    .kpi-card { background: white; border: 1px solid #E5E7EB; border-radius: 8px; padding: 18px 20px; transition: border-color 0.15s, box-shadow 0.15s; }
+    .kpi-card:hover { border-color: #D1D5DB; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
 
-    .card { background: rgb(17,24,39); border: 1px solid rgb(31,41,55); border-radius: 12px; padding: 20px; }
-    .card-sm { background: rgb(17,24,39); border: 1px solid rgb(31,41,55); border-radius: 10px; padding: 14px 16px; }
+    th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #6B7280; background: #F9FAFB; }
+    tr.data-row:hover td { background: #F3F4F6; }
+    tr.lead-row:hover td { background: #F3F4F6; cursor: pointer; }
 
-    .badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+    .badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+
+    .btn-primary { background: #2563EB; color: white; border-radius: 6px; padding: 7px 16px; font-size: 13px; font-weight: 600; transition: background 0.15s; border: none; cursor: pointer; }
+    .btn-primary:hover { background: #1D4ED8; }
+    .btn-ghost { background: white; color: #374151; border-radius: 6px; padding: 7px 14px; font-size: 13px; font-weight: 500; transition: all 0.15s; border: 1px solid #E5E7EB; cursor: pointer; }
+    .btn-ghost:hover { background: #F9FAFB; border-color: #D1D5DB; }
+
+    .input { background: white; border: 1px solid #D1D5DB; border-radius: 6px; padding: 8px 12px; font-size: 13px; color: #111827; outline: none; transition: border-color 0.15s, box-shadow 0.15s; width: 100%; }
+    .input:focus { border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+    .input::placeholder { color: #9CA3AF; }
+    select.input { cursor: pointer; }
+
+    .skeleton { background: linear-gradient(90deg,#F3F4F6 25%,#E5E7EB 50%,#F3F4F6 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 
     .spinning { animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgb(55,65,81); border-radius: 4px; }
-
-    .kpi-card { background: rgb(17,24,39); border: 1px solid rgb(31,41,55); border-radius: 14px; padding: 18px 20px; transition: border-color 0.15s; }
-    .kpi-card:hover { border-color: rgb(55,65,81); }
-
-    tr.lead-row:hover td { background: rgba(255,255,255,0.025); }
-    th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: rgb(75,85,99); }
-
-    .btn-primary { background: rgb(124,58,237); color: white; border-radius: 8px; padding: 7px 16px; font-size: 13px; font-weight: 600; transition: background 0.15s; border: none; cursor: pointer; }
-    .btn-primary:hover { background: rgb(109,40,217); }
-    .btn-ghost { background: rgba(255,255,255,0.05); color: rgb(156,163,175); border-radius: 8px; padding: 7px 14px; font-size: 13px; font-weight: 500; transition: background 0.15s; border: 1px solid rgb(31,41,55); cursor: pointer; }
-    .btn-ghost:hover { background: rgba(255,255,255,0.08); color: white; }
-    .input { background: rgb(17,24,39); border: 1px solid rgb(55,65,81); border-radius: 8px; padding: 8px 12px; font-size: 13px; color: #f9fafb; outline: none; transition: border-color 0.15s; width: 100%; }
-    .input:focus { border-color: rgb(124,58,237); }
-    .input::placeholder { color: rgb(75,85,99); }
-    select.input { cursor: pointer; }
+    ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 4px; }
   </style>
 </head>
-<body class="bg-gray-950 text-gray-100 min-h-screen flex">
+<body style="background:#F8F9FA;" class="text-gray-900 min-h-screen flex">
 
   <!-- Sidebar -->
-  <aside class="w-56 min-h-screen bg-gray-900 border-r border-gray-800/80 flex flex-col fixed left-0 top-0 z-30">
-    <!-- Logo -->
-    <div class="px-4 py-4 border-b border-gray-800/80 flex items-center gap-3">
-      <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center font-bold text-sm shrink-0 shadow shadow-violet-900/50">D</div>
+  <aside class="w-56 min-h-screen flex flex-col fixed left-0 top-0 z-30" style="background:#1A1D23;border-right:1px solid rgba(255,255,255,0.06);">
+    <div class="px-4 py-4 flex items-center gap-3" style="border-bottom:1px solid rgba(255,255,255,0.06);">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm shrink-0 text-white" style="background:#2563EB;">D</div>
       <div class="min-w-0">
-        <p class="font-semibold text-sm leading-tight truncate">Marketing</p>
-        <p class="text-xs text-gray-600 leading-tight">Agentes IA</p>
+        <p class="font-semibold text-sm leading-tight truncate text-white">Marketing Dana</p>
+        <p class="text-xs leading-tight" style="color:rgb(107,114,128);">Agentes IA</p>
       </div>
     </div>
 
-    <!-- Nav -->
     <nav class="flex-1 overflow-y-auto px-2 py-3">
       <div onclick="navigate('dashboard')" class="nav-item" data-view="dashboard">
-        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v2a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10-3a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1v-7z"/></svg>
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
         Dashboard
       </div>
 
@@ -87,32 +84,41 @@
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         Todos
       </div>
-      <div onclick="navigate('leads/web_form')"   class="nav-sub" data-view="leads/web_form">🌐 Formulario web</div>
-      <div onclick="navigate('leads/manychat')"   class="nav-sub" data-view="leads/manychat">💬 ManyChat</div>
-      <div onclick="navigate('leads/instagram')"  class="nav-sub" data-view="leads/instagram">📸 Instagram</div>
-      <div onclick="navigate('leads/whatsapp')"   class="nav-sub" data-view="leads/whatsapp">📱 WhatsApp</div>
-      <div onclick="navigate('leads/linkedin')"   class="nav-sub" data-view="leads/linkedin">💼 LinkedIn</div>
-      <div onclick="navigate('leads/email')"      class="nav-sub" data-view="leads/email">✉️ Email</div>
-      <div onclick="navigate('leads/database_import')" class="nav-sub" data-view="leads/database_import">📂 Importación</div>
+      <div onclick="navigate('leads/web_form')"        class="nav-sub" data-view="leads/web_form">Formulario web</div>
+      <div onclick="navigate('leads/manychat')"        class="nav-sub" data-view="leads/manychat">ManyChat</div>
+      <div onclick="navigate('leads/instagram')"       class="nav-sub" data-view="leads/instagram">Instagram</div>
+      <div onclick="navigate('leads/whatsapp')"        class="nav-sub" data-view="leads/whatsapp">WhatsApp</div>
+      <div onclick="navigate('leads/linkedin')"        class="nav-sub" data-view="leads/linkedin">LinkedIn</div>
+      <div onclick="navigate('leads/email')"           class="nav-sub" data-view="leads/email">Email</div>
+      <div onclick="navigate('leads/database_import')" class="nav-sub" data-view="leads/database_import">Importación</div>
 
       <p class="nav-section">Agentes IA</p>
-      <div onclick="navigate('agent/sdr')"         class="nav-item" data-view="agent/sdr">
-        <span class="text-base leading-none shrink-0">🎯</span> SDR
+      <div onclick="navigate('agent/sdr')" class="nav-item" data-view="agent/sdr">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        SDR
       </div>
-      <div onclick="navigate('agent/analyst')"     class="nav-item" data-view="agent/analyst">
-        <span class="text-base leading-none shrink-0">🔍</span> Analista
+      <div onclick="navigate('agent/analyst')" class="nav-item" data-view="agent/analyst">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        Analista
       </div>
-      <div onclick="navigate('agent/proposal')"    class="nav-item" data-view="agent/proposal">
-        <span class="text-base leading-none shrink-0">📋</span> Propuestas
+      <div onclick="navigate('agent/proposal')" class="nav-item" data-view="agent/proposal">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        Propuestas
       </div>
       <div onclick="navigate('agent/performance')" class="nav-item" data-view="agent/performance">
-        <span class="text-base leading-none shrink-0">📈</span> Performance
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+        Performance
       </div>
-      <div onclick="navigate('agent/reporting')"   class="nav-item" data-view="agent/reporting">
-        <span class="text-base leading-none shrink-0">📊</span> Reporting
+      <div onclick="navigate('agent/reporting')" class="nav-item" data-view="agent/reporting">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        Reporting
       </div>
 
       <p class="nav-section">Herramientas</p>
+      <div onclick="navigate('pipeline')" class="nav-item" data-view="pipeline">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
+        Pipeline
+      </div>
       <div onclick="navigate('calendar')" class="nav-item" data-view="calendar">
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
         Calendario
@@ -123,46 +129,46 @@
       </div>
     </nav>
 
-    <!-- User footer -->
-    <div class="border-t border-gray-800/80 px-3 py-3 flex items-center gap-2.5">
-      <div class="w-7 h-7 rounded-full bg-violet-700 flex items-center justify-center text-xs font-bold shrink-0" id="user-avatar">M</div>
+    <div class="px-3 py-3 flex items-center gap-2.5" style="border-top:1px solid rgba(255,255,255,0.06);">
+      <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 text-white" style="background:#2563EB;" id="user-avatar">M</div>
       <div class="min-w-0 flex-1">
-        <p id="user-name" class="text-xs font-medium truncate">—</p>
-        <p id="user-email" class="text-xs text-gray-600 truncate">—</p>
+        <p id="user-name" class="text-xs font-medium truncate text-white">—</p>
+        <p id="user-email" class="text-xs truncate" style="color:rgb(107,114,128);">—</p>
       </div>
-      <button onclick="logout()" title="Salir" class="text-gray-600 hover:text-red-400 transition shrink-0">
+      <button onclick="logout()" title="Salir" class="transition shrink-0" style="color:rgb(107,114,128);"
+        onmouseover="this.style.color='#EF4444'" onmouseout="this.style.color='rgb(107,114,128)'">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
       </button>
     </div>
   </aside>
 
   <!-- Main -->
-  <main class="ml-56 flex-1 min-h-screen bg-gray-950">
+  <main class="ml-56 flex-1 min-h-screen" style="background:#F8F9FA;">
     <div id="view-root" class="p-7 max-w-7xl mx-auto"></div>
   </main>
 
   <!-- Modal Lead -->
-  <div id="lead-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-gray-900 border border-gray-700/80 rounded-2xl w-full max-w-lg shadow-2xl max-h-[88vh] flex flex-col">
-      <div class="flex items-start justify-between p-5 border-b border-gray-800">
+  <div id="lead-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,0.4);">
+    <div class="bg-white border border-gray-200 rounded-xl w-full max-w-lg shadow-2xl max-h-[88vh] flex flex-col">
+      <div class="flex items-start justify-between p-5 border-b border-gray-100">
         <div>
-          <h2 id="modal-name" class="font-semibold text-base"></h2>
+          <h2 id="modal-name" class="font-semibold text-base text-gray-900"></h2>
           <p id="modal-source" class="text-gray-500 text-xs mt-0.5"></p>
         </div>
-        <button onclick="closeModal()" class="text-gray-600 hover:text-white transition p-1 rounded-lg hover:bg-gray-800">
+        <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 transition p-1 rounded-lg hover:bg-gray-100">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
       <div id="modal-body" class="overflow-y-auto p-5 space-y-4 flex-1"></div>
-      <div class="border-t border-gray-800 p-4">
-        <p class="text-xs text-gray-600 mb-2.5 font-medium uppercase tracking-wider">Cambiar estado</p>
+      <div class="border-t border-gray-100 p-4 bg-gray-50">
+        <p class="text-xs text-gray-500 mb-2.5 font-semibold uppercase tracking-wider">Cambiar estado</p>
         <div class="flex gap-1.5 flex-wrap" id="modal-status-buttons"></div>
       </div>
     </div>
   </div>
 
   <!-- Toast -->
-  <div id="toast" class="hidden fixed bottom-5 right-5 rounded-xl px-4 py-3 text-sm z-50 shadow-2xl flex items-center gap-2.5 min-w-48"></div>
+  <div id="toast" class="hidden fixed bottom-5 right-5 z-50"></div>
 
   <script src="/js/api.js"></script>
   <script src="/js/components.js"></script>
@@ -171,6 +177,7 @@
   <script src="/js/views/agent.js"></script>
   <script src="/js/views/calendar.js"></script>
   <script src="/js/views/settings.js"></script>
+  <script src="/js/views/pipeline.js"></script>
   <script>
     const token = localStorage.getItem('crm_token');
     if (!token) window.location.href = '/login.html';
@@ -197,7 +204,7 @@
 
       const root = document.getElementById('view-root');
       root.innerHTML = `<div class="flex items-center justify-center h-64">
-        <div class="flex flex-col items-center gap-3 text-gray-600">
+        <div class="flex flex-col items-center gap-3" style="color:#9CA3AF;">
           <svg class="w-5 h-5 spinning" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
           <span class="text-sm">Cargando...</span>
         </div>
@@ -206,6 +213,7 @@
       if (view === 'dashboard')           return renderDashboard(root);
       if (view === 'calendar')            return renderCalendar(root);
       if (view === 'settings')            return renderSettings(root);
+      if (view === 'pipeline')            return renderPipeline(root);
       if (view.startsWith('agent/'))      return renderAgent(root, view.split('/')[1]);
       if (view.startsWith('leads')) {
         const source = view.includes('/') ? view.split('/')[1] : null;
@@ -216,7 +224,6 @@
     window.addEventListener('hashchange', () => renderView(window.location.hash));
     renderView(window.location.hash || '#dashboard');
 
-    // Modal
     let currentLeadId = null;
     function openLeadModal(lead) {
       currentLeadId = lead.id;
@@ -226,7 +233,7 @@
       const statuses = ['new','contacted','qualified','won','lost'];
       document.getElementById('modal-status-buttons').innerHTML = statuses.map(s => `
         <button onclick="changeLeadStatus('${lead.id}','${s}')"
-          class="badge ${s === lead.status ? statusColors[s] : 'bg-gray-800 text-gray-500 border border-gray-700'} cursor-pointer hover:opacity-80 transition py-1 px-3">
+          class="badge ${s === lead.status ? statusColors[s] : 'bg-gray-100 text-gray-500 border border-gray-200'} cursor-pointer hover:opacity-80 transition py-1 px-3">
           ${statusLabel[s]}
         </button>`).join('');
       document.getElementById('lead-modal').classList.remove('hidden');
@@ -250,12 +257,9 @@
     function showToast(msg, type = 'success') {
       const t = document.getElementById('toast');
       const isError = type === 'error';
-      t.innerHTML = `
-        <div class="w-1.5 h-1.5 rounded-full shrink-0 ${isError ? 'bg-red-400' : 'bg-green-400'}"></div>
-        <span>${msg}</span>`;
-      t.className = `fixed bottom-5 right-5 rounded-xl px-4 py-3 text-sm z-50 shadow-2xl flex items-center gap-2.5 min-w-48 border ${
-        isError ? 'bg-gray-900 border-red-800/60 text-red-300' : 'bg-gray-900 border-gray-700 text-gray-100'
-      }`;
+      const color = isError ? '#EF4444' : '#10B981';
+      t.innerHTML = `<span>${msg}</span>`;
+      t.style.cssText = `position:fixed;bottom:20px;right:20px;background:white;border:1px solid #E5E7EB;border-left:3px solid ${color};border-radius:8px;padding:12px 16px;font-size:13px;z-index:50;box-shadow:0 4px 12px rgba(0,0,0,0.1);display:flex;align-items:center;gap:10px;min-width:192px;color:${isError?'#DC2626':'#111827'};font-family:Inter,sans-serif;`;
       t.classList.remove('hidden');
       setTimeout(() => t.classList.add('hidden'), 3500);
     }

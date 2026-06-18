@@ -4,71 +4,62 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CRM — Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    body { font-family: 'Inter', system-ui, sans-serif; }
-    .glow { box-shadow: 0 0 60px rgba(124,58,237,0.15); }
+    * { font-family: 'Inter', system-ui, sans-serif; }
     .input-field {
-      width: 100%;
-      background: rgb(17,24,39);
-      border: 1px solid rgb(55,65,81);
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 14px;
-      color: #f9fafb;
-      outline: none;
-      transition: border-color 0.15s;
+      width: 100%; background: white; border: 1px solid #D1D5DB;
+      border-radius: 6px; padding: 10px 14px; font-size: 14px;
+      color: #111827; outline: none; transition: border-color 0.15s, box-shadow 0.15s;
     }
-    .input-field:focus { border-color: rgb(124,58,237); }
-    .input-field::placeholder { color: rgb(107,114,128); }
+    .input-field:focus { border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+    .input-field::placeholder { color: #9CA3AF; }
   </style>
 </head>
-<body class="bg-gray-950 text-gray-100 min-h-screen flex items-center justify-center p-4">
+<body style="background:#F8F9FA;" class="min-h-screen flex items-center justify-center p-4">
 
-  <!-- Background decoration -->
-  <div class="fixed inset-0 overflow-hidden pointer-events-none">
-    <div class="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-violet-600/5 rounded-full blur-3xl"></div>
-  </div>
-
-  <div class="w-full max-w-sm relative">
+  <div class="w-full max-w-sm">
     <!-- Logo -->
     <div class="text-center mb-8">
-      <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center font-bold text-2xl mx-auto mb-5 shadow-lg shadow-violet-900/40">
-        D
-      </div>
-      <h1 class="text-2xl font-bold tracking-tight">Marketing</h1>
-      <p class="text-gray-500 text-sm mt-1.5">Sistema operativo de la agencia</p>
+      <div class="w-14 h-14 rounded-xl flex items-center justify-center font-bold text-xl mx-auto mb-5 shadow-md text-white" style="background:#1A1D23;">D</div>
+      <h1 class="text-2xl font-bold tracking-tight" style="color:#111827;">Marketing Dana</h1>
+      <p class="text-sm mt-1.5" style="color:#6B7280;">Sistema operativo de la agencia</p>
     </div>
 
     <!-- Card -->
-    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-7 glow">
+    <div class="bg-white border border-gray-200 rounded-xl p-7 shadow-sm">
       <form id="login-form" class="space-y-4">
         <div>
-          <label class="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1.5 block">Email</label>
+          <label class="text-xs font-semibold uppercase tracking-wider mb-1.5 block" style="color:#6B7280;">Email</label>
           <input id="email" type="email" required placeholder="tu@email.com" class="input-field">
         </div>
         <div>
-          <label class="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1.5 block">Contraseña</label>
+          <label class="text-xs font-semibold uppercase tracking-wider mb-1.5 block" style="color:#6B7280;">Contraseña</label>
           <input id="password" type="password" required placeholder="••••••••" class="input-field">
         </div>
 
-        <div id="error-wrap" class="hidden bg-red-900/20 border border-red-800/50 rounded-lg px-3 py-2.5">
-          <p id="error-msg" class="text-red-400 text-sm"></p>
+        <div id="error-wrap" class="hidden bg-red-50 border border-red-200 rounded-lg px-3 py-2.5">
+          <p id="error-msg" class="text-red-600 text-sm"></p>
         </div>
 
         <button type="submit" id="login-btn"
-          class="w-full bg-violet-600 hover:bg-violet-500 active:bg-violet-700 transition-colors rounded-xl py-2.5 text-sm font-semibold mt-1 flex items-center justify-center gap-2">
+          class="w-full text-white rounded-lg py-2.5 text-sm font-semibold mt-1 flex items-center justify-center gap-2 transition-colors"
+          style="background:#2563EB;">
           Ingresar
         </button>
       </form>
     </div>
 
-    <p class="text-center text-gray-700 text-xs mt-6">CRM · Agentes IA</p>
+    <p class="text-center text-xs mt-6" style="color:#9CA3AF;">CRM · Agentes IA</p>
   </div>
 
   <script>
     if (localStorage.getItem('crm_token')) window.location.href = '/app.html';
+
+    document.getElementById('login-btn').addEventListener('mouseover', function() { this.style.background='#1D4ED8'; });
+    document.getElementById('login-btn').addEventListener('mouseout',  function() { this.style.background='#2563EB'; });
 
     document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
