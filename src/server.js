@@ -41,6 +41,21 @@ app.use('/api/auth', authRouter);
 app.use('/api/leads/ingest', ingestRouter);
 app.use('/api/leads/reprocess', ingestRouter);
 
+// Trigger Analista/Perfiles desde n8n (header x-crm-internal-key)
+app.post('/api/hooks/perfiles-run', async (req, res) => {
+  const expected = process.env.CRM_INTERNAL_KEY || process.env.JWT_SECRET;
+  const got = req.headers['x-crm-internal-key'];
+  if (!expected || got !== expected) {
+    return res.status(401).json({ ok: false, error: 'unauthorized' });
+  }
+  const { processQualifiedLeads } = require('./agents/perfiles');
+  const { maxAgeDays = 30, limit = 40 } = req.body || {};
+  res.json({ ok: true, message: 'Perfiles batch iniciado' });
+  processQualifiedLeads({ maxAgeDays, limit }).catch((err) =>
+    logger.error({ msg: 'Hook perfiles-run falló', error: err.message })
+  );
+});
+
 // Todo lo demás requiere auth
 app.use('/api', requireAuth);
 app.use('/api/auth/me', authRouter);

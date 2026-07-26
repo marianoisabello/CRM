@@ -160,8 +160,8 @@
         </button>
       </div>
       <div id="modal-body" class="overflow-y-auto p-5 space-y-4 flex-1"></div>
-      <div class="border-t border-gray-100 p-4 bg-gray-50">
-        <p class="text-xs text-gray-500 mb-2.5 font-semibold uppercase tracking-wider">Cambiar estado</p>
+      <div class="border-t border-gray-100 p-4 bg-gray-50" id="modal-footer">
+        <p class="text-xs text-gray-500 mb-2.5 font-semibold uppercase tracking-wider" id="modal-footer-label">Cambiar estado</p>
         <div class="flex gap-1.5 flex-wrap" id="modal-status-buttons"></div>
       </div>
     </div>
@@ -230,6 +230,10 @@
       document.getElementById('modal-name').textContent = lead.name || 'Sin nombre';
       document.getElementById('modal-source').textContent = (sourceLabel[lead.source] || lead.source) + ' · ' + fmtDate(lead.created_at);
       document.getElementById('modal-body').innerHTML = renderLeadDetail(lead);
+      const footer = document.getElementById('modal-footer');
+      const footerLabel = document.getElementById('modal-footer-label');
+      if (footer) footer.style.display = '';
+      if (footerLabel) footerLabel.style.display = '';
       const statuses = ['new','contacted','qualified','won','lost'];
       document.getElementById('modal-status-buttons').innerHTML = statuses.map(s => `
         <button onclick="changeLeadStatus('${lead.id}','${s}')"

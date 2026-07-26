@@ -38,7 +38,7 @@ const actionLabel = {
 
 const agentInfo = {
   sdr:         { emoji: '🎯', name: 'SDR',         desc: 'Califica leads automáticamente con score determinístico y análisis IA.' },
-  analyst:     { emoji: '🔍', name: 'Analista',    desc: 'Genera diagnóstico de marketing para leads post-reunión.' },
+  analyst:     { emoji: '🔍', name: 'Analista',    desc: 'Enriquece leads calificados y guarda perfiles con score, pain points y oferta.' },
   proposal:    { emoji: '📋', name: 'Propuestas',  desc: 'Crea propuestas comerciales personalizadas para el lead.' },
   performance: { emoji: '📈', name: 'Performance', desc: 'Analiza métricas de Meta Ads y Google Ads semanalmente.' },
   reporting:   { emoji: '📊', name: 'Reporting',   desc: 'Genera reportes mensuales consolidados por cliente.' },
