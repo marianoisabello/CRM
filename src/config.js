@@ -58,4 +58,7 @@ module.exports = {
   jwt: {
     secret: process.env.JWT_SECRET || 'dev-secret-change-in-production',
   },
+
+  // API Key para integraciones externas (Zapier, Make, etc.)
+  apiKey: optional('ZAPIER_API_KEY'),
 };

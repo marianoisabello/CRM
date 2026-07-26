@@ -4,10 +4,22 @@ const express = require('express');
 const crypto = require('crypto');
 const router = express.Router();
 const logger = require('../lib/logger');
+const config = require('../config');
 const { getNormalizer, VALID_SOURCES } = require('../normalizers');
 const { createIngestEvent, markProcessed, markFailed, getUnprocessed } = require('../db/ingestEvents');
 const { upsertLead } = require('../db/leads');
 const { processLead } = require('../agents/sdr');
+
+/**
+ * Verifica X-Api-Key cuando ZAPIER_API_KEY está configurada.
+ * Si la variable no está seteada, permite el acceso (backward compatible con ManyChat y otros).
+ */
+function verifyApiKey(req) {
+  if (!config.apiKey) return true;
+  const key = req.headers['x-api-key'];
+  if (!key) return false;
+  return crypto.timingSafeEqual(Buffer.from(key), Buffer.from(config.apiKey));
+}
 
 function verifyManychatSignature(req) {
   const secret = process.env.MANYCHAT_WEBHOOK_SECRET;
@@ -36,6 +48,13 @@ router.post('/ingest', async (req, res) => {
   const rawPayload = req.body;
 
   logger.info({ msg: 'Ingesta recibida', source, keys: Object.keys(rawPayload || {}) });
+
+  // Validar API key si está configurada (Zapier, Make, etc.)
+  // ManyChat usa su propia firma, así que la excluimos de esta verificación
+  if (source !== 'manychat' && !verifyApiKey(req)) {
+    logger.warn({ msg: 'Ingesta rechazada: API key inválida o ausente', source, ip: req.ip });
+    return res.status(401).json({ ok: false, error: 'API key inválida o ausente' });
+  }
 
   if (!source) {
     return res.status(400).json({ ok: false, error: 'Parámetro "source" requerido' });
