@@ -16,6 +16,7 @@ const ingestRouter = require('./routes/ingest');
 const meetingsRouter = require('./routes/meetings');
 const diagnosisRouter = require('./routes/diagnosis');
 const proposalsRouter = require('./routes/proposals');
+const catalogPropuestasRouter = require('./routes/catalogPropuestas');
 const campaignsRouter = require('./routes/campaigns');
 const reportsRouter = require('./routes/reports');
 const agentRunsRouter = require('./routes/agentRuns');
@@ -56,6 +57,24 @@ app.post('/api/hooks/perfiles-run', async (req, res) => {
   );
 });
 
+// Research (scrape + búsqueda) para n8n — SOURCE OF TRUTH: src/lib/research.js
+app.post('/api/hooks/research', async (req, res) => {
+  const expected = process.env.CRM_INTERNAL_KEY || process.env.JWT_SECRET;
+  const got = req.headers['x-crm-internal-key'];
+  if (!expected || got !== expected) {
+    return res.status(401).json({ ok: false, error: 'unauthorized' });
+  }
+  try {
+    const { researchLead } = require('./lib/research');
+    const lead = req.body || {};
+    const result = await researchLead(lead);
+    return res.json({ ok: true, ...result });
+  } catch (err) {
+    logger.error({ msg: 'Hook research falló', error: err.message });
+    return res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 // Todo lo demás requiere auth
 app.use('/api', requireAuth);
 app.use('/api/auth/me', authRouter);
@@ -63,6 +82,7 @@ app.use('/api/leads', leadsRouter);
 app.use('/api/meetings', meetingsRouter);
 app.use('/api/diagnosis', diagnosisRouter);
 app.use('/api/proposals', proposalsRouter);
+app.use('/api/propuestas', catalogPropuestasRouter);
 app.use('/api/campaigns', campaignsRouter);
 app.use('/api/reports', reportsRouter);
 app.use('/api/agent-runs', agentRunsRouter);

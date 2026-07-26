@@ -54,6 +54,9 @@ async function renderAnalystPerfiles(root) {
           </div>
         </div>
         <div class="flex gap-2">
+          <button onclick="navigate('propuestas')" class="btn-ghost flex items-center gap-1.5 text-xs">
+            Menú propuestas
+          </button>
           <button onclick="runPerfilesBatch()" class="btn-primary flex items-center gap-1.5 text-xs">
             Ejecutar batch
           </button>
@@ -134,6 +137,7 @@ function renderPerfilesTable(perfiles) {
         <th class="text-left px-4 py-3">Categoría</th>
         <th class="text-left px-4 py-3">Score</th>
         <th class="text-left px-4 py-3">Oferta</th>
+        <th class="text-left px-4 py-3">Propuesta</th>
         <th class="text-left px-4 py-3">Insight</th>
         <th class="text-left px-4 py-3">Actualizado</th>
       </tr>
@@ -161,6 +165,7 @@ function renderPerfilesTable(perfiles) {
           <td class="px-4 py-3">${sdrCategoriaBadge(p.sdr_categoria)}</td>
           <td class="px-4 py-3">${scoreBar(p.score_potencial)}</td>
           <td class="px-4 py-3 text-xs max-w-[140px]" style="color:#6B7280;">${p.oferta_estimada || '—'}</td>
+          <td class="px-4 py-3 text-xs" style="color:#6B7280;">${p.propuesta_id ? (p.propuesta_origen === 'manual' ? 'Manual' : 'Auto') : '—'}</td>
           <td class="px-4 py-3 text-xs max-w-[200px]" style="color:#6B7280;" title="${(insight || '').replace(/"/g, '&quot;')}">${shortInsight || '—'}</td>
           <td class="px-4 py-3 font-data text-xs" style="color:#9CA3AF;">${fmtDate(p.updated_at)}</td>
         </tr>`;
@@ -239,7 +244,30 @@ function renderPerfilDetail(p) {
     <div class="rounded-lg p-3.5 border" style="background:#F5F3FF;border-color:#DDD6FE;">
       <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#7C3AED;">Razones / insight</p>
       <p class="whitespace-pre-wrap text-xs leading-relaxed" style="color:#5B21B6;">${p.razones}</p>
-    </div>` : ''}`;
+    </div>` : ''}
+
+    ${p.research_summary ? `
+    <div class="rounded-lg p-3.5 border" style="background:#F0FDF4;border-color:#BBF7D0;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#15803D;">Research (scrape / búsqueda)</p>
+      <p class="whitespace-pre-wrap text-xs leading-relaxed" style="color:#166534;">${String(p.research_summary).slice(0, 1200)}${String(p.research_summary).length > 1200 ? '…' : ''}</p>
+    </div>` : ''}
+
+    <div class="rounded-lg p-3.5 border" style="background:#F9FAFB;border-color:#E5E7EB;" id="perfil-assign-box">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#9CA3AF;">Asignar propuesta (manual)</p>
+      <p class="text-xs mb-2" style="color:#6B7280;">
+        Actual: ${p.propuesta_id
+          ? `<span style="color:#111827;">${p._propuesta_nombre || p.propuesta_id}</span> · origen ${p.propuesta_origen || '—'}`
+          : 'ninguna'}
+      </p>
+      <select id="perfil-prop-select" class="input text-sm mb-2">
+        <option value="">Cargando catálogo…</option>
+      </select>
+      <input id="perfil-prop-notas" class="input text-sm mb-2" placeholder="Notas (opcional)" value="${(p.propuesta_notas || '').replace(/"/g, '&quot;')}">
+      <div class="flex gap-2">
+        <button type="button" class="btn-primary text-xs" onclick="savePerfilPropuesta('${(p.email || '').replace(/'/g, "\\'")}')">Guardar asignación</button>
+        ${p.propuesta_id ? `<button type="button" class="btn-ghost text-xs" onclick="clearPerfilPropuesta('${(p.email || '').replace(/'/g, "\\'")}')">Quitar</button>` : ''}
+      </div>
+    </div>`;
 }
 
 function openPerfilModal(perfil) {
@@ -251,6 +279,63 @@ function openPerfilModal(perfil) {
   const footer = document.getElementById('modal-footer');
   if (footer) footer.style.display = 'none';
   document.getElementById('lead-modal').classList.remove('hidden');
+  loadPropuestasIntoSelect(perfil.propuesta_id);
+  window._currentPerfil = perfil;
+}
+
+async function loadPropuestasIntoSelect(selectedId) {
+  const sel = document.getElementById('perfil-prop-select');
+  if (!sel) return;
+  const res = await api('/api/propuestas?activo=true&limit=100');
+  const rows = res?.propuestas || [];
+  if (!rows.length) {
+    sel.innerHTML = '<option value="">Sin propuestas (creá en Menú)</option>';
+    return;
+  }
+  sel.innerHTML =
+    '<option value="">— Elegir propuesta —</option>' +
+    rows
+      .map((p) => {
+        const label = `${p.nombre}${p.precio_min != null || p.precio_max != null ? ` (${p.moneda || 'USD'} ${p.precio_min ?? '?'}-${p.precio_max ?? '?'})` : ''}`;
+        const selAttr = selectedId && p.id === selectedId ? ' selected' : '';
+        return `<option value="${p.id}"${selAttr}>${label}</option>`;
+      })
+      .join('');
+}
+
+async function savePerfilPropuesta(email) {
+  const propuesta_id = document.getElementById('perfil-prop-select')?.value;
+  const notas = document.getElementById('perfil-prop-notas')?.value || '';
+  if (!propuesta_id) {
+    showToast('Elegí una propuesta del catálogo', 'error');
+    return;
+  }
+  const lead_id = window._currentPerfil?.lead_id || null;
+  const res = await api('/api/propuestas/assign', {
+    method: 'POST',
+    body: { email, propuesta_id, origen: 'manual', notas, lead_id },
+  });
+  if (res?.ok) {
+    showToast(res.message || 'Propuesta asignada');
+    closeModal();
+    refreshPerfiles();
+  } else {
+    showToast(res?.error || 'Error al asignar', 'error');
+  }
+}
+
+async function clearPerfilPropuesta(email) {
+  const res = await api('/api/propuestas/assign', {
+    method: 'DELETE',
+    body: { email },
+  });
+  if (res?.ok) {
+    showToast('Asignación quitada');
+    closeModal();
+    refreshPerfiles();
+  } else {
+    showToast(res?.error || 'Error', 'error');
+  }
 }
 
 async function refreshPerfiles() {

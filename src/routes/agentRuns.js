@@ -64,7 +64,9 @@ router.get('/perfiles', async (req, res) => {
     .select(
       'email, nombre, empresa, cargo, rubro, tamanio_empresa, sitio_web, ciudad, telefono, source, ' +
       'sdr_score, sdr_categoria, lead_id, pain_points_inferidos, servicios_recomendados, ' +
-      'oferta_estimada, score_potencial, razones, objetivo_original, updated_at'
+      'oferta_estimada, score_potencial, razones, objetivo_original, ' +
+      'research_summary, research_context, ' +
+      'propuesta_id, propuesta_origen, propuesta_notas, propuesta_asignada_at, updated_at'
     )
     .order('score_potencial', { ascending: false })
     .range(Number(offset), Number(offset) + Number(limit) - 1);

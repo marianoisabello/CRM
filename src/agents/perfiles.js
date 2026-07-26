@@ -1,15 +1,19 @@
 /**
  * Agente 02 — Perfiles (Analista MVP)
- * Lee leads calificados de Supabase, enriquece con Claude, upsert en `perfiles`.
+ * Lee leads calificados de Supabase, research (scrape+search), enriquece con Claude, upsert en `perfiles`.
+ *
+ * Research SOURCE OF TRUTH: ../lib/research.js
+ * Catálogo de servicios: tabla `propuestas` (fallback SERVICIOS_DANA hardcode).
  */
 'use strict';
 
 const { callClaude } = require('../integrations/ai');
+const { researchLead } = require('../lib/research');
 const supabase = require('../db/client');
 const AgentRun = require('../lib/agentRun');
 const logger = require('../lib/logger');
 
-const SERVICIOS_DANA = [
+const SERVICIOS_DANA_FALLBACK = [
   'Estrategia de marketing 360 — USD 1.500-2.500/mes',
   'Gestión de redes sociales — USD 800-1.200/mes',
   'Performance ads (Meta + Google) — USD 1.000-2.000/mes + spend',
@@ -17,12 +21,38 @@ const SERVICIOS_DANA = [
   'Branding y rediseño — USD 2.500-5.000 one-shot',
 ];
 
-const SYSTEM_PROMPT =
-  'Sos un analista de marketing senior de Dana. Recibis datos de un lead y devolves JSON con perfil enriquecido. ' +
-  'Inferí pain points, recomendá servicios del catálogo y estimá una oferta. Español Latam, sin promesas. ' +
-  'CATALOGO: ' + SERVICIOS_DANA.join(' | ') + '. ' +
-  'REGLAS: 1) Nunca prometas resultados. 2) oferta_estimada es un rango. 3) score_potencial 0-100. ' +
-  'OUTPUT JSON estricto: {"cargo_inferido":"","tamanio_inferido":"","pain_points":[],"servicios":[],"oferta_estimada":"","score":0,"razones":""}';
+async function loadCatalogLines() {
+  try {
+    const { data, error } = await supabase
+      .from('propuestas')
+      .select('nombre, descripcion, precio_min, precio_max, moneda')
+      .eq('activo', true)
+      .order('nombre');
+    if (error || !data?.length) return SERVICIOS_DANA_FALLBACK;
+    return data.map((p) => {
+      const rango =
+        p.precio_min != null || p.precio_max != null
+          ? ` — ${p.moneda || 'USD'} ${p.precio_min ?? '?'}-${p.precio_max ?? '?'}`
+          : '';
+      return `${p.nombre}${rango}${p.descripcion ? ` (${p.descripcion})` : ''}`;
+    });
+  } catch {
+    return SERVICIOS_DANA_FALLBACK;
+  }
+}
+
+function buildSystemPrompt(catalogLines) {
+  return (
+    'Sos un analista de marketing senior de Dana. Recibis datos de un lead y contexto de research (sitio web y/o búsqueda). ' +
+    'Devolves JSON con perfil enriquecido. Inferí pain points, recomendá servicios del catálogo y estimá una oferta. Español Latam, sin promesas. ' +
+    'CATALOGO: ' +
+    catalogLines.join(' | ') +
+    '. ' +
+    'REGLAS: 1) Nunca prometas resultados. 2) oferta_estimada es un rango. 3) score_potencial 0-100. ' +
+    '4) Si el research dice que el sitio o la búsqueda falló, NO inventes que lo visitaste ni cites resultados inexistentes. ' +
+    'OUTPUT JSON estricto: {"cargo_inferido":"","tamanio_inferido":"","pain_points":[],"servicios":[],"oferta_estimada":"","score":0,"razones":""}'
+  );
+}
 
 function normalizeLead(row) {
   const raw = row.raw_payload && typeof row.raw_payload === 'object' ? row.raw_payload : {};
@@ -66,9 +96,30 @@ async function enrichOne(leadRow) {
   const lead = normalizeLead(leadRow);
   if (!lead.email) throw new Error('Lead sin email');
 
+  let research = null;
+  let researchSummary = '';
+  try {
+    const r = await researchLead(lead);
+    research = r.research;
+    researchSummary = r.summary;
+  } catch (err) {
+    logger.warn({ msg: 'Research falló', email: lead.email, error: err.message });
+    researchSummary = 'Research no disponible. No inventes visitas ni resultados de búsqueda.';
+    research = { error: err.message, researched_at: new Date().toISOString() };
+  }
+
+  const catalogLines = await loadCatalogLines();
+  const systemPrompt = buildSystemPrompt(catalogLines);
+
+  const userMessage =
+    'Lead: ' +
+    JSON.stringify(lead) +
+    '\n\n--- RESEARCH ---\n' +
+    researchSummary;
+
   const { text, tokensUsed } = await callClaude({
-    systemPrompt: SYSTEM_PROMPT,
-    userMessage: 'Lead: ' + JSON.stringify(lead),
+    systemPrompt,
+    userMessage,
     maxTokens: 800,
     context: `perfiles.${lead.email}`,
   });
@@ -80,6 +131,13 @@ async function enrichOne(leadRow) {
   } catch {
     enriched = {};
   }
+
+  // Preserve manual propuesta assignment if present
+  const { data: existing } = await supabase
+    .from('perfiles')
+    .select('propuesta_id, propuesta_origen, propuesta_notas, propuesta_asignada_at')
+    .eq('email', lead.email)
+    .maybeSingle();
 
   const perfil = {
     email: lead.email,
@@ -101,12 +159,21 @@ async function enrichOne(leadRow) {
     score_potencial: Number(enriched.score) || 0,
     razones: enriched.razones || '',
     objetivo_original: lead.objetivo || '',
+    research_context: research || {},
+    research_summary: researchSummary || null,
     updated_at: new Date().toISOString(),
   };
 
+  if (existing?.propuesta_origen === 'manual' && existing.propuesta_id) {
+    perfil.propuesta_id = existing.propuesta_id;
+    perfil.propuesta_origen = existing.propuesta_origen;
+    perfil.propuesta_notas = existing.propuesta_notas;
+    perfil.propuesta_asignada_at = existing.propuesta_asignada_at;
+  }
+
   const { error } = await supabase.from('perfiles').upsert(perfil, { onConflict: 'email' });
   if (error) throw new Error(error.message);
-  return { perfil, tokensUsed };
+  return { perfil, tokensUsed, research };
 }
 
 /**
@@ -156,4 +223,4 @@ async function processQualifiedLeads({ maxAgeDays = 30, limit = 40 } = {}) {
   }
 }
 
-module.exports = { enrichOne, processQualifiedLeads, normalizeLead };
+module.exports = { enrichOne, processQualifiedLeads, normalizeLead, loadCatalogLines };

@@ -101,9 +101,10 @@
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
         Analista
       </div>
+      <div onclick="navigate('propuestas')" class="nav-sub" data-view="propuestas">Menú · Propuestas</div>
       <div onclick="navigate('agent/proposal')" class="nav-item" data-view="agent/proposal">
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-        Propuestas
+        Propuestas IA
       </div>
       <div onclick="navigate('agent/performance')" class="nav-item" data-view="agent/performance">
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
@@ -179,6 +180,7 @@
   <script src="/js/views/dashboard.js"></script>
   <script src="/js/views/leads.js"></script>
   <script src="/js/views/agent.js"></script>
+  <script src="/js/views/propuestas.js"></script>
   <script src="/js/views/calendar.js"></script>
   <script src="/js/views/settings.js"></script>
   <script src="/js/views/pipeline.js"></script>
@@ -218,6 +220,7 @@
       if (view === 'calendar')            return renderCalendar(root);
       if (view === 'settings')            return renderSettings(root);
       if (view === 'pipeline')            return renderPipeline(root);
+      if (view === 'propuestas')          return renderPropuestasMenu(root);
       if (view.startsWith('agent/'))      return renderAgent(root, view.split('/')[1]);
       if (view.startsWith('leads')) {
         const source = view.includes('/') ? view.split('/')[1] : null;
