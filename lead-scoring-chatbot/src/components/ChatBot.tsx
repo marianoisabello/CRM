@@ -288,7 +288,33 @@ export default function ChatBot() {
     setIsSubmitting(true)
     setSubmitError(null)
     try {
-      const { error } = await supabase.from('leads').insert([leadData])
+      const data = leadData as LeadData
+      const classification =
+        data.categoria_lead === 'Alto' ? 'hot' : data.categoria_lead === 'Medio' ? 'warm' : 'cold'
+      const next_action = data.categoria_lead === 'Alto' ? 'schedule_meeting' : 'nurture'
+
+      // raw_payload is NOT NULL on leads — always send the full form/answers object.
+      // Also map CRM base columns used by ingest/SDR for consistent downstream reads.
+      const row = {
+        ...data,
+        name: data.nombre_apellido,
+        email: data.email,
+        contact: data.whatsapp || data.email,
+        contact_type: data.whatsapp ? 'phone' : 'email',
+        message: data.objetivo_necesidad,
+        score: data.score_total,
+        classification,
+        next_action,
+        source: 'chatbot' as const,
+        status: 'new' as const,
+        raw_payload: {
+          origen: 'lead_scoring_chatbot',
+          fecha: new Date().toISOString(),
+          ...data,
+        },
+      }
+
+      const { error } = await supabase.from('leads').insert([row])
       if (error) throw error
       setIsSubmitted(true)
     } catch (err) {
