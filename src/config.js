@@ -46,6 +46,37 @@ module.exports = {
     customerId: optional('GOOGLE_ADS_CUSTOMER_ID'),
   },
 
+  // LinkedIn Ads (stub)
+  linkedinAds: {
+    accessToken: optional('LINKEDIN_ADS_ACCESS_TOKEN'),
+    accountId: optional('LINKEDIN_ADS_ACCOUNT_ID'),
+  },
+
+  // TikTok Ads (stub)
+  tiktokAds: {
+    accessToken: optional('TIKTOK_ADS_ACCESS_TOKEN'),
+    advertiserId: optional('TIKTOK_ADS_ADVERTISER_ID'),
+  },
+
+  // Google Analytics 4 / orgánico web (stub)
+  ga4: {
+    propertyId: optional('GA4_PROPERTY_ID'),
+    serviceAccountJson: optional('GA4_SERVICE_ACCOUNT_JSON'),
+    accessToken: optional('GA4_ACCESS_TOKEN'),
+  },
+
+  // Instagram orgánico (stub)
+  instagramOrganic: {
+    graphToken: optional('INSTAGRAM_GRAPH_TOKEN'),
+    businessAccountId: optional('INSTAGRAM_BUSINESS_ACCOUNT_ID'),
+  },
+
+  // WhatsApp métricas de conversación (stub; distinto de Whapi reuniones)
+  whatsappMetrics: {
+    token: optional('WHATSAPP_METRICS_TOKEN'),
+    phoneNumberId: optional('WHATSAPP_PHONE_NUMBER_ID'),
+  },
+
   // Google Calendar / Calendly
   calendar: {
     provider: process.env.CALENDAR_PROVIDER || 'google',

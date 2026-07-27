@@ -10,6 +10,7 @@ const crypto = require('crypto');
 const supabase = require('../db/client');
 const config = require('../config');
 const logger = require('../lib/logger');
+const { ALL_CHANNEL_IDS, publicChannelStatus } = require('../lib/channels');
 
 const PROVIDERS = ['zoom', 'google_meet', 'whatsapp'];
 
@@ -134,6 +135,16 @@ router.get('/reuniones', async (req, res) => {
       integrations,
       webhooks_base: '/api/hooks/reuniones',
     });
+  } catch (err) {
+    return res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// GET /api/integrations/performance — status cards multi-canal (stubs + env)
+router.get('/performance', async (_req, res) => {
+  try {
+    const integrations = ALL_CHANNEL_IDS.map((id) => publicChannelStatus(id)).filter(Boolean);
+    return res.json({ ok: true, integrations });
   } catch (err) {
     return res.status(500).json({ ok: false, error: err.message });
   }

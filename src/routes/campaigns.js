@@ -42,17 +42,17 @@ router.get('/reports/:id', async (req, res) => {
 
 /**
  * POST /api/campaigns/analyze
- * Body: { since, until, client_id? }
+ * Body: { since, until, client_id?, channels? } — channels: string[] | "all"
  */
 router.post('/analyze', async (req, res) => {
-  const { since, until, client_id } = req.body || {};
+  const { since, until, client_id, channels } = req.body || {};
   if (!since || !until) {
     return res.status(400).json({ ok: false, error: 'since y until (YYYY-MM-DD) son requeridos' });
   }
 
   try {
-    logger.info({ msg: 'Análisis de performance iniciado', since, until, client_id });
-    const analysis = await analyzePerformance(since, until, client_id || null);
+    logger.info({ msg: 'Análisis de performance iniciado', since, until, client_id, channels });
+    const analysis = await analyzePerformance(since, until, client_id || null, channels || null);
     return res.json({ ok: true, analysis });
   } catch (err) {
     logger.error({ msg: 'Error en análisis de performance', error: err.message });

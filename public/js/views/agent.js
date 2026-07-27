@@ -1157,11 +1157,26 @@ async function processInteresadosBriefings() {
   }
 }
 
-/** Vista Agente Performance — análisis de ads */
+/** Vista Agente Performance — análisis multi-canal */
+const PERF_CHANNEL_OPTIONS = [
+  { id: 'meta_ads', label: 'Meta Ads' },
+  { id: 'google_ads', label: 'Google Ads' },
+  { id: 'linkedin_ads', label: 'LinkedIn Ads' },
+  { id: 'tiktok_ads', label: 'TikTok Ads' },
+  { id: 'ga4', label: 'GA4 / Orgánico web' },
+  { id: 'instagram_organic', label: 'Instagram orgánico' },
+  { id: 'whatsapp', label: 'WhatsApp' },
+];
+
 async function renderPerformanceAgent(root) {
   const info = agentInfo.performance;
   const today = new Date().toISOString().split('T')[0];
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const channelChecks = PERF_CHANNEL_OPTIONS.map((c) => `
+    <label class="flex items-center gap-2 text-xs cursor-pointer" style="color:#374151;">
+      <input type="checkbox" class="pfm-channel" value="${c.id}" checked style="accent-color:#2563EB;">
+      ${c.label}
+    </label>`).join('');
 
   root.innerHTML = `
     <div class="space-y-5">
@@ -1190,7 +1205,17 @@ async function renderPerformanceAgent(root) {
                 <input id="pfm-until" type="date" value="${today}" class="input">
               </div>
             </div>
-            <p class="text-xs leading-relaxed" style="color:#9CA3AF;">Sin tokens de Meta/Google Ads usa métricas DEMO. Acciones sensibles quedan pendientes de aprobación.</p>
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <label class="text-xs font-semibold uppercase tracking-wider" style="color:#9CA3AF;">Canales</label>
+                <div class="flex gap-2">
+                  <button type="button" onclick="setAllPerfChannels(true)" class="text-xs" style="color:#2563EB;">Todos</button>
+                  <button type="button" onclick="setAllPerfChannels(false)" class="text-xs" style="color:#6B7280;">Ninguno</button>
+                </div>
+              </div>
+              <div class="space-y-1.5 max-h-48 overflow-y-auto pr-1">${channelChecks}</div>
+            </div>
+            <p class="text-xs leading-relaxed" style="color:#9CA3AF;">Sin tokens live usa métricas DEMO por canal. Acciones sensibles quedan pendientes de aprobación. Fuentes en Configuración.</p>
             <button onclick="submitPerformanceAnalyze()" class="w-full btn-primary">📈 Analizar performance</button>
           </div>
         </div>
@@ -1224,6 +1249,23 @@ async function renderPerformanceAgent(root) {
   await Promise.all([refreshPerfReports(), loadAgentRuns('performance')]);
 }
 
+function setAllPerfChannels(checked) {
+  document.querySelectorAll('.pfm-channel').forEach((el) => { el.checked = checked; });
+}
+
+function getSelectedPerfChannels() {
+  return Array.from(document.querySelectorAll('.pfm-channel:checked')).map((el) => el.value);
+}
+
+function perfChannelChips(channels) {
+  const ids = (channels || []).map((c) => (typeof c === 'string' ? c : c.id || c.channel)).filter(Boolean);
+  if (!ids.length) return '<span class="text-xs" style="color:#9CA3AF;">—</span>';
+  const labelOf = (id) => (PERF_CHANNEL_OPTIONS.find((c) => c.id === id) || {}).label || id;
+  return ids.slice(0, 5).map((id) =>
+    `<span class="text-xs px-1.5 py-0.5 rounded" style="background:#F3F4F6;color:#4B5563;">${labelOf(id)}</span>`
+  ).join(' ') + (ids.length > 5 ? ` <span class="text-xs" style="color:#9CA3AF;">+${ids.length - 5}</span>` : '');
+}
+
 function perfStatusBadge(status) {
   const map = {
     pending_approval: 'bg-amber-100 text-amber-700 border border-amber-200',
@@ -1245,6 +1287,7 @@ function renderPerfReportsTable(rows) {
     <thead>
       <tr style="border-bottom:1px solid #E5E7EB;">
         <th class="text-left px-4 py-3">Período</th>
+        <th class="text-left px-4 py-3">Canales</th>
         <th class="text-left px-4 py-3">Resumen</th>
         <th class="text-left px-4 py-3">Alertas</th>
         <th class="text-left px-4 py-3">Estado</th>
@@ -1254,12 +1297,14 @@ function renderPerfReportsTable(rows) {
     <tbody>
       ${rows.map((r) => {
         const safe = JSON.stringify(r).replace(/'/g, '&#39;');
-        const summary = (r.analysis?.summary || '').slice(0, 90);
+        const summary = (r.analysis?.summary || '').slice(0, 70);
         const alerts = Array.isArray(r.analysis?.alerts) ? r.analysis.alerts.length : 0;
+        const channels = r.analysis?.channels_analyzed || Object.keys(r.analysis?.metrics_snapshot || {});
         return `<tr class="data-row transition" style="border-top:1px solid #F3F4F6;cursor:pointer;"
             onclick='openPerfReportModal(${safe})'>
           <td class="px-4 py-3 font-data text-xs" style="color:#374151;">${r.period_since} → ${r.period_until}</td>
-          <td class="px-4 py-3 text-xs truncate max-w-[260px]" style="color:#6B7280;">${summary || '—'}</td>
+          <td class="px-4 py-3"><div class="flex flex-wrap gap-1">${perfChannelChips(channels)}</div></td>
+          <td class="px-4 py-3 text-xs truncate max-w-[200px]" style="color:#6B7280;">${summary || '—'}</td>
           <td class="px-4 py-3 font-data text-xs" style="color:#6B7280;">${alerts}</td>
           <td class="px-4 py-3">${perfStatusBadge(r.status)}</td>
           <td class="px-4 py-3 font-data text-xs" style="color:#9CA3AF;">${fmtDate(r.created_at)}</td>
@@ -1271,15 +1316,28 @@ function renderPerfReportsTable(rows) {
 
 function renderPerfReportDetail(r) {
   const a = r.analysis || {};
+  const labelOf = (id) => (PERF_CHANNEL_OPTIONS.find((c) => c.id === id) || {}).label || id;
   const list = (arr, empty) =>
     Array.isArray(arr) && arr.length
       ? `<ul class="space-y-1.5">${arr.map((x) => {
           if (typeof x === 'string') return `<li class="text-xs" style="color:#374151;">• ${x}</li>`;
-          const label = x.campaign || x.action || x.issue || JSON.stringify(x);
-          const extra = x.severity || x.expected_impact || x.issue || '';
-          return `<li class="text-xs" style="color:#374151;">• <strong>${label}</strong>${extra && extra !== label ? ` — ${extra}` : ''}</li>`;
+          const ch = x.channel ? `[${labelOf(x.channel)}] ` : '';
+          const label = x.campaign || x.action || x.issue || x.highlight || JSON.stringify(x);
+          const extra = x.severity || x.expected_impact || (x.issue && x.campaign ? x.issue : '') || '';
+          return `<li class="text-xs" style="color:#374151;">• ${ch}<strong>${label}</strong>${extra && extra !== label ? ` — ${extra}` : ''}</li>`;
         }).join('')}</ul>`
       : `<p class="text-xs" style="color:#9CA3AF;">${empty}</p>`;
+
+  const breakdown = Array.isArray(a.channel_breakdown) && a.channel_breakdown.length
+    ? `<div class="rounded-lg p-3.5 border" style="background:#F0FDF4;border-color:#BBF7D0;">
+        <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#15803D;">Breakdown por canal</p>
+        <ul class="space-y-1.5">${a.channel_breakdown.map((b) => {
+          const id = b.channel || b.id;
+          const hi = b.highlight || (b.rows != null ? `${b.rows} filas` : '') || '';
+          return `<li class="text-xs" style="color:#374151;">• <strong>${b.label || labelOf(id)}</strong>${hi ? ` — ${hi}` : ''}${b.severity ? ` · ${b.severity}` : ''}</li>`;
+        }).join('')}</ul>
+      </div>`
+    : '';
 
   return `
     <div class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
@@ -1292,12 +1350,17 @@ function renderPerfReportDetail(r) {
         <p style="color:#374151;">${r.status || '—'} · ${a.data_source || '—'}</p>
       </div>
     </div>
+    <div>
+      <p class="text-xs font-semibold mb-1.5 uppercase tracking-wider" style="color:#9CA3AF;">Canales</p>
+      <div class="flex flex-wrap gap-1">${perfChannelChips(a.channels_analyzed || Object.keys(a.metrics_snapshot || {}))}</div>
+    </div>
     ${a.summary ? `<div class="rounded-lg p-3.5 border" style="background:#F9FAFB;border-color:#E5E7EB;">
       <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#9CA3AF;">Resumen</p>
       <p class="text-xs leading-relaxed" style="color:#374151;">${a.summary}</p>
     </div>` : ''}
+    ${breakdown}
     <div class="rounded-lg p-3.5 border" style="background:#FEF2F2;border-color:#FECACA;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B91C1C;">Alertas</p>
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B91C1C;">Alertas por canal</p>
       ${list(a.alerts, 'Sin alertas')}
     </div>
     <div class="rounded-lg p-3.5 border" style="background:#EFF6FF;border-color:#BFDBFE;">
@@ -1339,14 +1402,19 @@ async function refreshPerfReports() {
 async function submitPerformanceAnalyze() {
   const since = document.getElementById('pfm-since')?.value;
   const until = document.getElementById('pfm-until')?.value;
+  const channels = getSelectedPerfChannels();
   if (!since || !until) {
     showToast('Completá desde / hasta', 'error');
+    return;
+  }
+  if (!channels.length) {
+    showToast('Seleccioná al menos un canal', 'error');
     return;
   }
   showToast('Analizando performance…');
   const res = await api('/api/campaigns/analyze', {
     method: 'POST',
-    body: { since, until },
+    body: { since, until, channels },
   });
   if (res?.ok) {
     showToast('✓ Análisis listo');
@@ -1532,6 +1600,13 @@ function renderMonthlyReportDetail(r) {
       <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#9CA3AF;">Key metrics</p>
       ${list(rep.key_metrics, 'Sin métricas')}
     </div>
+    ${Array.isArray(rep.channel_highlights) && rep.channel_highlights.length ? `
+    <div class="rounded-lg p-3.5 border" style="background:#ECFDF5;border-color:#A7F3D0;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#047857;">Highlights por canal</p>
+      <ul class="space-y-1.5">${rep.channel_highlights.map((h) =>
+        `<li class="text-xs" style="color:#374151;">• <strong>${h.channel || ''}</strong> — ${h.note || ''}</li>`
+      ).join('')}</ul>
+    </div>` : ''}
     <div class="rounded-lg p-3.5 border" style="background:#F0FDF4;border-color:#BBF7D0;">
       <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#15803D;">Wins</p>
       ${list(rep.wins, 'Sin wins')}

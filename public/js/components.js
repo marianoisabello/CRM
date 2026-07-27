@@ -42,8 +42,8 @@ const agentInfo = {
   reuniones:   { emoji: '🎙️', name: 'Reuniones',   desc: 'Analiza transcripts de Zoom, Meet o WhatsApp: resumen, pain points, score de cierre.' },
   briefing:    { emoji: '📝', name: 'Briefing',    desc: 'Cruza perfil + reunión + catálogo y genera un brief comercial listo para revisar.' },
   proposal:    { emoji: '📋', name: 'Propuestas',  desc: 'Crea propuestas comerciales personalizadas para el lead.' },
-  performance: { emoji: '📈', name: 'Performance', desc: 'Analiza métricas de Meta Ads y Google Ads semanalmente.' },
-  reporting:   { emoji: '📊', name: 'Reporting',   desc: 'Genera reportes mensuales consolidados por cliente.' },
+  performance: { emoji: '📈', name: 'Performance', desc: 'Analiza métricas multi-canal: Meta, Google, LinkedIn, TikTok, GA4, IG orgánico y WhatsApp.' },
+  reporting:   { emoji: '📊', name: 'Reporting',   desc: 'Genera reportes mensuales consolidados multi-canal por cliente.' },
 };
 
 // ─── Componentes ─────────────────────────────────────────────────────────────

@@ -2,17 +2,22 @@
 
 const supabase = require('./client');
 
-async function savePerformanceReport({ period_since, period_until, client_id, analysis, actions_pending_approval }) {
+async function savePerformanceReport({ period_since, period_until, client_id, analysis, actions_pending_approval, channels }) {
+  const row = {
+    period_since,
+    period_until,
+    client_id: client_id || null,
+    analysis,
+    actions_pending_approval,
+    status: actions_pending_approval?.length > 0 ? 'pending_approval' : 'done',
+  };
+  if (Array.isArray(channels) && channels.length) {
+    row.channels = channels;
+  }
+
   const { data, error } = await supabase
     .from('performance_reports')
-    .insert({
-      period_since,
-      period_until,
-      client_id: client_id || null,
-      analysis,
-      actions_pending_approval,
-      status: actions_pending_approval?.length > 0 ? 'pending_approval' : 'done',
-    })
+    .insert(row)
     .select()
     .single();
 
@@ -23,7 +28,7 @@ async function savePerformanceReport({ period_since, period_until, client_id, an
 async function listPerformanceReports({ limit = 50, offset = 0, status } = {}) {
   let query = supabase
     .from('performance_reports')
-    .select('id, client_id, period_since, period_until, analysis, actions_pending_approval, status, approved_at, created_at, clients(id, company, status)')
+    .select('id, client_id, period_since, period_until, analysis, actions_pending_approval, status, approved_at, created_at, channels, clients(id, company, status)')
     .order('created_at', { ascending: false })
     .range(Number(offset), Number(offset) + Number(limit) - 1);
 
@@ -86,6 +91,8 @@ async function getMonthlyMetrics(clientId, since, until) {
     if (scoped) clientReports = scoped;
   }
 
+  const channelRollup = aggregateChannelsFromReports(clientReports);
+
   return {
     leads: {
       total: leadsResult.data?.length || 0,
@@ -94,7 +101,35 @@ async function getMonthlyMetrics(clientId, since, until) {
       by_status: groupBy(leadsResult.data || [], 'status'),
     },
     ad_performance: clientReports,
+    channels: channelRollup,
   };
+}
+
+/** Agrega canales citados en analysis de performance reports del período */
+function aggregateChannelsFromReports(reports) {
+  const byChannel = {};
+  for (const r of reports || []) {
+    const a = r.analysis || {};
+    const ids = Array.isArray(a.channels_analyzed) && a.channels_analyzed.length
+      ? a.channels_analyzed.map((c) => (typeof c === 'string' ? c : c.id)).filter(Boolean)
+      : Object.keys(a.metrics_snapshot || {});
+    for (const id of ids) {
+      if (!byChannel[id]) byChannel[id] = { channel: id, reports: 0, alerts: 0 };
+      byChannel[id].reports += 1;
+    }
+    for (const alert of a.alerts || []) {
+      const ch = alert.channel || 'unspecified';
+      if (!byChannel[ch]) byChannel[ch] = { channel: ch, reports: 0, alerts: 0 };
+      byChannel[ch].alerts += 1;
+    }
+    for (const row of a.channel_breakdown || []) {
+      const id = row.channel;
+      if (!id) continue;
+      if (!byChannel[id]) byChannel[id] = { channel: id, reports: 0, alerts: 0 };
+      if (row.highlight) byChannel[id].last_highlight = row.highlight;
+    }
+  }
+  return Object.values(byChannel);
 }
 
 async function saveMonthlyReport({ client_id, month, report, status }) {

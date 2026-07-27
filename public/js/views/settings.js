@@ -43,6 +43,24 @@ function renderSettings(root) {
         </p>
       </div>
 
+      <!-- Integraciones / Performance multi-canal -->
+      <div class="card">
+        <div class="flex items-start justify-between gap-3 mb-4">
+          <div>
+            <h2 class="font-semibold text-sm" style="color:#374151;">Integraciones · Performance</h2>
+            <p class="text-xs mt-1" style="color:#9CA3AF;">Fuentes de métricas para Agente Performance / Reporting. Stubs hasta conectar env en Vercel.</p>
+          </div>
+          <button onclick="refreshPerformanceIntegrations()" class="btn-ghost text-xs shrink-0">Actualizar</button>
+        </div>
+        <div id="performance-integrations" class="space-y-3">
+          <p class="text-sm" style="color:#9CA3AF;">Cargando...</p>
+        </div>
+        <p class="text-xs mt-4 leading-relaxed" style="color:#9CA3AF;">
+          Sin keys, el análisis usa métricas DEMO. Ver
+          <a href="#agent/performance" class="underline" style="color:#2563EB;">Agentes → Performance</a>.
+        </p>
+      </div>
+
       <!-- Crear usuario -->
       <div class="card">
         <h2 class="font-semibold text-sm mb-4" style="color:#374151;">Crear usuario admin</h2>
@@ -75,13 +93,15 @@ function renderSettings(root) {
           ${renderIntegration('Google Calendar',   true,  'Reuniones con Meet automático')}
           ${renderIntegration('Google Sheets',     true,  'Export de leads')}
           ${renderIntegration('ManyChat',          true,  'Canal WhatsApp / Instagram')}
-          ${renderIntegration('Meta Ads',          false, 'Pendiente configuración')}
-          ${renderIntegration('Google Ads',        false, 'Pendiente configuración')}
+          ${renderIntegration('Meta Ads',          false, 'Pendiente — META_ADS_*')}
+          ${renderIntegration('Google Ads',        false, 'Pendiente — GOOGLE_ADS_*')}
+          ${renderIntegration('LinkedIn / TikTok / GA4', false, 'Stubs multi-canal — ver card Performance')}
         </div>
       </div>
     </div>`;
 
   refreshMeetingIntegrations();
+  refreshPerformanceIntegrations();
 }
 
 function renderIntegration(name, active, note) {
@@ -169,6 +189,45 @@ async function refreshMeetingIntegrations() {
     return;
   }
   wrap.innerHTML = (res.integrations || []).map(renderMeetingIntegrationCard).join('');
+}
+
+function renderPerformanceIntegrationCard(integ) {
+  const ready = integ.env_ready;
+  const steps = (integ.setup?.steps || []).map((s) => `<li class="text-xs leading-relaxed" style="color:#6B7280;">${s}</li>`).join('');
+  const vars = (integ.env_vars || []).map((v) => `<code class="text-xs">${v}</code>`).join(' · ');
+
+  return `<div class="rounded-lg border p-4" style="border-color:#E5E7EB;background:#FAFAFA;">
+    <div class="flex items-start justify-between gap-3">
+      <div class="min-w-0">
+        <div class="flex items-center gap-2 flex-wrap">
+          <p class="text-sm font-semibold" style="color:#111827;">${integ.label}</p>
+          ${statusPill(integ.status)}
+        </div>
+        <p class="text-xs mt-1" style="color:#9CA3AF;">${integ.blurb || ''}</p>
+        <p class="text-xs mt-1.5" style="color:#6B7280;">Env: ${vars || '—'}</p>
+      </div>
+      <span class="text-xs font-semibold px-2.5 py-1 rounded-lg shrink-0" style="${ready
+        ? 'background:#FFFBEB;color:#B45309;border:1px solid #FDE68A;'
+        : 'background:#F9FAFB;color:#9CA3AF;border:1px solid #E5E7EB;'}">
+        ${ready ? 'Env listo' : 'Sin keys'}
+      </span>
+    </div>
+    <details class="mt-3">
+      <summary class="text-xs cursor-pointer font-medium" style="color:#2563EB;">Cómo configurar</summary>
+      <ul class="mt-2 space-y-1 list-disc pl-4">${steps}</ul>
+    </details>
+  </div>`;
+}
+
+async function refreshPerformanceIntegrations() {
+  const wrap = document.getElementById('performance-integrations');
+  if (!wrap) return;
+  const res = await api('/api/integrations/performance');
+  if (!res?.ok) {
+    wrap.innerHTML = `<p class="text-sm" style="color:#B91C1C;">${res?.error || 'No se pudieron cargar fuentes'}</p>`;
+    return;
+  }
+  wrap.innerHTML = (res.integrations || []).map(renderPerformanceIntegrationCard).join('');
 }
 
 async function connectMeetingIntegration(provider) {

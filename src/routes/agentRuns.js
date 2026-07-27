@@ -138,13 +138,13 @@ router.post('/proposal', async (req, res) => {
   }
 });
 
-// POST /api/agent-runs/performance  { since, until, client_id? }
+// POST /api/agent-runs/performance  { since, until, client_id?, channels? }
 router.post('/performance', async (req, res) => {
-  const { since, until, client_id } = req.body || {};
+  const { since, until, client_id, channels } = req.body || {};
   if (!since || !until) return res.status(400).json({ ok: false, error: 'since y until requeridos (YYYY-MM-DD)' });
 
   try {
-    const analysis = await analyzePerformance(since, until, client_id || null);
+    const analysis = await analyzePerformance(since, until, client_id || null, channels || null);
     return res.json({ ok: true, message: 'Análisis de performance completado', analysis });
   } catch (err) {
     logger.error({ msg: 'Error performance manual', error: err.message });
