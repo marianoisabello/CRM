@@ -20,6 +20,10 @@ const catalogPropuestasRouter = require('./routes/catalogPropuestas');
 const campaignsRouter = require('./routes/campaigns');
 const reportsRouter = require('./routes/reports');
 const agentRunsRouter = require('./routes/agentRuns');
+const reunionesRouter = require('./routes/reuniones');
+const briefingsRouter = require('./routes/briefings');
+const integrationsRouter = require('./routes/integrations');
+const webhooksReunionesRouter = require('./routes/webhooksReuniones');
 const exportRouter = require('./routes/export');
 
 // Jobs
@@ -29,7 +33,7 @@ const { runMonthlyReports } = require('./jobs/monthlyReport');
 
 const app = express();
 
-app.use(express.json({ limit: '1mb' }));
+app.use(express.json({ limit: '2mb' }));
 app.use(express.static(path.join(__dirname, '../public')));
 
 // SPA fallback for embedded chatbox (Vite base /chatbox/)
@@ -47,6 +51,15 @@ app.use('/api/auth', authRouter);
 app.use('/api/leads/ingest', ingestRouter);
 app.use('/api/leads/reprocess', ingestRouter);
 
+// Agente 03 — webhooks públicos (Zoom / Google / WhatsApp) — NO pisan webhooks SDR
+app.use('/api/hooks/reuniones', webhooksReunionesRouter);
+
+// OAuth callbacks públicos (state lleva el user email)
+app.get('/api/integrations/oauth/:provider/callback', (req, res, next) => {
+  req.url = `/oauth/${req.params.provider}/callback`;
+  integrationsRouter(req, res, next);
+});
+
 // Trigger Analista/Perfiles desde n8n (header x-crm-internal-key)
 app.post('/api/hooks/perfiles-run', async (req, res) => {
   const expected = process.env.CRM_INTERNAL_KEY || process.env.JWT_SECRET;
@@ -59,6 +72,35 @@ app.post('/api/hooks/perfiles-run', async (req, res) => {
   res.json({ ok: true, message: 'Perfiles batch iniciado' });
   processQualifiedLeads({ maxAgeDays, limit }).catch((err) =>
     logger.error({ msg: 'Hook perfiles-run falló', error: err.message })
+  );
+});
+
+// Trigger Agente 04 Briefing desde n8n / CRM (header x-crm-internal-key)
+app.post('/api/hooks/briefings-run', async (req, res) => {
+  const expected = process.env.CRM_INTERNAL_KEY || process.env.JWT_SECRET;
+  const got = req.headers['x-crm-internal-key'];
+  if (!expected || got !== expected) {
+    return res.status(401).json({ ok: false, error: 'unauthorized' });
+  }
+  const { processInteresados, generateBriefing } = require('./agents/briefing');
+  const body = req.body || {};
+  if (body.email || body.lead_id) {
+    try {
+      const result = await generateBriefing({
+        email: body.email || null,
+        leadId: body.lead_id || null,
+        force: Boolean(body.force),
+      });
+      return res.json({ ok: true, briefing: result.briefing });
+    } catch (err) {
+      logger.error({ msg: 'Hook briefings-run one falló', error: err.message });
+      return res.status(500).json({ ok: false, error: err.message });
+    }
+  }
+  const { maxAgeDays = 14, limit = 10 } = body;
+  res.json({ ok: true, message: 'Briefings batch iniciado' });
+  processInteresados({ maxAgeDays, limit }).catch((err) =>
+    logger.error({ msg: 'Hook briefings-run falló', error: err.message })
   );
 });
 
@@ -91,6 +133,9 @@ app.use('/api/propuestas', catalogPropuestasRouter);
 app.use('/api/campaigns', campaignsRouter);
 app.use('/api/reports', reportsRouter);
 app.use('/api/agent-runs', agentRunsRouter);
+app.use('/api/agent-runs/reuniones', reunionesRouter);
+app.use('/api/agent-runs/briefings', briefingsRouter);
+app.use('/api/integrations', integrationsRouter);
 app.use('/api/export', exportRouter);
 
 // 404

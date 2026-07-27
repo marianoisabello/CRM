@@ -137,6 +137,14 @@
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
         Analista
       </a>
+      <a href="#agent/reuniones" class="nav-item" data-view="agent/reuniones">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+        Reuniones
+      </a>
+      <a href="#agent/briefing" class="nav-item" data-view="agent/briefing">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        Briefing
+      </a>
       <a href="#propuestas" class="nav-sub" data-view="propuestas">Menú · Propuestas</a>
       <a href="#agent/proposal" class="nav-item" data-view="agent/proposal">
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -379,9 +387,14 @@
     });
 
     async function changeLeadStatus(id, status) {
-      await api(`/api/leads/${id}/status`, { method: 'PATCH', body: { status } });
+      const res = await api(`/api/leads/${id}/status`, { method: 'PATCH', body: { status } });
       closeModal();
-      showToast(`Estado: ${statusLabel[status]}`);
+      if (status === 'qualified') {
+        showToast('Estado: Calificado — briefing encolado si hay email');
+      } else {
+        showToast(`Estado: ${statusLabel[status]}`);
+      }
+      if (res?.ok === false) showToast(res.error || 'Error al actualizar', 'error');
       renderView(window.location.hash);
     }
 

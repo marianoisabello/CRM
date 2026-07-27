@@ -3,3 +3,9 @@ node_modules/
 *.log
 .vercel
 .env*
+
+.env.vercel
+.env.pulled
+scripts/_check_*.js
+supabase/.temp/
+supabase/.branches/

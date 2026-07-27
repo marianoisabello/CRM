@@ -74,6 +74,18 @@ router.patch('/:id/status', async (req, res) => {
     .single();
 
   if (error) return res.status(500).json({ ok: false, error: error.message });
+
+  // Wiring ligero: al pasar a qualified, encolar briefing en background (si hay email)
+  if (status === 'qualified' && data?.email) {
+    const logger = require('../lib/logger');
+    setImmediate(() => {
+      const { generateBriefing } = require('../agents/briefing');
+      generateBriefing({ email: data.email, leadId: data.id, force: false })
+        .then((r) => logger.info({ msg: 'Briefing auto tras qualified', id: r?.briefing?.id, email: data.email }))
+        .catch((err) => logger.warn({ msg: 'Briefing auto skipped/failed', email: data.email, error: err.message }));
+    });
+  }
+
   return res.json({ ok: true, lead: data });
 });
 

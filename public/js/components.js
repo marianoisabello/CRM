@@ -39,6 +39,8 @@ const actionLabel = {
 const agentInfo = {
   sdr:         { emoji: '🎯', name: 'SDR',         desc: 'Califica leads automáticamente con score determinístico y análisis IA.' },
   analyst:     { emoji: '🔍', name: 'Analista',    desc: 'Enriquece leads calificados y guarda perfiles con score, pain points y oferta.' },
+  reuniones:   { emoji: '🎙️', name: 'Reuniones',   desc: 'Analiza transcripts de Zoom, Meet o WhatsApp: resumen, pain points, score de cierre.' },
+  briefing:    { emoji: '📝', name: 'Briefing',    desc: 'Cruza perfil + reunión + catálogo y genera un brief comercial listo para revisar.' },
   proposal:    { emoji: '📋', name: 'Propuestas',  desc: 'Crea propuestas comerciales personalizadas para el lead.' },
   performance: { emoji: '📈', name: 'Performance', desc: 'Analiza métricas de Meta Ads y Google Ads semanalmente.' },
   reporting:   { emoji: '📊', name: 'Reporting',   desc: 'Genera reportes mensuales consolidados por cliente.' },
@@ -184,7 +186,19 @@ function renderLeadDetail(l) {
           <button type="button" class="btn-ghost text-xs" id="lead-prop-clear" style="display:none;" onclick="clearLeadPropuesta('${safeEmail}')">Quitar</button>
         </div>
       `}
-    </div>`;
+    </div>
+
+    ${email ? `
+    <div class="rounded-lg p-3.5 border" style="background:#F5F3FF;border-color:#DDD6FE;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#7C3AED;">Cadena agentes (02 → 04)</p>
+      <p class="text-xs mb-3" style="color:#6B7280;">Perfil (Analista) → opcional reunión (Reuniones) → briefing comercial. Empezá por el perfil si aún no existe.</p>
+      <div class="flex flex-wrap gap-2">
+        <button type="button" class="btn-ghost text-xs" onclick="generatePerfilFromLead('${safeEmail}')">Generar perfil</button>
+        <button type="button" class="btn-primary text-xs" onclick="generateBriefingFromLead('${safeEmail}')">Generar briefing</button>
+        <a href="#agent/analyst" class="btn-ghost text-xs" style="text-decoration:none;" onclick="closeModal()">Ver Analista</a>
+        <a href="#agent/briefing" class="btn-ghost text-xs" style="text-decoration:none;" onclick="closeModal()">Ver Briefings</a>
+      </div>
+    </div>` : ''}`;
 }
 
 async function initLeadPropuestaAssign(lead) {
@@ -273,5 +287,45 @@ async function clearLeadPropuesta(email) {
     if (typeof refreshLeads === 'function') refreshLeads();
   } else {
     showToast(res?.error || 'Error', 'error');
+  }
+}
+
+async function generatePerfilFromLead(email) {
+  if (!email) {
+    showToast('El lead no tiene email', 'error');
+    return;
+  }
+  showToast('Enriqueciendo perfil…');
+  const lead_id = window._currentLead?.id || null;
+  const res = await api('/api/agent-runs/perfiles/one', {
+    method: 'POST',
+    body: { email, lead_id },
+  });
+  if (res?.ok) {
+    showToast('✓ Perfil listo');
+    closeModal();
+    window.location.hash = '#agent/analyst';
+  } else {
+    showToast(res?.error || 'Error generando perfil', 'error');
+  }
+}
+
+async function generateBriefingFromLead(email) {
+  if (!email) {
+    showToast('El lead no tiene email', 'error');
+    return;
+  }
+  showToast('Generando briefing…');
+  const lead_id = window._currentLead?.id || null;
+  const res = await api('/api/agent-runs/briefings', {
+    method: 'POST',
+    body: { email, lead_id, force: true },
+  });
+  if (res?.ok) {
+    showToast('✓ Briefing generado (DRAFT)');
+    closeModal();
+    window.location.hash = '#agent/briefing';
+  } else {
+    showToast(res?.error || 'Error generando briefing', 'error');
   }
 }

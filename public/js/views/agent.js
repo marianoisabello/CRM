@@ -2,6 +2,12 @@ async function renderAgent(root, agentId) {
   if (agentId === 'analyst') {
     return renderAnalystPerfiles(root);
   }
+  if (agentId === 'reuniones') {
+    return renderReunionesAgent(root);
+  }
+  if (agentId === 'briefing') {
+    return renderBriefingAgent(root);
+  }
 
   const info = agentInfo[agentId] || { emoji: '🤖', name: agentId, desc: '' };
 
@@ -522,4 +528,622 @@ async function loadAgentRuns(agentId) {
       </tr>`).join('')}
     </tbody>
   </table>`;
+}
+
+/** Vista Agente 03 — Análisis de Reuniones */
+async function renderReunionesAgent(root) {
+  const info = agentInfo.reuniones;
+
+  root.innerHTML = `
+    <div class="space-y-5">
+      <div class="flex items-center justify-between gap-4 flex-wrap">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:white;border:1px solid #E5E7EB;">${info.emoji}</div>
+          <div>
+            <h1 class="text-xl font-semibold" style="color:#111827;">Agente ${info.name}</h1>
+            <p class="text-sm mt-0.5" style="color:#6B7280;">${info.desc}</p>
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="navigate('settings')" class="btn-ghost flex items-center gap-1.5 text-xs">Integraciones</button>
+          <button onclick="processPendingReuniones()" class="btn-ghost flex items-center gap-1.5 text-xs">Procesar pending</button>
+          <button onclick="refreshReuniones()" class="btn-ghost flex items-center gap-1.5 text-xs">Actualizar</button>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-3 gap-5">
+        <div class="card lg:col-span-1">
+          <h2 class="font-semibold text-sm mb-4" style="color:#374151;">Subir transcript</h2>
+          <div class="space-y-3">
+            <div>
+              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Título</label>
+              <input id="rn-titulo" class="input" placeholder="Discovery · Clínica X">
+            </div>
+            <div>
+              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Email lead</label>
+              <input id="rn-email" type="email" class="input" placeholder="lead@empresa.com">
+            </div>
+            <div>
+              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Teléfono</label>
+              <input id="rn-phone" class="input" placeholder="+54911...">
+            </div>
+            <div>
+              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Fuente</label>
+              <select id="rn-source" class="input">
+                <option value="manual">Manual</option>
+                <option value="zoom">Zoom</option>
+                <option value="google_meet">Google Meet</option>
+                <option value="whatsapp">WhatsApp</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Transcript / notas</label>
+              <textarea id="rn-transcript" rows="10" class="input" style="resize:vertical" placeholder="Pegá acá la transcripción o notas de la reunión..."></textarea>
+            </div>
+            <div>
+              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">O subir archivo .txt</label>
+              <input id="rn-file" type="file" accept=".txt,.md,.text,text/plain" class="text-xs" onchange="loadReunionFile(event)">
+            </div>
+            <button onclick="submitReunionTranscript()" class="w-full btn-primary">Analizar reunión</button>
+          </div>
+        </div>
+
+        <div class="lg:col-span-2 space-y-3">
+          <div class="flex gap-2 flex-wrap items-center">
+            <input id="rn-q" type="search" placeholder="Buscar email, título…"
+              class="input" style="width:auto;min-width:200px;max-width:280px;"
+              onkeydown="if(event.key==='Enter')refreshReuniones()">
+            <select id="rn-status" onchange="refreshReuniones()" class="input" style="width:auto;min-width:140px;">
+              <option value="">Todos los estados</option>
+              <option value="pending">Pending</option>
+              <option value="analyzing">Analyzing</option>
+              <option value="done">Done</option>
+              <option value="error">Error</option>
+            </select>
+            <p id="reuniones-count" class="text-sm ml-1" style="color:#6B7280;">Cargando...</p>
+          </div>
+          <div id="reuniones-table-wrap" class="bg-white border overflow-hidden" style="border-color:#E5E7EB;border-radius:8px;">
+            <div class="flex items-center justify-center h-32 text-sm" style="color:#9CA3AF;">Cargando...</div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="font-semibold text-sm" style="color:#374151;">Historial de ejecuciones</h2>
+              <button onclick="loadAgentRuns('reuniones')" class="text-xs transition" style="color:#6B7280;">Actualizar</button>
+            </div>
+            <div id="runs-table" class="bg-white border overflow-hidden" style="border-color:#E5E7EB;border-radius:8px;">
+              <div class="flex items-center justify-center h-24 text-sm" style="color:#9CA3AF;">Cargando...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  await Promise.all([refreshReuniones(), loadAgentRuns('reuniones')]);
+}
+
+function reunionStatusBadge(status) {
+  const map = {
+    pending: 'bg-amber-100 text-amber-700 border border-amber-200',
+    analyzing: 'bg-sky-100 text-sky-700 border border-sky-200',
+    done: 'bg-green-100 text-green-700 border border-green-200',
+    error: 'bg-red-100 text-red-700 border border-red-200',
+  };
+  return `<span class="badge ${map[status] || 'bg-gray-100 text-gray-500'}">${status || '—'}</span>`;
+}
+
+function interesBadge(nivel) {
+  if (!nivel) return '<span class="text-xs" style="color:#9CA3AF;">—</span>';
+  const c = String(nivel).toUpperCase();
+  const map = { ALTO: 'hot', MEDIO: 'warm', BAJO: 'cold' };
+  const key = map[c];
+  if (key) return classificationBadge(key);
+  return `<span class="badge bg-gray-100 text-gray-600 border border-gray-200">${nivel}</span>`;
+}
+
+function renderReunionesTable(rows) {
+  if (!rows?.length) {
+    return `<div class="flex flex-col items-center justify-center py-16" style="color:#9CA3AF;">
+      <p class="text-sm">Sin reuniones aún</p>
+      <p class="text-xs mt-1">Subí un transcript a la izquierda para empezar</p>
+    </div>`;
+  }
+
+  return `<table class="w-full text-sm">
+    <thead>
+      <tr style="border-bottom:1px solid #E5E7EB;">
+        <th class="text-left px-4 py-3">Reunión</th>
+        <th class="text-left px-4 py-3">Fuente</th>
+        <th class="text-left px-4 py-3">Interés</th>
+        <th class="text-left px-4 py-3">Score</th>
+        <th class="text-left px-4 py-3">Estado</th>
+        <th class="text-left px-4 py-3">Actualizado</th>
+        <th class="text-left px-4 py-3"></th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows.map((r) => {
+        const safe = JSON.stringify(r).replace(/'/g, '&#39;');
+        return `<tr class="data-row transition" style="border-top:1px solid #F3F4F6;cursor:pointer;"
+            onclick='openReunionModal(${safe})'>
+          <td class="px-4 py-3">
+            <p class="font-medium leading-tight" style="color:#111827;">${r.titulo || r.lead_email || 'Sin título'}</p>
+            <p class="text-xs mt-0.5 truncate max-w-[200px]" style="color:#9CA3AF;">${r.lead_email || r.lead_phone || ''}</p>
+          </td>
+          <td class="px-4 py-3 text-xs" style="color:#6B7280;">${r.source || '—'}</td>
+          <td class="px-4 py-3">${interesBadge(r.nivel_interes)}</td>
+          <td class="px-4 py-3">${scoreBar(r.score_cierre)}</td>
+          <td class="px-4 py-3">${reunionStatusBadge(r.status)}</td>
+          <td class="px-4 py-3 font-data text-xs" style="color:#9CA3AF;">${fmtDate(r.updated_at)}</td>
+          <td class="px-4 py-3" onclick="event.stopPropagation()">
+            ${r.status !== 'done' ? `<button class="btn-ghost text-xs" onclick="analyzeReunionById('${r.id}')">Analizar</button>` : `<button class="btn-ghost text-xs" onclick="analyzeReunionById('${r.id}', true)">Re-analizar</button>`}
+          </td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table>`;
+}
+
+function renderReunionDetail(r) {
+  const list = (arr, empty) =>
+    Array.isArray(arr) && arr.length
+      ? `<ul class="space-y-1.5">${arr.map((x) => `<li class="text-xs leading-relaxed" style="color:#374151;">• ${typeof x === 'string' ? x : JSON.stringify(x)}</li>`).join('')}</ul>`
+      : `<p class="text-xs" style="color:#9CA3AF;">${empty}</p>`;
+
+  return `
+    <div class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+      <div>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Email / Tel</p>
+        <p style="color:#374151;">${r.lead_email || '—'} · ${r.lead_phone || '—'}</p>
+      </div>
+      <div>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Fuente / Estado</p>
+        <p style="color:#374151;">${r.source || '—'} · ${r.status || '—'}</p>
+      </div>
+      <div>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Nivel interés</p>
+        <div class="mt-0.5">${interesBadge(r.nivel_interes)}</div>
+      </div>
+      <div>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Score cierre</p>
+        <div class="mt-1">${scoreBar(r.score_cierre)}</div>
+      </div>
+    </div>
+
+    ${r.resumen ? `
+    <div class="rounded-lg p-3.5 border" style="background:#F9FAFB;border-color:#E5E7EB;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#9CA3AF;">Resumen</p>
+      <p class="text-xs leading-relaxed" style="color:#374151;">${r.resumen}</p>
+    </div>` : ''}
+
+    <div class="rounded-lg p-3.5 border" style="background:#FEF3C7;border-color:#FDE68A;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B45309;">Pain points</p>
+      ${list(r.pain_points, 'Sin pain points')}
+    </div>
+
+    <div class="rounded-lg p-3.5 border" style="background:#FEF2F2;border-color:#FECACA;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B91C1C;">Objeciones</p>
+      ${list(r.objeciones, 'Sin objeciones')}
+    </div>
+
+    <div class="rounded-lg p-3.5 border" style="background:#F0FDF4;border-color:#BBF7D0;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#15803D;">Señales de compra</p>
+      ${list(r.senales_compra, 'Sin señales')}
+    </div>
+
+    <div class="rounded-lg p-3.5 border" style="background:#EFF6FF;border-color:#BFDBFE;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#2563EB;">Próximos pasos</p>
+      ${list(r.proximos_pasos, 'Sin próximos pasos')}
+    </div>
+
+    ${r.error_message ? `
+    <div class="rounded-lg p-3.5 border" style="background:#FEF2F2;border-color:#FECACA;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B91C1C;">Error</p>
+      <p class="text-xs" style="color:#991B1B;">${r.error_message}</p>
+    </div>` : ''}
+
+    <div class="flex gap-2">
+      <button class="btn-primary text-xs" onclick="analyzeReunionById('${r.id}', true)">Re-analizar</button>
+      ${r.recording_url ? `<a class="btn-ghost text-xs" href="${r.recording_url}" target="_blank" rel="noopener">Ver grabación</a>` : ''}
+    </div>`;
+}
+
+async function openReunionModal(row) {
+  let reunion = row;
+  const res = await api(`/api/agent-runs/reuniones/${row.id}`);
+  if (res?.ok && res.reunion) reunion = res.reunion;
+
+  document.getElementById('modal-name').textContent = reunion.titulo || reunion.lead_email || 'Reunión';
+  document.getElementById('modal-source').textContent =
+    [reunion.source, reunion.lead_email, fmtDate(reunion.fecha || reunion.updated_at)].filter(Boolean).join(' · ');
+  document.getElementById('modal-body').innerHTML = renderReunionDetail(reunion);
+  document.getElementById('modal-status-buttons').innerHTML = '';
+  const footer = document.getElementById('modal-footer');
+  if (footer) footer.style.display = 'none';
+  document.getElementById('lead-modal').classList.remove('hidden');
+}
+
+async function refreshReuniones() {
+  const params = new URLSearchParams({ limit: '80' });
+  const q = document.getElementById('rn-q')?.value?.trim();
+  const status = document.getElementById('rn-status')?.value;
+  if (q) params.set('q', q);
+  if (status) params.set('status', status);
+
+  const res = await api(`/api/agent-runs/reuniones?${params}`);
+  const rows = res?.reuniones || [];
+  const countEl = document.getElementById('reuniones-count');
+  if (countEl) {
+    countEl.innerHTML = `<span class="font-data font-semibold" style="color:#2563EB;">${rows.length}</span> reunión${rows.length !== 1 ? 'es' : ''}`;
+  }
+  const wrap = document.getElementById('reuniones-table-wrap');
+  if (wrap) wrap.innerHTML = renderReunionesTable(rows);
+}
+
+async function loadReunionFile(ev) {
+  const file = ev.target?.files?.[0];
+  if (!file) return;
+  const text = await file.text();
+  const ta = document.getElementById('rn-transcript');
+  if (ta) ta.value = text;
+  if (!document.getElementById('rn-titulo')?.value) {
+    document.getElementById('rn-titulo').value = file.name.replace(/\.[^.]+$/, '');
+  }
+}
+
+async function submitReunionTranscript() {
+  const transcript = document.getElementById('rn-transcript')?.value?.trim();
+  if (!transcript) {
+    showToast('Pegá o subí un transcript', 'error');
+    return;
+  }
+  const body = {
+    transcript,
+    titulo: document.getElementById('rn-titulo')?.value || null,
+    lead_email: document.getElementById('rn-email')?.value || null,
+    lead_phone: document.getElementById('rn-phone')?.value || null,
+    source: document.getElementById('rn-source')?.value || 'manual',
+    analyze: true,
+  };
+  const res = await api('/api/agent-runs/reuniones', { method: 'POST', body });
+  if (res?.ok) {
+    showToast('🎙️ Análisis iniciado');
+    document.getElementById('rn-transcript').value = '';
+    setTimeout(() => {
+      refreshReuniones();
+      loadAgentRuns('reuniones');
+    }, 3500);
+  } else {
+    showToast(res?.error || 'Error', 'error');
+  }
+}
+
+async function analyzeReunionById(id, force = false) {
+  const res = await api(`/api/agent-runs/reuniones/${id}/analyze`, {
+    method: 'POST',
+    body: { force: Boolean(force) },
+  });
+  if (res?.ok) {
+    showToast('Análisis iniciado');
+    setTimeout(() => {
+      refreshReuniones();
+      loadAgentRuns('reuniones');
+    }, 3500);
+  } else {
+    showToast(res?.error || 'Error', 'error');
+  }
+}
+
+async function processPendingReuniones() {
+  const res = await api('/api/agent-runs/reuniones/process-pending', {
+    method: 'POST',
+    body: { limit: 10 },
+  });
+  if (res?.ok) {
+    showToast('Procesando pending…');
+    setTimeout(() => refreshReuniones(), 4000);
+  } else {
+    showToast(res?.error || 'Error', 'error');
+  }
+}
+
+/** Vista Agente 04 — Briefing Automático */
+async function renderBriefingAgent(root) {
+  const info = agentInfo.briefing;
+
+  root.innerHTML = `
+    <div class="space-y-5">
+      <div class="flex items-center justify-between gap-4 flex-wrap">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:white;border:1px solid #E5E7EB;">${info.emoji}</div>
+          <div>
+            <h1 class="text-xl font-semibold" style="color:#111827;">Agente ${info.name}</h1>
+            <p class="text-sm mt-0.5" style="color:#6B7280;">${info.desc}</p>
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="processInteresadosBriefings()" class="btn-ghost flex items-center gap-1.5 text-xs">Procesar interesados</button>
+          <button onclick="refreshBriefings()" class="btn-ghost flex items-center gap-1.5 text-xs">Actualizar</button>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-3 gap-5">
+        <div class="card lg:col-span-1">
+          <h2 class="font-semibold text-sm mb-4" style="color:#374151;">Generar briefing</h2>
+          <div class="space-y-3">
+            <div>
+              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Email del lead</label>
+              <input id="bf-email" type="email" class="input" placeholder="lead@empresa.com">
+            </div>
+            <div>
+              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Lead ID (opcional)</label>
+              <input id="bf-lead-id" class="input" placeholder="uuid del lead">
+            </div>
+            <label class="flex items-center gap-2 text-xs" style="color:#6B7280;">
+              <input id="bf-force" type="checkbox" checked>
+              Forzar nueva versión
+            </label>
+            <p class="text-xs leading-relaxed" style="color:#9CA3AF;">Usa el perfil (02), la última reunión done (03) y el catálogo de propuestas.</p>
+            <button onclick="submitBriefingGenerate()" class="w-full btn-primary">Generar briefing</button>
+          </div>
+        </div>
+
+        <div class="lg:col-span-2 space-y-3">
+          <div class="flex gap-2 flex-wrap items-center">
+            <input id="bf-q" type="search" placeholder="Buscar email, objetivo…"
+              class="input" style="width:auto;min-width:200px;max-width:280px;"
+              onkeydown="if(event.key==='Enter')refreshBriefings()">
+            <select id="bf-status" onchange="refreshBriefings()" class="input" style="width:auto;min-width:140px;">
+              <option value="">Todos los estados</option>
+              <option value="DRAFT">DRAFT</option>
+              <option value="REVISADO">REVISADO</option>
+              <option value="ENVIADO">ENVIADO</option>
+              <option value="error">error</option>
+            </select>
+            <p id="briefings-count" class="text-sm ml-1" style="color:#6B7280;">Cargando...</p>
+          </div>
+          <div id="briefings-table-wrap" class="bg-white border overflow-hidden" style="border-color:#E5E7EB;border-radius:8px;">
+            <div class="flex items-center justify-center h-32 text-sm" style="color:#9CA3AF;">Cargando...</div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="font-semibold text-sm" style="color:#374151;">Historial de ejecuciones</h2>
+              <button onclick="loadAgentRuns('briefing')" class="text-xs transition" style="color:#6B7280;">Actualizar</button>
+            </div>
+            <div id="runs-table" class="bg-white border overflow-hidden" style="border-color:#E5E7EB;border-radius:8px;">
+              <div class="flex items-center justify-center h-24 text-sm" style="color:#9CA3AF;">Cargando...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  await Promise.all([refreshBriefings(), loadAgentRuns('briefing')]);
+}
+
+function briefingStatusBadge(status) {
+  const map = {
+    DRAFT: 'bg-amber-100 text-amber-700 border border-amber-200',
+    REVISADO: 'bg-sky-100 text-sky-700 border border-sky-200',
+    ENVIADO: 'bg-green-100 text-green-700 border border-green-200',
+    error: 'bg-red-100 text-red-700 border border-red-200',
+  };
+  return `<span class="badge ${map[status] || 'bg-gray-100 text-gray-500'}">${status || '—'}</span>`;
+}
+
+function renderBriefingsTable(rows) {
+  if (!rows?.length) {
+    return `<div class="flex flex-col items-center justify-center py-16" style="color:#9CA3AF;">
+      <p class="text-sm">Sin briefings aún</p>
+      <p class="text-xs mt-1">Generá uno con el email del lead a la izquierda</p>
+    </div>`;
+  }
+
+  return `<table class="w-full text-sm">
+    <thead>
+      <tr style="border-bottom:1px solid #E5E7EB;">
+        <th class="text-left px-4 py-3">Lead</th>
+        <th class="text-left px-4 py-3">Presupuesto</th>
+        <th class="text-left px-4 py-3">Servicios</th>
+        <th class="text-left px-4 py-3">Ver</th>
+        <th class="text-left px-4 py-3">Estado</th>
+        <th class="text-left px-4 py-3">Actualizado</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows.map((r) => {
+        const safe = JSON.stringify(r).replace(/'/g, '&#39;');
+        const svcs = Array.isArray(r.servicios_sugeridos)
+          ? r.servicios_sugeridos.slice(0, 2).join(', ')
+          : '';
+        return `<tr class="data-row transition" style="border-top:1px solid #F3F4F6;cursor:pointer;"
+            onclick='openBriefingModal(${safe})'>
+          <td class="px-4 py-3">
+            <p class="font-medium leading-tight" style="color:#111827;">${r.lead_email || '—'}</p>
+            <p class="text-xs mt-0.5 truncate max-w-[220px]" style="color:#9CA3AF;">${r.objetivo_cliente || ''}</p>
+          </td>
+          <td class="px-4 py-3 text-xs" style="color:#6B7280;">${r.presupuesto_estimado || '—'}</td>
+          <td class="px-4 py-3 text-xs truncate max-w-[180px]" style="color:#6B7280;">${svcs || '—'}</td>
+          <td class="px-4 py-3 font-data text-xs" style="color:#9CA3AF;">v${r.version || 1}</td>
+          <td class="px-4 py-3">${briefingStatusBadge(r.status)}</td>
+          <td class="px-4 py-3 font-data text-xs" style="color:#9CA3AF;">${fmtDate(r.updated_at)}</td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table>`;
+}
+
+function renderBriefingDetail(b) {
+  const list = (arr, empty) =>
+    Array.isArray(arr) && arr.length
+      ? `<ul class="space-y-1.5">${arr.map((x) => `<li class="text-xs leading-relaxed" style="color:#374151;">• ${typeof x === 'string' ? x : JSON.stringify(x)}</li>`).join('')}</ul>`
+      : `<p class="text-xs" style="color:#9CA3AF;">${empty}</p>`;
+
+  return `
+    <div class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+      <div>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Email</p>
+        <p style="color:#374151;">${b.lead_email || '—'}</p>
+      </div>
+      <div>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Estado / Versión</p>
+        <p style="color:#374151;">${b.status || '—'} · v${b.version || 1}</p>
+      </div>
+      <div>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Presupuesto</p>
+        <p style="color:#374151;">${b.presupuesto_estimado || '—'}</p>
+      </div>
+      <div>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Plazo</p>
+        <p style="color:#374151;">${b.plazo || '—'}</p>
+      </div>
+    </div>
+
+    ${b.resumen_ejecutivo ? `
+    <div class="rounded-lg p-3.5 border" style="background:#F9FAFB;border-color:#E5E7EB;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#9CA3AF;">Resumen ejecutivo</p>
+      <p class="text-xs leading-relaxed" style="color:#374151;">${b.resumen_ejecutivo}</p>
+    </div>` : ''}
+
+    <div class="rounded-lg p-3.5 border" style="background:#EFF6FF;border-color:#BFDBFE;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#2563EB;">Servicios sugeridos</p>
+      ${list(b.servicios_sugeridos, 'Sin servicios')}
+    </div>
+
+    <div class="rounded-lg p-3.5 border" style="background:#F0FDF4;border-color:#BBF7D0;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#15803D;">KPIs</p>
+      ${list(b.kpis, 'Sin KPIs')}
+    </div>
+
+    <div class="rounded-lg p-3.5 border" style="background:#FEF3C7;border-color:#FDE68A;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B45309;">Riesgos</p>
+      ${list(b.riesgos_detectados, 'Sin riesgos')}
+    </div>
+
+    <div class="rounded-lg p-3.5 border" style="background:#EEF2FF;border-color:#C7D2FE;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#4338CA;">Diferenciadores</p>
+      ${list(b.diferenciadores, 'Sin diferenciadores')}
+    </div>
+
+    ${b.brief_markdown ? `
+    <div class="rounded-lg p-3.5 border" style="background:#F9FAFB;border-color:#E5E7EB;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#9CA3AF;">Brief (markdown)</p>
+      <pre class="text-xs whitespace-pre-wrap leading-relaxed" style="color:#374151;max-height:280px;overflow:auto;">${b.brief_markdown.replace(/</g, '&lt;')}</pre>
+    </div>` : ''}
+
+    ${b.error_message ? `
+    <div class="rounded-lg p-3.5 border" style="background:#FEF2F2;border-color:#FECACA;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B91C1C;">Error</p>
+      <p class="text-xs" style="color:#991B1B;">${b.error_message}</p>
+    </div>` : ''}
+
+    <div class="flex gap-2 flex-wrap">
+      <button class="btn-ghost text-xs" onclick="setBriefingStatus('${b.id}','DRAFT')">DRAFT</button>
+      <button class="btn-ghost text-xs" onclick="setBriefingStatus('${b.id}','REVISADO')">REVISADO</button>
+      <button class="btn-primary text-xs" onclick="setBriefingStatus('${b.id}','ENVIADO')">ENVIADO</button>
+      <button class="btn-ghost text-xs" onclick="regenerateBriefing('${b.id}')">Regenerar</button>
+    </div>`;
+}
+
+async function openBriefingModal(row) {
+  let briefing = row;
+  const res = await api(`/api/agent-runs/briefings/${row.id}`);
+  if (res?.ok && res.briefing) briefing = res.briefing;
+
+  document.getElementById('modal-name').textContent = briefing.lead_email || 'Briefing';
+  document.getElementById('modal-source').textContent =
+    [briefing.status, `v${briefing.version || 1}`, fmtDate(briefing.updated_at)].filter(Boolean).join(' · ');
+  document.getElementById('modal-body').innerHTML = renderBriefingDetail(briefing);
+  document.getElementById('modal-status-buttons').innerHTML = '';
+  const footer = document.getElementById('modal-footer');
+  if (footer) footer.style.display = 'none';
+  document.getElementById('lead-modal').classList.remove('hidden');
+}
+
+async function refreshBriefings() {
+  const params = new URLSearchParams({ limit: '80' });
+  const q = document.getElementById('bf-q')?.value?.trim();
+  const status = document.getElementById('bf-status')?.value;
+  if (q) params.set('q', q);
+  if (status) params.set('status', status);
+
+  const res = await api(`/api/agent-runs/briefings?${params}`);
+  const rows = res?.briefings || [];
+  const countEl = document.getElementById('briefings-count');
+  if (countEl) {
+    countEl.innerHTML = `<span class="font-data font-semibold" style="color:#2563EB;">${rows.length}</span> briefing${rows.length !== 1 ? 's' : ''}`;
+  }
+  const wrap = document.getElementById('briefings-table-wrap');
+  if (wrap) wrap.innerHTML = renderBriefingsTable(rows);
+}
+
+async function submitBriefingGenerate() {
+  const email = document.getElementById('bf-email')?.value?.trim();
+  const lead_id = document.getElementById('bf-lead-id')?.value?.trim() || null;
+  if (!email && !lead_id) {
+    showToast('Indicá email o lead_id', 'error');
+    return;
+  }
+  showToast('Generando briefing…');
+  const res = await api('/api/agent-runs/briefings', {
+    method: 'POST',
+    body: {
+      email: email || null,
+      lead_id,
+      force: Boolean(document.getElementById('bf-force')?.checked),
+    },
+  });
+  if (res?.ok) {
+    showToast('✓ Briefing guardado');
+    if (document.getElementById('bf-email')) document.getElementById('bf-email').value = '';
+    refreshBriefings();
+    loadAgentRuns('briefing');
+  } else {
+    showToast(res?.error || 'Error', 'error');
+  }
+}
+
+async function setBriefingStatus(id, status) {
+  const res = await api(`/api/agent-runs/briefings/${id}/status`, {
+    method: 'PATCH',
+    body: { status },
+  });
+  if (res?.ok) {
+    showToast(`Estado: ${status}`);
+    openBriefingModal(res.briefing);
+    refreshBriefings();
+  } else {
+    showToast(res?.error || 'Error', 'error');
+  }
+}
+
+async function regenerateBriefing(id) {
+  showToast('Regenerando…');
+  const res = await api(`/api/agent-runs/briefings/${id}/regenerate`, {
+    method: 'POST',
+    body: {},
+  });
+  if (res?.ok) {
+    showToast('✓ Nueva versión');
+    openBriefingModal(res.briefing);
+    refreshBriefings();
+    loadAgentRuns('briefing');
+  } else {
+    showToast(res?.error || 'Error', 'error');
+  }
+}
+
+async function processInteresadosBriefings() {
+  const res = await api('/api/agent-runs/briefings/process-interesados', {
+    method: 'POST',
+    body: { limit: 5 },
+  });
+  if (res?.ok) {
+    showToast('Procesando interesados…');
+    setTimeout(() => {
+      refreshBriefings();
+      loadAgentRuns('briefing');
+    }, 8000);
+  } else {
+    showToast(res?.error || 'Error', 'error');
+  }
 }
