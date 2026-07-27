@@ -41,6 +41,17 @@
     .nav-sub.nav-chatbox:hover { color: #fff; background: rgba(37,99,235,0.22); }
     .nav-sub.nav-chatbox.active { color: #BFDBFE; background: rgba(37,99,235,0.28); border-color: rgba(96,165,250,0.55); }
 
+    /* Fixed sidebar: bound height so nav scrolls; footer stays pinned */
+    .crm-sidebar {
+      height: 100vh; max-height: 100vh; overflow: hidden;
+    }
+    .crm-sidebar-nav {
+      flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+    .crm-sidebar-header, .crm-sidebar-footer { flex-shrink: 0; }
+    a.nav-item, a.nav-sub { text-decoration: none; color: inherit; }
+
     .card { background: white; border: 1px solid #E5E7EB; border-radius: 8px; padding: 20px; }
     .card-sm { background: white; border: 1px solid #E5E7EB; border-radius: 8px; padding: 14px 16px; }
     .kpi-card { background: white; border: 1px solid #E5E7EB; border-radius: 8px; padding: 18px 20px; transition: border-color 0.15s, box-shadow 0.15s; }
@@ -76,8 +87,8 @@
 <body style="background:#F8F9FA;" class="text-gray-900 min-h-screen flex">
 
   <!-- Sidebar -->
-  <aside class="w-56 min-h-screen flex flex-col fixed left-0 top-0 z-30" style="background:#1A1D23;border-right:1px solid rgba(255,255,255,0.06);">
-    <div class="px-4 py-4 flex items-center gap-3" style="border-bottom:1px solid rgba(255,255,255,0.06);">
+  <aside class="crm-sidebar w-56 flex flex-col fixed left-0 top-0 z-30" style="background:#1A1D23;border-right:1px solid rgba(255,255,255,0.06);">
+    <div class="crm-sidebar-header px-4 py-4 flex items-center gap-3" style="border-bottom:1px solid rgba(255,255,255,0.06);">
       <div class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm shrink-0 text-white" style="background:#2563EB;">D</div>
       <div class="min-w-0">
         <p class="font-semibold text-sm leading-tight truncate text-white">Marketing Dana</p>
@@ -85,47 +96,47 @@
       </div>
     </div>
 
-    <nav class="flex-1 overflow-y-auto px-2 py-3">
-      <div onclick="navigate('dashboard')" class="nav-item" data-view="dashboard">
+    <nav class="crm-sidebar-nav px-2 py-3" id="crm-sidebar-nav">
+      <a href="#dashboard" class="nav-item" data-view="dashboard">
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
         Dashboard
-      </div>
+      </a>
 
       <p class="nav-section">Leads</p>
-      <div onclick="navigate('leads')" class="nav-item" data-view="leads">
+      <a href="#leads" class="nav-item" data-view="leads">
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         Todos
-      </div>
-      <div onclick="navigate('leads/web_form')"        class="nav-sub" data-view="leads/web_form">Formulario web</div>
-      <div onclick="navigate('leads/manychat')"        class="nav-sub" data-view="leads/manychat">ManyChat</div>
-      <div onclick="navigate('leads/instagram')"       class="nav-sub" data-view="leads/instagram">Instagram</div>
-      <div onclick="navigate('leads/whatsapp')"        class="nav-sub" data-view="leads/whatsapp">WhatsApp</div>
-      <div onclick="navigate('leads/linkedin')"        class="nav-sub" data-view="leads/linkedin">LinkedIn</div>
-      <div onclick="navigate('leads/email')"           class="nav-sub" data-view="leads/email">Email</div>
-      <div onclick="navigate('leads/database_import')" class="nav-sub" data-view="leads/database_import">Importación</div>
+      </a>
+      <a href="#leads/web_form"        class="nav-sub" data-view="leads/web_form">Formulario web</a>
+      <a href="#leads/manychat"        class="nav-sub" data-view="leads/manychat">ManyChat</a>
+      <a href="#leads/instagram"       class="nav-sub" data-view="leads/instagram">Instagram</a>
+      <a href="#leads/whatsapp"        class="nav-sub" data-view="leads/whatsapp">WhatsApp</a>
+      <a href="#leads/linkedin"        class="nav-sub" data-view="leads/linkedin">LinkedIn</a>
+      <a href="#leads/email"           class="nav-sub" data-view="leads/email">Email</a>
+      <a href="#leads/database_import" class="nav-sub" data-view="leads/database_import">Importación</a>
 
       <p class="nav-section">Agentes IA</p>
-      <div onclick="navigate('agent/sdr')" class="nav-item" data-view="agent/sdr">
+      <a href="#agent/sdr" class="nav-item" data-view="agent/sdr">
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
         SDR
-      </div>
-      <div onclick="navigate('agent/analyst')" class="nav-item" data-view="agent/analyst">
+      </a>
+      <a href="#agent/analyst" class="nav-item" data-view="agent/analyst">
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
         Analista
-      </div>
-      <div onclick="navigate('propuestas')" class="nav-sub" data-view="propuestas">Menú · Propuestas</div>
-      <div onclick="navigate('agent/proposal')" class="nav-item" data-view="agent/proposal">
+      </a>
+      <a href="#propuestas" class="nav-sub" data-view="propuestas">Menú · Propuestas</a>
+      <a href="#agent/proposal" class="nav-item" data-view="agent/proposal">
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
         Propuestas IA
-      </div>
-      <div onclick="navigate('agent/performance')" class="nav-item" data-view="agent/performance">
+      </a>
+      <a href="#agent/performance" class="nav-item" data-view="agent/performance">
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
         Performance
-      </div>
-      <div onclick="navigate('agent/reporting')" class="nav-item" data-view="agent/reporting">
+      </a>
+      <a href="#agent/reporting" class="nav-item" data-view="agent/reporting">
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
         Reporting
-      </div>
+      </a>
 
       <div class="nav-group open" id="nav-group-herramientas">
         <div class="nav-item nav-group-toggle" onclick="toggleNavGroup('herramientas')" title="Expandir / contraer Herramientas" role="button" aria-expanded="true">
@@ -136,27 +147,27 @@
           <svg class="nav-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
         </div>
         <div class="nav-group-children" id="nav-children-herramientas">
-          <div onclick="navigate('pipeline')" class="nav-sub" data-view="pipeline">
+          <a href="#pipeline" class="nav-sub" data-view="pipeline">
             <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
             Pipeline
-          </div>
-          <div onclick="navigate('calendar')" class="nav-sub" data-view="calendar">
+          </a>
+          <a href="#calendar" class="nav-sub" data-view="calendar">
             <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
             Calendario
-          </div>
-          <div onclick="navigate('chatbox')" class="nav-sub nav-chatbox" data-view="chatbox" title="Lead scoring Chatbox">
+          </a>
+          <a href="#chatbox" class="nav-sub nav-chatbox" data-view="chatbox" title="Lead scoring Chatbox">
             <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
             Chatbox
-          </div>
+          </a>
         </div>
       </div>
-      <div onclick="navigate('settings')" class="nav-item" data-view="settings">
+      <a href="#settings" class="nav-item" data-view="settings">
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         Configuración
-      </div>
+      </a>
     </nav>
 
-    <div class="px-3 py-3 flex items-center gap-2.5" style="border-top:1px solid rgba(255,255,255,0.06);">
+    <div class="crm-sidebar-footer px-3 py-3 flex items-center gap-2.5" style="border-top:1px solid rgba(255,255,255,0.06);">
       <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 text-white" style="background:#2563EB;" id="user-avatar">M</div>
       <div class="min-w-0 flex-1">
         <p id="user-name" class="text-xs font-medium truncate text-white">—</p>
@@ -221,7 +232,24 @@
       window.location.href = '/login.html';
     }
 
-    function navigate(view) { window.location.hash = view; }
+    function navigate(view) {
+      const next = '#' + String(view || 'dashboard').replace(/^#/, '');
+      // Always render: hashchange does not fire when the hash is unchanged
+      if (window.location.hash === next) {
+        renderView(next);
+        return;
+      }
+      window.location.hash = next;
+    }
+
+    // Native <a href="#..."> + delegated clicks so nav works even if a handler is missed
+    document.getElementById('crm-sidebar-nav').addEventListener('click', (e) => {
+      if (e.target.closest('.nav-group-toggle')) return;
+      const el = e.target.closest('[data-view]');
+      if (!el || !el.dataset.view) return;
+      e.preventDefault();
+      navigate(el.dataset.view);
+    });
 
     function toggleNavGroup(id) {
       const group = document.getElementById('nav-group-' + id);
@@ -246,7 +274,7 @@
     })();
 
     function renderView(hash) {
-      const view = hash.replace('#', '') || 'dashboard';
+      const view = (hash || '').replace(/^#/, '') || 'dashboard';
 
       document.querySelectorAll('.nav-item, .nav-sub').forEach(el => {
         el.classList.toggle('active', el.dataset.view === view);
@@ -263,16 +291,18 @@
       }
 
       const root = document.getElementById('view-root');
+      if (!root) return;
       const main = root.parentElement;
 
       if (view === 'chatbox') {
         root.className = 'p-0 max-w-none h-screen';
         if (main) main.style.background = '#0B1220';
         root.innerHTML = `<iframe
-          src="/chatbox/"
+          src="/chatbox/index.html"
           title="Chatbox · Lead scoring"
           class="w-full border-0 block"
           style="height:100vh;background:#0B1220;"
+          allow="clipboard-write"
         ></iframe>`;
         return;
       }
@@ -296,6 +326,8 @@
         const source = view.includes('/') ? view.split('/')[1] : null;
         return renderLeads(root, source);
       }
+
+      root.innerHTML = `<div class="p-8 text-sm" style="color:#6B7280;">Vista no encontrada: <code>${view}</code></div>`;
     }
 
     window.addEventListener('hashchange', () => renderView(window.location.hash));
