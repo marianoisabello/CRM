@@ -232,7 +232,7 @@ GOOGLE_ADS_CUSTOMER_ID=
 ## Deployment
 
 - **CRM (backend + frontend SPA + chatbox):** Vercel project `crm` — https://crm-murex-tau.vercel.app (repo root `.`, Express)
-- **Chatbot unificado:** `installCommand` / `npm run build:chatbox` bakea Vite en `public/chatbox/` con `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` (legacy `builds` ignora `buildCommand` solo; por eso el build corre en install)
+- **Chatbot unificado:** `postinstall` (gated by `VERCEL=1`) corre `npm run build:chatbox` porque legacy `builds` ignora `installCommand`/`buildCommand`; Vite bakea en `public/chatbox/` con `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY`
 - **Chatbot standalone (legacy, opcional):** Vercel project `chatbot-pampai` — https://chatbot-pampai-nu.vercel.app — **no borrar** sin confirmación; se puede redirigir a CRM `/chatbox/` o eliminar después
 - **GitHub:** https://github.com/marianoisabello/CRM
 - **Requisito Railway (legacy):** `NIXPACKS_NODE_VERSION=22` — ya no aplica si se usa Vercel
