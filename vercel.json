@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "buildCommand": "npm run build:chatbox",
   "builds": [
     { "src": "src/server.js", "use": "@vercel/node" }
   ],

@@ -231,8 +231,8 @@ GOOGLE_ADS_CUSTOMER_ID=
 
 ## Deployment
 
-- **CRM (backend + frontend SPA):** Vercel — https://crm-murex-tau.vercel.app (auto-deploy desde GitHub push a `main`)
-- **Chatbot de scoring:** Vercel — https://chatbot-pampai-nu.vercel.app (subcarpeta `lead-scoring-chatbot/`, auto-deploy)
+- **CRM (backend + frontend SPA):** Vercel project `crm` — https://crm-murex-tau.vercel.app (repo root `.`, Express)
+- **Chatbot standalone (opcional):** Vercel project `chatbot-pampai` — https://chatbot-pampai-nu.vercel.app (rootDirectory `lead-scoring-chatbot/`) — **no borrar** sin confirmación; el CRM ya hospeda una copia en `/chatbox/`
 - **GitHub:** https://github.com/marianoisabello/CRM
 - **Requisito Railway (legacy):** `NIXPACKS_NODE_VERSION=22` — ya no aplica si se usa Vercel
 - **Credenciales seed:** admin@dana.com / Dana2024!
@@ -240,12 +240,14 @@ GOOGLE_ADS_CUSTOMER_ID=
 ### Chatbot Lead Scoring (`/lead-scoring-chatbot`)
 
 - **Stack:** React 18 + Vite + Tailwind CSS + Supabase JS
-- **URL:** https://chatbot-pampai-nu.vercel.app
+- **En CRM (unificado):** https://crm-murex-tau.vercel.app/app.html#chatbox → iframe a `/chatbox/` (mismo dominio)
+- **Standalone:** https://chatbot-pampai-nu.vercel.app
+- **Build CRM:** `npm run build:chatbox` → `public/chatbox/` (base `/chatbox/`)
 - **Flujo:** 10 preguntas de datos → 6 preguntas Sí/No → score 0-100 → mensaje personalizado → guarda en tabla `leads` con `source: "chatbot"`
 - **Scoring:** negocio activo (+10), web/social activa (+10), necesidad urgente (+20), presupuesto (+20), tomador de decisiones (+20), resultados corto plazo (+20)
 - **Categorias:** Bajo (0-39), Medio (40-69), Alto (70-100)
 - **Calendly (Alto):** https://calendly.com/marianoisabello-pampai/30min
-- **Link en sidebar CRM:** Herramientas → "Chatbox" (abre en nueva pestaña → https://chatbot-pampai-nu.vercel.app/)
+- **Link en sidebar CRM:** Herramientas (expandible) → **Chatbox** (vista in-app `#chatbox`)
 - **Chatbot UI:** página standalone sin sidebar CRM — el menú Marketing Dana vive solo en el CRM
 - **Tabla leads:** ya creada en Supabase — los leads del chatbot llegan con source="chatbot"
 

@@ -28,6 +28,18 @@
     .nav-sub:hover { color: rgb(209,213,219); background: rgba(255,255,255,0.04); }
     .nav-sub.active { color: #93C5FD; }
     .nav-section { font-size: 10px; color: rgb(75,85,99); text-transform: uppercase; letter-spacing: 0.1em; padding: 0 10px; margin: 16px 0 4px; }
+    .nav-group-toggle { justify-content: space-between; }
+    .nav-group-toggle .nav-group-label { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .nav-chevron { width: 14px; height: 14px; flex-shrink: 0; transition: transform 0.15s; opacity: 0.7; }
+    .nav-group.open .nav-chevron { transform: rotate(90deg); }
+    .nav-group-children { display: none; margin: 2px 0 4px; padding-left: 2px; border-left: 2px solid rgba(37,99,235,0.45); margin-left: 14px; }
+    .nav-group.open .nav-group-children { display: block; }
+    .nav-sub.nav-chatbox {
+      color: #93C5FD; font-weight: 600; font-size: 13px; padding: 7px 10px 7px 12px;
+      background: rgba(37,99,235,0.12); border: 1px solid rgba(37,99,235,0.35);
+    }
+    .nav-sub.nav-chatbox:hover { color: #fff; background: rgba(37,99,235,0.22); }
+    .nav-sub.nav-chatbox.active { color: #BFDBFE; background: rgba(37,99,235,0.28); border-color: rgba(96,165,250,0.55); }
 
     .card { background: white; border: 1px solid #E5E7EB; border-radius: 8px; padding: 20px; }
     .card-sm { background: white; border: 1px solid #E5E7EB; border-radius: 8px; padding: 14px 16px; }
@@ -115,18 +127,29 @@
         Reporting
       </div>
 
-      <p class="nav-section">Herramientas</p>
-      <div onclick="navigate('pipeline')" class="nav-item" data-view="pipeline">
-        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
-        Pipeline
+      <div class="nav-group open" id="nav-group-herramientas">
+        <div class="nav-item nav-group-toggle" onclick="toggleNavGroup('herramientas')" title="Expandir / contraer Herramientas" role="button" aria-expanded="true">
+          <span class="nav-group-label">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            Herramientas
+          </span>
+          <svg class="nav-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </div>
+        <div class="nav-group-children" id="nav-children-herramientas">
+          <div onclick="navigate('pipeline')" class="nav-sub" data-view="pipeline">
+            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
+            Pipeline
+          </div>
+          <div onclick="navigate('calendar')" class="nav-sub" data-view="calendar">
+            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            Calendario
+          </div>
+          <div onclick="navigate('chatbox')" class="nav-sub nav-chatbox" data-view="chatbox" title="Lead scoring Chatbox">
+            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+            Chatbox
+          </div>
+        </div>
       </div>
-      <div onclick="navigate('calendar')" class="nav-item" data-view="calendar">
-        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-        Calendario
-      </div>
-      <a href="https://chatbot-pampai-nu.vercel.app/" target="_blank" rel="noopener noreferrer" class="nav-sub" style="text-decoration:none;">
-        Chatbox
-      </a>
       <div onclick="navigate('settings')" class="nav-item" data-view="settings">
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         Configuración
@@ -200,6 +223,28 @@
 
     function navigate(view) { window.location.hash = view; }
 
+    function toggleNavGroup(id) {
+      const group = document.getElementById('nav-group-' + id);
+      if (!group) return;
+      const open = group.classList.toggle('open');
+      const toggle = group.querySelector('.nav-group-toggle');
+      if (toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      try { localStorage.setItem('crm_nav_' + id, open ? '1' : '0'); } catch (_) {}
+    }
+
+    (function restoreNavGroups() {
+      try {
+        const saved = localStorage.getItem('crm_nav_herramientas');
+        const group = document.getElementById('nav-group-herramientas');
+        if (!group) return;
+        // Default open so Chatbox is always visible on first visit
+        const open = saved == null ? true : saved === '1';
+        group.classList.toggle('open', open);
+        const toggle = group.querySelector('.nav-group-toggle');
+        if (toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      } catch (_) {}
+    })();
+
     function renderView(hash) {
       const view = hash.replace('#', '') || 'dashboard';
 
@@ -207,7 +252,33 @@
         el.classList.toggle('active', el.dataset.view === view);
       });
 
+      // Ensure Herramientas stays open when a child view is active
+      if (view === 'pipeline' || view === 'calendar' || view === 'chatbox') {
+        const group = document.getElementById('nav-group-herramientas');
+        if (group && !group.classList.contains('open')) {
+          group.classList.add('open');
+          const toggle = group.querySelector('.nav-group-toggle');
+          if (toggle) toggle.setAttribute('aria-expanded', 'true');
+        }
+      }
+
       const root = document.getElementById('view-root');
+      const main = root.parentElement;
+
+      if (view === 'chatbox') {
+        root.className = 'p-0 max-w-none h-screen';
+        if (main) main.style.background = '#0B1220';
+        root.innerHTML = `<iframe
+          src="/chatbox/"
+          title="Chatbox · Lead scoring"
+          class="w-full border-0 block"
+          style="height:100vh;background:#0B1220;"
+        ></iframe>`;
+        return;
+      }
+
+      root.className = 'p-7 max-w-7xl mx-auto';
+      if (main) main.style.background = '#F8F9FA';
       root.innerHTML = `<div class="flex items-center justify-center h-64">
         <div class="flex flex-col items-center gap-3" style="color:#9CA3AF;">
           <svg class="w-5 h-5 spinning" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>

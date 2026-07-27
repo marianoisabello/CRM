@@ -5,7 +5,9 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "build:chatbox": "node scripts/build-chatbox.js",
+    "build": "npm run build:chatbox"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.27.0",
