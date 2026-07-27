@@ -11,7 +11,7 @@ CRM Dana es el sistema operativo de Marketing Dana. Una plataforma con 5 agentes
 ## Estructura de archivos
 
 ```
-/lead-scoring-chatbot  - Chatbot React (deployado en crm-pampai.vercel.app)
+/lead-scoring-chatbot  - Chatbot React (deployado en chatbot-pampai-nu.vercel.app)
   /src
     /components/       - ChatBot.tsx, ScoreDisplay.tsx, SuccessMessage.tsx
     /services/         - supabaseClient.ts
@@ -232,7 +232,7 @@ GOOGLE_ADS_CUSTOMER_ID=
 ## Deployment
 
 - **CRM (backend + frontend SPA):** Vercel — https://crm-murex-tau.vercel.app (auto-deploy desde GitHub push a `main`)
-- **Chatbot de scoring:** Vercel — https://crm-pampai.vercel.app (subcarpeta `lead-scoring-chatbot/`, auto-deploy)
+- **Chatbot de scoring:** Vercel — https://chatbot-pampai-nu.vercel.app (subcarpeta `lead-scoring-chatbot/`, auto-deploy)
 - **GitHub:** https://github.com/marianoisabello/CRM
 - **Requisito Railway (legacy):** `NIXPACKS_NODE_VERSION=22` — ya no aplica si se usa Vercel
 - **Credenciales seed:** admin@dana.com / Dana2024!
@@ -240,12 +240,13 @@ GOOGLE_ADS_CUSTOMER_ID=
 ### Chatbot Lead Scoring (`/lead-scoring-chatbot`)
 
 - **Stack:** React 18 + Vite + Tailwind CSS + Supabase JS
-- **URL:** https://crm-pampai.vercel.app
+- **URL:** https://chatbot-pampai-nu.vercel.app
 - **Flujo:** 10 preguntas de datos → 6 preguntas Sí/No → score 0-100 → mensaje personalizado → guarda en tabla `leads` con `source: "chatbot"`
 - **Scoring:** negocio activo (+10), web/social activa (+10), necesidad urgente (+20), presupuesto (+20), tomador de decisiones (+20), resultados corto plazo (+20)
 - **Categorias:** Bajo (0-39), Medio (40-69), Alto (70-100)
 - **Calendly (Alto):** https://calendly.com/marianoisabello-pampai/30min
-- **Link en sidebar CRM:** Herramientas → "Chatbot Scoring" (abre en nueva pestaña)
+- **Link en sidebar CRM:** Herramientas → "Chatbot Scoring" (abre en nueva pestaña → chatbot-pampai-nu.vercel.app)
+- **Shell en chatbot:** mismo sidebar Marketing Dana que `app.html` (Dashboard / Leads / Agentes / Herramientas), con Chatbot Scoring activo
 - **Tabla leads:** ya creada en Supabase — los leads del chatbot llegan con source="chatbot"
 
 ### Pasos pendientes para funcionar completamente
