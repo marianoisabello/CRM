@@ -245,8 +245,8 @@ GOOGLE_ADS_CUSTOMER_ID=
 - **Scoring:** negocio activo (+10), web/social activa (+10), necesidad urgente (+20), presupuesto (+20), tomador de decisiones (+20), resultados corto plazo (+20)
 - **Categorias:** Bajo (0-39), Medio (40-69), Alto (70-100)
 - **Calendly (Alto):** https://calendly.com/marianoisabello-pampai/30min
-- **Link en sidebar CRM:** Herramientas → "Chatbot Scoring" (abre en nueva pestaña → chatbot-pampai-nu.vercel.app)
-- **Shell en chatbot:** mismo sidebar Marketing Dana que `app.html` (Dashboard / Leads / Agentes / Herramientas), con Chatbot Scoring activo
+- **Link en sidebar CRM:** Herramientas → "Chatbox" (abre en nueva pestaña → https://chatbot-pampai-nu.vercel.app/)
+- **Chatbot UI:** página standalone sin sidebar CRM — el menú Marketing Dana vive solo en el CRM
 - **Tabla leads:** ya creada en Supabase — los leads del chatbot llegan con source="chatbot"
 
 ### Pasos pendientes para funcionar completamente
