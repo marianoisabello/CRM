@@ -11,34 +11,59 @@ const calendar = require('../integrations/calendar');
 
 // POST /api/auth/login
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ ok: false, error: 'Email y password requeridos' });
+  try {
+    const { email, password } = req.body || {};
+    if (!email || !password || typeof email !== 'string' || typeof password !== 'string') {
+      return res.status(400).json({ ok: false, error: 'Email y password requeridos' });
+    }
+
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('id, email, password_hash, role, name')
+      .eq('email', email.toLowerCase().trim())
+      .maybeSingle();
+
+    // Auth failures (missing user / DB lookup miss) → 401, never 500
+    if (error) {
+      logger.warn({ msg: 'Login lookup error', error: error.message });
+      return res.status(401).json({ ok: false, error: 'Credenciales inválidas' });
+    }
+    if (!user || !user.password_hash) {
+      return res.status(401).json({ ok: false, error: 'Credenciales inválidas' });
+    }
+
+    let valid = false;
+    try {
+      valid = await bcrypt.compare(password, user.password_hash);
+    } catch (hashErr) {
+      logger.warn({ msg: 'Login hash compare failed', error: hashErr.message });
+      return res.status(401).json({ ok: false, error: 'Credenciales inválidas' });
+    }
+    if (!valid) {
+      return res.status(401).json({ ok: false, error: 'Credenciales inválidas' });
+    }
+
+    if (!config.jwt.secret) {
+      logger.error({ msg: 'JWT_SECRET no configurado' });
+      return res.status(500).json({ ok: false, error: 'Auth no configurado' });
+    }
+
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role, name: user.name },
+      config.jwt.secret,
+      { expiresIn: '12h' }
+    );
+
+    logger.info({ msg: 'Login exitoso', email: user.email, role: user.role });
+    return res.json({
+      ok: true,
+      token,
+      user: { id: user.id, email: user.email, role: user.role, name: user.name },
+    });
+  } catch (err) {
+    logger.error({ msg: 'Login falló', error: err.message });
+    return res.status(500).json({ ok: false, error: 'Error interno del servidor' });
   }
-
-  const { data: user, error } = await supabase
-    .from('users')
-    .select('id, email, password_hash, role, name')
-    .eq('email', email.toLowerCase().trim())
-    .maybeSingle();
-
-  if (error || !user) {
-    return res.status(401).json({ ok: false, error: 'Credenciales inválidas' });
-  }
-
-  const valid = await bcrypt.compare(password, user.password_hash);
-  if (!valid) {
-    return res.status(401).json({ ok: false, error: 'Credenciales inválidas' });
-  }
-
-  const token = jwt.sign(
-    { id: user.id, email: user.email, role: user.role, name: user.name },
-    config.jwt.secret,
-    { expiresIn: '12h' }
-  );
-
-  logger.info({ msg: 'Login exitoso', email: user.email, role: user.role });
-  return res.json({ ok: true, token, user: { id: user.id, email: user.email, role: user.role, name: user.name } });
 });
 
 // GET /api/auth/me

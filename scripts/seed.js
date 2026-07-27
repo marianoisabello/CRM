@@ -62,7 +62,7 @@ async function seed() {
   }
 
   console.log('\n✅ Seed completado!');
-  console.log('🔑 Login: admin@dana.com / Dana2024!');
+  console.log('🔑 Login: marianoisabello@pampai.com (password set in this seed script)');
   console.log('🌐 Panel: http://localhost:3000/login.html');
 }
 

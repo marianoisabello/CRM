@@ -26,13 +26,19 @@ router.get('/', async (req, res) => {
 
 // GET /api/leads/stats
 router.get('/stats', async (req, res) => {
-  const [allLeads, recentLeads] = await Promise.all([
+  const [allLeads, recentLeads, perfilesC, reunionesC, briefingsC, perfC, monthlyC, clientsC] = await Promise.all([
     supabase.from('leads').select('classification, status, source, score'),
     supabase
       .from('leads')
       .select('id, name, email, source, status, score, classification, created_at')
       .order('created_at', { ascending: false })
       .limit(5),
+    supabase.from('perfiles').select('email', { count: 'exact', head: true }),
+    supabase.from('reuniones').select('id', { count: 'exact', head: true }),
+    supabase.from('briefings').select('id', { count: 'exact', head: true }),
+    supabase.from('performance_reports').select('id', { count: 'exact', head: true }),
+    supabase.from('monthly_reports').select('id', { count: 'exact', head: true }),
+    supabase.from('clients').select('id', { count: 'exact', head: true }).eq('status', 'active'),
   ]);
 
   if (allLeads.error) return res.status(500).json({ ok: false, error: allLeads.error.message });
@@ -45,6 +51,14 @@ router.get('/stats', async (req, res) => {
     by_source: {},
     avg_score: 0,
     recent_leads: recentLeads.data || [],
+    agents: {
+      perfiles: perfilesC.count || 0,
+      reuniones: reunionesC.count || 0,
+      briefings: briefingsC.count || 0,
+      performance_reports: perfC.count || 0,
+      monthly_reports: monthlyC.count || 0,
+      clients_active: clientsC.count || 0,
+    },
   };
 
   let scoreSum = 0, scoreCount = 0;

@@ -114,6 +114,33 @@ async function renderDashboard(root) {
         </div>
       </div>
 
+      <!-- Métricas por agente (semana 4) -->
+      ${(() => {
+        const a = stats.agents || {};
+        const items = [
+          { label: 'Perfiles', val: a.perfiles || 0, href: '#agent/analyst', color: '#2563EB' },
+          { label: 'Reuniones', val: a.reuniones || 0, href: '#agent/reuniones', color: '#0EA5E9' },
+          { label: 'Briefings', val: a.briefings || 0, href: '#agent/briefing', color: '#8B5CF6' },
+          { label: 'Performance', val: a.performance_reports || 0, href: '#agent/performance', color: '#F59E0B' },
+          { label: 'Reporting', val: a.monthly_reports || 0, href: '#agent/reporting', color: '#10B981' },
+          { label: 'Clientes', val: a.clients_active || 0, href: '#agent/reporting', color: '#64748B' },
+        ];
+        return `<div class="card">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="font-semibold text-sm" style="color:#111827;">Pipeline de agentes</h2>
+            <span class="text-xs" style="color:#9CA3AF;">conteos CRM</span>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            ${items.map((it) => `
+              <a href="${it.href}" class="rounded-lg p-3 border transition block" style="border-color:#E5E7EB;border-left:3px solid ${it.color};"
+                 onmouseover="this.style.background='#F9FAFB'" onmouseout="this.style.background=''">
+                <p class="text-xs font-semibold uppercase tracking-wider" style="color:#6B7280;">${it.label}</p>
+                <p class="font-data text-2xl font-bold mt-1" style="color:#111827;">${it.val}</p>
+              </a>`).join('')}
+          </div>
+        </div>`;
+      })()}
+
       <!-- Fila inferior -->
       <div class="grid lg:grid-cols-3 gap-4">
         <div class="card space-y-1">

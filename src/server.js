@@ -141,8 +141,14 @@ app.use('/api/export', exportRouter);
 // 404
 app.use((_req, res) => res.status(404).json({ ok: false, error: 'Ruta no encontrada' }));
 
-// Error handler global
+// Error handler global — JSON parse / body errors → 400 (not 500)
 app.use((err, _req, res, _next) => {
+  const isBadJson =
+    err.type === 'entity.parse.failed' ||
+    (err instanceof SyntaxError && err.status === 400 && 'body' in err);
+  if (isBadJson) {
+    return res.status(400).json({ ok: false, error: 'JSON inválido' });
+  }
   logger.error({ msg: 'Error no manejado', error: err.message, stack: err.stack });
   res.status(500).json({ ok: false, error: 'Error interno del servidor' });
 });

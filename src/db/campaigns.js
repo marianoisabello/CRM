@@ -8,7 +8,7 @@ async function savePerformanceReport({ period_since, period_until, client_id, an
     .insert({
       period_since,
       period_until,
-      client_id,
+      client_id: client_id || null,
       analysis,
       actions_pending_approval,
       status: actions_pending_approval?.length > 0 ? 'pending_approval' : 'done',
@@ -20,6 +20,43 @@ async function savePerformanceReport({ period_since, period_until, client_id, an
   return data;
 }
 
+async function listPerformanceReports({ limit = 50, offset = 0, status } = {}) {
+  let query = supabase
+    .from('performance_reports')
+    .select('id, client_id, period_since, period_until, analysis, actions_pending_approval, status, approved_at, created_at, clients(id, company, status)')
+    .order('created_at', { ascending: false })
+    .range(Number(offset), Number(offset) + Number(limit) - 1);
+
+  if (status) query = query.eq('status', status);
+
+  const { data, error } = await query;
+  if (error) throw new Error(`Error listando performance reports: ${error.message}`);
+  return data || [];
+}
+
+async function getPerformanceReport(id) {
+  const { data, error } = await supabase
+    .from('performance_reports')
+    .select('*, clients(id, company, status, monthly_budget, services)')
+    .eq('id', id)
+    .single();
+
+  if (error) throw new Error(`Error obteniendo performance report: ${error.message}`);
+  return data;
+}
+
+async function approvePerformanceReport(id) {
+  const { data, error } = await supabase
+    .from('performance_reports')
+    .update({ status: 'approved', approved_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw new Error(`Error aprobando performance report: ${error.message}`);
+  return data;
+}
+
 async function getMonthlyMetrics(clientId, since, until) {
   // Combina datos de leads + performance reports del período para el reporte mensual
   const [leadsResult, reportsResult] = await Promise.all([
@@ -27,17 +64,27 @@ async function getMonthlyMetrics(clientId, since, until) {
       .from('leads')
       .select('id, source, classification, status, score, created_at')
       .gte('created_at', since)
-      .lte('created_at', until),
+      .lte('created_at', `${until}T23:59:59.999Z`),
 
     supabase
       .from('performance_reports')
-      .select('analysis, period_since, period_until')
-      .eq('client_id', clientId)
+      .select('analysis, period_since, period_until, status')
       .gte('period_since', since)
       .lte('period_until', until),
   ]);
 
   if (leadsResult.error) throw new Error(`Error obteniendo leads para métricas: ${leadsResult.error.message}`);
+
+  let clientReports = reportsResult.data || [];
+  if (clientId) {
+    const { data: scoped } = await supabase
+      .from('performance_reports')
+      .select('analysis, period_since, period_until, status')
+      .eq('client_id', clientId)
+      .gte('period_since', since)
+      .lte('period_until', until);
+    if (scoped) clientReports = scoped;
+  }
 
   return {
     leads: {
@@ -46,11 +93,29 @@ async function getMonthlyMetrics(clientId, since, until) {
       by_classification: groupBy(leadsResult.data || [], 'classification'),
       by_status: groupBy(leadsResult.data || [], 'status'),
     },
-    ad_performance: reportsResult.data || [],
+    ad_performance: clientReports,
   };
 }
 
 async function saveMonthlyReport({ client_id, month, report, status }) {
+  const { data: existing } = await supabase
+    .from('monthly_reports')
+    .select('id')
+    .eq('client_id', client_id)
+    .eq('month', month)
+    .maybeSingle();
+
+  if (existing?.id) {
+    const { data, error } = await supabase
+      .from('monthly_reports')
+      .update({ report, status, approved_at: null })
+      .eq('id', existing.id)
+      .select()
+      .single();
+    if (error) throw new Error(`Error actualizando reporte mensual: ${error.message}`);
+    return data;
+  }
+
   const { data, error } = await supabase
     .from('monthly_reports')
     .insert({ client_id, month, report, status })
@@ -58,6 +123,32 @@ async function saveMonthlyReport({ client_id, month, report, status }) {
     .single();
 
   if (error) throw new Error(`Error guardando reporte mensual: ${error.message}`);
+  return data;
+}
+
+async function listMonthlyReports({ limit = 50, offset = 0, status, client_id } = {}) {
+  let query = supabase
+    .from('monthly_reports')
+    .select('id, client_id, month, report, status, approved_at, created_at, clients(id, company, status)')
+    .order('created_at', { ascending: false })
+    .range(Number(offset), Number(offset) + Number(limit) - 1);
+
+  if (status) query = query.eq('status', status);
+  if (client_id) query = query.eq('client_id', client_id);
+
+  const { data, error } = await query;
+  if (error) throw new Error(`Error listando monthly reports: ${error.message}`);
+  return data || [];
+}
+
+async function getMonthlyReport(id) {
+  const { data, error } = await supabase
+    .from('monthly_reports')
+    .select('*, clients(id, company, status, monthly_budget, services, leads(name, email))')
+    .eq('id', id)
+    .single();
+
+  if (error) throw new Error(`Error obteniendo monthly report: ${error.message}`);
   return data;
 }
 
@@ -73,6 +164,18 @@ async function approveMonthlyReport(id) {
   return data;
 }
 
+async function markMonthlyReportSent(id) {
+  const { data, error } = await supabase
+    .from('monthly_reports')
+    .update({ status: 'sent' })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw new Error(`Error marcando reporte enviado: ${error.message}`);
+  return data;
+}
+
 function groupBy(arr, key) {
   return arr.reduce((acc, item) => {
     const val = item[key] || 'unknown';
@@ -81,4 +184,15 @@ function groupBy(arr, key) {
   }, {});
 }
 
-module.exports = { savePerformanceReport, getMonthlyMetrics, saveMonthlyReport, approveMonthlyReport };
+module.exports = {
+  savePerformanceReport,
+  listPerformanceReports,
+  getPerformanceReport,
+  approvePerformanceReport,
+  getMonthlyMetrics,
+  saveMonthlyReport,
+  listMonthlyReports,
+  getMonthlyReport,
+  approveMonthlyReport,
+  markMonthlyReportSent,
+};

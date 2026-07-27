@@ -8,6 +8,15 @@ async function renderAgent(root, agentId) {
   if (agentId === 'briefing') {
     return renderBriefingAgent(root);
   }
+  if (agentId === 'performance') {
+    return renderPerformanceAgent(root);
+  }
+  if (agentId === 'reporting') {
+    return renderReportingAgent(root);
+  }
+  if (agentId === 'proposal') {
+    return renderProposalAgent(root);
+  }
 
   const info = agentInfo[agentId] || { emoji: '🤖', name: agentId, desc: '' };
 
@@ -1143,6 +1152,661 @@ async function processInteresadosBriefings() {
       refreshBriefings();
       loadAgentRuns('briefing');
     }, 8000);
+  } else {
+    showToast(res?.error || 'Error', 'error');
+  }
+}
+
+/** Vista Agente Performance — análisis de ads */
+async function renderPerformanceAgent(root) {
+  const info = agentInfo.performance;
+  const today = new Date().toISOString().split('T')[0];
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+  root.innerHTML = `
+    <div class="space-y-5">
+      <div class="flex items-center justify-between gap-4 flex-wrap">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:white;border:1px solid #E5E7EB;">${info.emoji}</div>
+          <div>
+            <h1 class="text-xl font-semibold" style="color:#111827;">Agente ${info.name}</h1>
+            <p class="text-sm mt-0.5" style="color:#6B7280;">${info.desc}</p>
+          </div>
+        </div>
+        <button onclick="refreshPerfReports()" class="btn-ghost flex items-center gap-1.5 text-xs">Actualizar</button>
+      </div>
+
+      <div class="grid lg:grid-cols-3 gap-5">
+        <div class="card lg:col-span-1">
+          <h2 class="font-semibold text-sm mb-4" style="color:#374151;">Analizar período</h2>
+          <div class="space-y-3">
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Desde</label>
+                <input id="pfm-since" type="date" value="${weekAgo}" class="input">
+              </div>
+              <div>
+                <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Hasta</label>
+                <input id="pfm-until" type="date" value="${today}" class="input">
+              </div>
+            </div>
+            <p class="text-xs leading-relaxed" style="color:#9CA3AF;">Sin tokens de Meta/Google Ads usa métricas DEMO. Acciones sensibles quedan pendientes de aprobación.</p>
+            <button onclick="submitPerformanceAnalyze()" class="w-full btn-primary">📈 Analizar performance</button>
+          </div>
+        </div>
+
+        <div class="lg:col-span-2 space-y-3">
+          <div class="flex gap-2 flex-wrap items-center">
+            <select id="pfm-status" onchange="refreshPerfReports()" class="input" style="width:auto;min-width:160px;">
+              <option value="">Todos los estados</option>
+              <option value="pending_approval">pending_approval</option>
+              <option value="approved">approved</option>
+              <option value="done">done</option>
+            </select>
+            <p id="perf-count" class="text-sm ml-1" style="color:#6B7280;">Cargando...</p>
+          </div>
+          <div id="perf-table-wrap" class="bg-white border overflow-hidden" style="border-color:#E5E7EB;border-radius:8px;">
+            <div class="flex items-center justify-center h-32 text-sm" style="color:#9CA3AF;">Cargando...</div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="font-semibold text-sm" style="color:#374151;">Historial de ejecuciones</h2>
+              <button onclick="loadAgentRuns('performance')" class="text-xs transition" style="color:#6B7280;">Actualizar</button>
+            </div>
+            <div id="runs-table" class="bg-white border overflow-hidden" style="border-color:#E5E7EB;border-radius:8px;">
+              <div class="flex items-center justify-center h-24 text-sm" style="color:#9CA3AF;">Cargando...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  await Promise.all([refreshPerfReports(), loadAgentRuns('performance')]);
+}
+
+function perfStatusBadge(status) {
+  const map = {
+    pending_approval: 'bg-amber-100 text-amber-700 border border-amber-200',
+    approved: 'bg-green-100 text-green-700 border border-green-200',
+    done: 'bg-sky-100 text-sky-700 border border-sky-200',
+  };
+  return `<span class="badge ${map[status] || 'bg-gray-100 text-gray-500'}">${status || '—'}</span>`;
+}
+
+function renderPerfReportsTable(rows) {
+  if (!rows?.length) {
+    return `<div class="flex flex-col items-center justify-center py-16" style="color:#9CA3AF;">
+      <p class="text-sm">Sin reportes de performance aún</p>
+      <p class="text-xs mt-1">Analizá un período a la izquierda</p>
+    </div>`;
+  }
+
+  return `<table class="w-full text-sm">
+    <thead>
+      <tr style="border-bottom:1px solid #E5E7EB;">
+        <th class="text-left px-4 py-3">Período</th>
+        <th class="text-left px-4 py-3">Resumen</th>
+        <th class="text-left px-4 py-3">Alertas</th>
+        <th class="text-left px-4 py-3">Estado</th>
+        <th class="text-left px-4 py-3">Fecha</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows.map((r) => {
+        const safe = JSON.stringify(r).replace(/'/g, '&#39;');
+        const summary = (r.analysis?.summary || '').slice(0, 90);
+        const alerts = Array.isArray(r.analysis?.alerts) ? r.analysis.alerts.length : 0;
+        return `<tr class="data-row transition" style="border-top:1px solid #F3F4F6;cursor:pointer;"
+            onclick='openPerfReportModal(${safe})'>
+          <td class="px-4 py-3 font-data text-xs" style="color:#374151;">${r.period_since} → ${r.period_until}</td>
+          <td class="px-4 py-3 text-xs truncate max-w-[260px]" style="color:#6B7280;">${summary || '—'}</td>
+          <td class="px-4 py-3 font-data text-xs" style="color:#6B7280;">${alerts}</td>
+          <td class="px-4 py-3">${perfStatusBadge(r.status)}</td>
+          <td class="px-4 py-3 font-data text-xs" style="color:#9CA3AF;">${fmtDate(r.created_at)}</td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table>`;
+}
+
+function renderPerfReportDetail(r) {
+  const a = r.analysis || {};
+  const list = (arr, empty) =>
+    Array.isArray(arr) && arr.length
+      ? `<ul class="space-y-1.5">${arr.map((x) => {
+          if (typeof x === 'string') return `<li class="text-xs" style="color:#374151;">• ${x}</li>`;
+          const label = x.campaign || x.action || x.issue || JSON.stringify(x);
+          const extra = x.severity || x.expected_impact || x.issue || '';
+          return `<li class="text-xs" style="color:#374151;">• <strong>${label}</strong>${extra && extra !== label ? ` — ${extra}` : ''}</li>`;
+        }).join('')}</ul>`
+      : `<p class="text-xs" style="color:#9CA3AF;">${empty}</p>`;
+
+  return `
+    <div class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+      <div>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Período</p>
+        <p style="color:#374151;">${r.period_since} → ${r.period_until}</p>
+      </div>
+      <div>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Estado / Fuente</p>
+        <p style="color:#374151;">${r.status || '—'} · ${a.data_source || '—'}</p>
+      </div>
+    </div>
+    ${a.summary ? `<div class="rounded-lg p-3.5 border" style="background:#F9FAFB;border-color:#E5E7EB;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#9CA3AF;">Resumen</p>
+      <p class="text-xs leading-relaxed" style="color:#374151;">${a.summary}</p>
+    </div>` : ''}
+    <div class="rounded-lg p-3.5 border" style="background:#FEF2F2;border-color:#FECACA;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B91C1C;">Alertas</p>
+      ${list(a.alerts, 'Sin alertas')}
+    </div>
+    <div class="rounded-lg p-3.5 border" style="background:#EFF6FF;border-color:#BFDBFE;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#2563EB;">Recomendaciones</p>
+      ${list(a.recommendations, 'Sin recomendaciones')}
+    </div>
+    <div class="rounded-lg p-3.5 border" style="background:#FEF3C7;border-color:#FDE68A;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B45309;">Pendiente aprobación</p>
+      ${list(r.actions_pending_approval || a.actions_pending_approval, 'Nada pendiente')}
+    </div>
+    ${r.status === 'pending_approval' ? `
+    <button class="btn-primary text-xs" onclick="approvePerfReport('${r.id}')">Aprobar acciones</button>` : ''}
+  `;
+}
+
+async function openPerfReportModal(row) {
+  let report = row;
+  const res = await api(`/api/campaigns/reports/${row.id}`);
+  if (res?.ok && res.report) report = res.report;
+
+  document.getElementById('modal-name').textContent = 'Performance · ' + (report.period_since || '');
+  document.getElementById('modal-source').textContent = report.status || '';
+  document.getElementById('modal-body').innerHTML = renderPerfReportDetail(report);
+  const footer = document.getElementById('modal-footer');
+  if (footer) footer.style.display = 'none';
+  document.getElementById('lead-modal').classList.remove('hidden');
+}
+
+async function refreshPerfReports() {
+  const status = document.getElementById('pfm-status')?.value || '';
+  const qs = status ? `?status=${encodeURIComponent(status)}` : '';
+  const res = await api(`/api/campaigns/reports${qs}`);
+  const wrap = document.getElementById('perf-table-wrap');
+  const count = document.getElementById('perf-count');
+  if (count) count.textContent = `${res?.count || 0} reportes`;
+  if (wrap) wrap.innerHTML = renderPerfReportsTable(res?.reports || []);
+}
+
+async function submitPerformanceAnalyze() {
+  const since = document.getElementById('pfm-since')?.value;
+  const until = document.getElementById('pfm-until')?.value;
+  if (!since || !until) {
+    showToast('Completá desde / hasta', 'error');
+    return;
+  }
+  showToast('Analizando performance…');
+  const res = await api('/api/campaigns/analyze', {
+    method: 'POST',
+    body: { since, until },
+  });
+  if (res?.ok) {
+    showToast('✓ Análisis listo');
+    refreshPerfReports();
+    loadAgentRuns('performance');
+    if (res.analysis?.report_id) {
+      const detail = await api(`/api/campaigns/reports/${res.analysis.report_id}`);
+      if (detail?.report) openPerfReportModal(detail.report);
+    }
+  } else {
+    showToast(res?.error || 'Error', 'error');
+  }
+}
+
+async function approvePerfReport(id) {
+  const res = await api(`/api/campaigns/reports/${id}/approve`, { method: 'POST', body: {} });
+  if (res?.ok) {
+    showToast('Aprobado');
+    openPerfReportModal(res.report);
+    refreshPerfReports();
+  } else {
+    showToast(res?.error || 'Error', 'error');
+  }
+}
+
+/** Vista Agente Reporting — reportes mensuales por cliente */
+async function renderReportingAgent(root) {
+  const info = agentInfo.reporting;
+  const prevMonth = new Date();
+  prevMonth.setMonth(prevMonth.getMonth() - 1);
+  const monthStr = `${prevMonth.getFullYear()}-${String(prevMonth.getMonth() + 1).padStart(2, '0')}`;
+
+  root.innerHTML = `
+    <div class="space-y-5">
+      <div class="flex items-center justify-between gap-4 flex-wrap">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:white;border:1px solid #E5E7EB;">${info.emoji}</div>
+          <div>
+            <h1 class="text-xl font-semibold" style="color:#111827;">Agente ${info.name}</h1>
+            <p class="text-sm mt-0.5" style="color:#6B7280;">${info.desc}</p>
+          </div>
+        </div>
+        <button onclick="refreshMonthlyReports()" class="btn-ghost flex items-center gap-1.5 text-xs">Actualizar</button>
+      </div>
+
+      <div class="grid lg:grid-cols-3 gap-5">
+        <div class="card lg:col-span-1">
+          <h2 class="font-semibold text-sm mb-4" style="color:#374151;">Generar reporte</h2>
+          <div class="space-y-3">
+            <div>
+              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Cliente</label>
+              <select id="rpt-client" class="input"><option value="">Cargando clientes…</option></select>
+            </div>
+            <div>
+              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Mes (YYYY-MM)</label>
+              <input id="rpt-month" value="${monthStr}" class="input" placeholder="2026-06">
+            </div>
+            <div>
+              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Notas del equipo</label>
+              <textarea id="rpt-notes" rows="3" class="input" style="resize:vertical" placeholder="Eventos relevantes del mes…"></textarea>
+            </div>
+            <p class="text-xs leading-relaxed" style="color:#9CA3AF;">Queda en pending_approval hasta que lo revises.</p>
+            <button onclick="submitMonthlyReport()" class="w-full btn-primary">📊 Generar reporte</button>
+          </div>
+        </div>
+
+        <div class="lg:col-span-2 space-y-3">
+          <div class="flex gap-2 flex-wrap items-center">
+            <select id="rpt-status" onchange="refreshMonthlyReports()" class="input" style="width:auto;min-width:160px;">
+              <option value="">Todos los estados</option>
+              <option value="pending_approval">pending_approval</option>
+              <option value="approved">approved</option>
+              <option value="sent">sent</option>
+            </select>
+            <p id="rpt-count" class="text-sm ml-1" style="color:#6B7280;">Cargando...</p>
+          </div>
+          <div id="rpt-table-wrap" class="bg-white border overflow-hidden" style="border-color:#E5E7EB;border-radius:8px;">
+            <div class="flex items-center justify-center h-32 text-sm" style="color:#9CA3AF;">Cargando...</div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="font-semibold text-sm" style="color:#374151;">Historial de ejecuciones</h2>
+              <button onclick="loadAgentRuns('reporting')" class="text-xs transition" style="color:#6B7280;">Actualizar</button>
+            </div>
+            <div id="runs-table" class="bg-white border overflow-hidden" style="border-color:#E5E7EB;border-radius:8px;">
+              <div class="flex items-center justify-center h-24 text-sm" style="color:#9CA3AF;">Cargando...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  await Promise.all([loadReportingClients(), refreshMonthlyReports(), loadAgentRuns('reporting')]);
+}
+
+async function loadReportingClients() {
+  const sel = document.getElementById('rpt-client');
+  if (!sel) return;
+  const res = await api('/api/reports/clients');
+  const clients = res?.clients || [];
+  if (!clients.length) {
+    sel.innerHTML = '<option value="">Sin clientes activos — seed demo o marcá un lead como won</option>';
+    return;
+  }
+  sel.innerHTML =
+    '<option value="">— Elegir cliente —</option>' +
+    clients
+      .map((c) => `<option value="${c.id}">${c.company || c.leads?.name || c.id.slice(0, 8)}</option>`)
+      .join('');
+}
+
+function monthlyStatusBadge(status) {
+  const map = {
+    pending_approval: 'bg-amber-100 text-amber-700 border border-amber-200',
+    approved: 'bg-sky-100 text-sky-700 border border-sky-200',
+    sent: 'bg-green-100 text-green-700 border border-green-200',
+  };
+  return `<span class="badge ${map[status] || 'bg-gray-100 text-gray-500'}">${status || '—'}</span>`;
+}
+
+function renderMonthlyReportsTable(rows) {
+  if (!rows?.length) {
+    return `<div class="flex flex-col items-center justify-center py-16" style="color:#9CA3AF;">
+      <p class="text-sm">Sin reportes mensuales aún</p>
+      <p class="text-xs mt-1">Elegí un cliente y generá el del mes</p>
+    </div>`;
+  }
+
+  return `<table class="w-full text-sm">
+    <thead>
+      <tr style="border-bottom:1px solid #E5E7EB;">
+        <th class="text-left px-4 py-3">Cliente</th>
+        <th class="text-left px-4 py-3">Mes</th>
+        <th class="text-left px-4 py-3">Headline</th>
+        <th class="text-left px-4 py-3">Estado</th>
+        <th class="text-left px-4 py-3">Fecha</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows.map((r) => {
+        const safe = JSON.stringify(r).replace(/'/g, '&#39;');
+        const company = r.clients?.company || r.client_id?.slice(0, 8) || '—';
+        const headline = (r.report?.headline || '').slice(0, 80);
+        return `<tr class="data-row transition" style="border-top:1px solid #F3F4F6;cursor:pointer;"
+            onclick='openMonthlyReportModal(${safe})'>
+          <td class="px-4 py-3 font-medium text-xs" style="color:#111827;">${company}</td>
+          <td class="px-4 py-3 font-data text-xs" style="color:#6B7280;">${r.month}</td>
+          <td class="px-4 py-3 text-xs truncate max-w-[240px]" style="color:#6B7280;">${headline || '—'}</td>
+          <td class="px-4 py-3">${monthlyStatusBadge(r.status)}</td>
+          <td class="px-4 py-3 font-data text-xs" style="color:#9CA3AF;">${fmtDate(r.created_at)}</td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table>`;
+}
+
+function renderMonthlyReportDetail(r) {
+  const rep = r.report || {};
+  const list = (arr, empty) =>
+    Array.isArray(arr) && arr.length
+      ? `<ul class="space-y-1.5">${arr.map((x) => {
+          if (typeof x === 'string') return `<li class="text-xs" style="color:#374151;">• ${x}</li>`;
+          return `<li class="text-xs" style="color:#374151;">• <strong>${x.metric || ''}</strong> ${x.value || ''} <span style="color:#9CA3AF;">${x.vs_previous || ''}</span></li>`;
+        }).join('')}</ul>`
+      : `<p class="text-xs" style="color:#9CA3AF;">${empty}</p>`;
+
+  return `
+    <div class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+      <div>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Cliente</p>
+        <p style="color:#374151;">${r.clients?.company || r.client_id || '—'}</p>
+      </div>
+      <div>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Mes / Estado</p>
+        <p style="color:#374151;">${r.month} · ${r.status}</p>
+      </div>
+    </div>
+    ${rep.headline ? `<div class="rounded-lg p-3.5 border" style="background:#EFF6FF;border-color:#BFDBFE;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#2563EB;">Headline</p>
+      <p class="text-sm font-medium" style="color:#111827;">${rep.headline}</p>
+    </div>` : ''}
+    <div class="rounded-lg p-3.5 border" style="background:#F9FAFB;border-color:#E5E7EB;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#9CA3AF;">Key metrics</p>
+      ${list(rep.key_metrics, 'Sin métricas')}
+    </div>
+    <div class="rounded-lg p-3.5 border" style="background:#F0FDF4;border-color:#BBF7D0;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#15803D;">Wins</p>
+      ${list(rep.wins, 'Sin wins')}
+    </div>
+    <div class="rounded-lg p-3.5 border" style="background:#FEF3C7;border-color:#FDE68A;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B45309;">Explicaciones</p>
+      ${list(rep.explanations, 'Sin explicaciones')}
+    </div>
+    <div class="rounded-lg p-3.5 border" style="background:#EEF2FF;border-color:#C7D2FE;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#4338CA;">Plan próximo mes</p>
+      ${list(rep.next_month_plan, 'Sin plan')}
+    </div>
+    <div class="flex gap-2 flex-wrap">
+      ${r.status === 'pending_approval' ? `<button class="btn-primary text-xs" onclick="approveMonthlyReport('${r.id}')">Aprobar</button>` : ''}
+      ${r.status === 'approved' ? `<button class="btn-primary text-xs" onclick="markMonthlySent('${r.id}')">Marcar enviado</button>` : ''}
+    </div>`;
+}
+
+async function openMonthlyReportModal(row) {
+  let report = row;
+  const res = await api(`/api/reports/${row.id}`);
+  if (res?.ok && res.report) report = res.report;
+
+  document.getElementById('modal-name').textContent = `Reporte · ${report.month || ''}`;
+  document.getElementById('modal-source').textContent = report.clients?.company || report.status || '';
+  document.getElementById('modal-body').innerHTML = renderMonthlyReportDetail(report);
+  const footer = document.getElementById('modal-footer');
+  if (footer) footer.style.display = 'none';
+  document.getElementById('lead-modal').classList.remove('hidden');
+}
+
+async function refreshMonthlyReports() {
+  const status = document.getElementById('rpt-status')?.value || '';
+  const qs = status ? `?status=${encodeURIComponent(status)}` : '';
+  const res = await api(`/api/reports${qs}`);
+  const wrap = document.getElementById('rpt-table-wrap');
+  const count = document.getElementById('rpt-count');
+  if (count) count.textContent = `${res?.count || 0} reportes`;
+  if (wrap) wrap.innerHTML = renderMonthlyReportsTable(res?.reports || []);
+}
+
+async function submitMonthlyReport() {
+  const client_id = document.getElementById('rpt-client')?.value;
+  const month = document.getElementById('rpt-month')?.value;
+  const team_notes = document.getElementById('rpt-notes')?.value || '';
+  if (!client_id || !month) {
+    showToast('Elegí cliente y mes', 'error');
+    return;
+  }
+  showToast('Generando reporte…');
+  const res = await api('/api/reports/monthly', {
+    method: 'POST',
+    body: { client_id, month, team_notes },
+  });
+  if (res?.ok) {
+    showToast('✓ Reporte generado (pending)');
+    refreshMonthlyReports();
+    loadAgentRuns('reporting');
+    if (res.report?.report_id) {
+      const detail = await api(`/api/reports/${res.report.report_id}`);
+      if (detail?.report) openMonthlyReportModal(detail.report);
+    }
+  } else {
+    showToast(res?.error || 'Error', 'error');
+  }
+}
+
+async function approveMonthlyReport(id) {
+  const res = await api(`/api/reports/${id}/approve`, { method: 'POST', body: {} });
+  if (res?.ok) {
+    showToast('Aprobado');
+    openMonthlyReportModal(res.report);
+    refreshMonthlyReports();
+  } else {
+    showToast(res?.error || 'Error', 'error');
+  }
+}
+
+async function markMonthlySent(id) {
+  const res = await api(`/api/reports/${id}/sent`, { method: 'POST', body: {} });
+  if (res?.ok) {
+    showToast('Marcado como enviado');
+    openMonthlyReportModal(res.report);
+    refreshMonthlyReports();
+  } else {
+    showToast(res?.error || 'Error', 'error');
+  }
+}
+
+/** Vista Propuestas IA — complementa Briefing + catálogo */
+async function renderProposalAgent(root) {
+  const info = agentInfo.proposal;
+
+  root.innerHTML = `
+    <div class="space-y-5">
+      <div class="flex items-center justify-between gap-4 flex-wrap">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:white;border:1px solid #E5E7EB;">${info.emoji}</div>
+          <div>
+            <h1 class="text-xl font-semibold" style="color:#111827;">Agente ${info.name}</h1>
+            <p class="text-sm mt-0.5" style="color:#6B7280;">${info.desc} Usa perfil/reunión si no hay diagnóstico legacy.</p>
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="navigate('propuestas')" class="btn-ghost flex items-center gap-1.5 text-xs">Menú · Propuestas</button>
+          <button onclick="navigate('agent/briefing')" class="btn-ghost flex items-center gap-1.5 text-xs">Briefing</button>
+          <button onclick="refreshIaProposals()" class="btn-ghost flex items-center gap-1.5 text-xs">Actualizar</button>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-3 gap-5">
+        <div class="card lg:col-span-1">
+          <h2 class="font-semibold text-sm mb-4" style="color:#374151;">Generar propuesta IA</h2>
+          <div class="space-y-3">
+            <div>
+              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Lead ID</label>
+              <input id="prop-lead-id" class="input" placeholder="uuid del lead">
+            </div>
+            <div>
+              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Notas de call</label>
+              <textarea id="prop-notes" rows="3" class="input" style="resize:vertical" placeholder="Resumen discovery…"></textarea>
+            </div>
+            <div>
+              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Presupuesto (USD)</label>
+              <input id="prop-budget" type="number" class="input" placeholder="1500">
+            </div>
+            <button onclick="submitIaProposal()" class="w-full btn-primary">📋 Generar propuesta</button>
+          </div>
+        </div>
+
+        <div class="lg:col-span-2 space-y-3">
+          <p id="prop-count" class="text-sm" style="color:#6B7280;">Cargando...</p>
+          <div id="prop-table-wrap" class="bg-white border overflow-hidden" style="border-color:#E5E7EB;border-radius:8px;">
+            <div class="flex items-center justify-center h-32 text-sm" style="color:#9CA3AF;">Cargando...</div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="font-semibold text-sm" style="color:#374151;">Historial de ejecuciones</h2>
+              <button onclick="loadAgentRuns('proposal')" class="text-xs transition" style="color:#6B7280;">Actualizar</button>
+            </div>
+            <div id="runs-table" class="bg-white border overflow-hidden" style="border-color:#E5E7EB;border-radius:8px;">
+              <div class="flex items-center justify-center h-24 text-sm" style="color:#9CA3AF;">Cargando...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  await Promise.all([refreshIaProposals(), loadAgentRuns('proposal')]);
+}
+
+function renderIaProposalsTable(rows) {
+  if (!rows?.length) {
+    return `<div class="flex flex-col items-center justify-center py-16" style="color:#9CA3AF;">
+      <p class="text-sm">Sin propuestas IA aún</p>
+      <p class="text-xs mt-1">Para brief comercial usá Briefing; el catálogo vive en Menú · Propuestas</p>
+    </div>`;
+  }
+
+  return `<table class="w-full text-sm">
+    <thead>
+      <tr style="border-bottom:1px solid #E5E7EB;">
+        <th class="text-left px-4 py-3">Lead</th>
+        <th class="text-left px-4 py-3">Resumen</th>
+        <th class="text-left px-4 py-3">Estado</th>
+        <th class="text-left px-4 py-3">Actualizado</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows.map((r) => {
+        const safe = JSON.stringify(r).replace(/'/g, '&#39;');
+        const summary = (r.proposal?.investment_range || r.proposal?.services_recommended?.[0] || r.proposal?.raw_response || '').toString().slice(0, 80);
+        return `<tr class="data-row transition" style="border-top:1px solid #F3F4F6;cursor:pointer;"
+            onclick='openIaProposalModal(${safe})'>
+          <td class="px-4 py-3">
+            <p class="font-medium text-xs" style="color:#111827;">${r.name || '—'}</p>
+            <p class="text-xs" style="color:#9CA3AF;">${r.email || ''}</p>
+          </td>
+          <td class="px-4 py-3 text-xs truncate max-w-[240px]" style="color:#6B7280;">${summary || '—'}</td>
+          <td class="px-4 py-3">${monthlyStatusBadge(r.proposal_status || 'pending_approval')}</td>
+          <td class="px-4 py-3 font-data text-xs" style="color:#9CA3AF;">${fmtDate(r.updated_at)}</td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table>`;
+}
+
+function renderIaProposalDetail(lead) {
+  const p = lead.proposal || {};
+  const list = (arr, empty) =>
+    Array.isArray(arr) && arr.length
+      ? `<ul class="space-y-1.5">${arr.map((x) => `<li class="text-xs" style="color:#374151;">• ${typeof x === 'string' ? x : JSON.stringify(x)}</li>`).join('')}</ul>`
+      : `<p class="text-xs" style="color:#9CA3AF;">${empty}</p>`;
+
+  return `
+    <div class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+      <div>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Lead</p>
+        <p style="color:#374151;">${lead.name || '—'} · ${lead.email || ''}</p>
+      </div>
+      <div>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Estado</p>
+        <p style="color:#374151;">${lead.proposal_status || '—'}</p>
+      </div>
+      <div>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Inversión</p>
+        <p style="color:#374151;">${p.investment_range || '—'}</p>
+      </div>
+    </div>
+    <div class="rounded-lg p-3.5 border" style="background:#EFF6FF;border-color:#BFDBFE;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#2563EB;">Servicios</p>
+      ${list(p.services_recommended, 'Sin servicios')}
+    </div>
+    <div class="rounded-lg p-3.5 border" style="background:#F0FDF4;border-color:#BBF7D0;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#15803D;">Resultados esperados</p>
+      ${list(p.expected_results, '—')}
+    </div>
+    <div class="rounded-lg p-3.5 border" style="background:#FEF3C7;border-color:#FDE68A;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B45309;">Próximos pasos</p>
+      ${list(p.next_steps, '—')}
+    </div>
+    ${p.onboarding_plan ? `<div class="rounded-lg p-3.5 border" style="background:#F9FAFB;border-color:#E5E7EB;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#9CA3AF;">Onboarding</p>
+      <p class="text-xs leading-relaxed" style="color:#374151;">${typeof p.onboarding_plan === 'string' ? p.onboarding_plan : JSON.stringify(p.onboarding_plan)}</p>
+    </div>` : ''}
+    ${lead.proposal_status === 'pending_approval' ? `
+    <button class="btn-primary text-xs" onclick="approveIaProposal('${lead.id}')">Aprobar propuesta</button>` : ''}
+  `;
+}
+
+async function openIaProposalModal(lead) {
+  document.getElementById('modal-name').textContent = lead.name || 'Propuesta IA';
+  document.getElementById('modal-source').textContent = lead.proposal_status || '';
+  document.getElementById('modal-body').innerHTML = renderIaProposalDetail(lead);
+  const footer = document.getElementById('modal-footer');
+  if (footer) footer.style.display = 'none';
+  document.getElementById('lead-modal').classList.remove('hidden');
+}
+
+async function refreshIaProposals() {
+  const res = await api('/api/proposals');
+  const wrap = document.getElementById('prop-table-wrap');
+  const count = document.getElementById('prop-count');
+  if (count) count.textContent = `${res?.count || 0} propuestas`;
+  if (wrap) wrap.innerHTML = renderIaProposalsTable(res?.proposals || []);
+}
+
+async function submitIaProposal() {
+  const lead_id = document.getElementById('prop-lead-id')?.value?.trim();
+  const call_notes = document.getElementById('prop-notes')?.value || '';
+  const budget_estimate = Number(document.getElementById('prop-budget')?.value) || null;
+  if (!lead_id) {
+    showToast('Lead ID requerido', 'error');
+    return;
+  }
+  showToast('Generando propuesta…');
+  const res = await api('/api/proposals', {
+    method: 'POST',
+    body: { lead_id, call_notes, budget_estimate },
+  });
+  if (res?.ok) {
+    showToast('✓ Propuesta generada');
+    refreshIaProposals();
+    loadAgentRuns('proposal');
+  } else {
+    showToast(res?.error || 'Error', 'error');
+  }
+}
+
+async function approveIaProposal(leadId) {
+  const res = await api(`/api/proposals/${leadId}/approve`, { method: 'POST', body: {} });
+  if (res?.ok) {
+    showToast('Propuesta aprobada');
+    refreshIaProposals();
+    closeModal();
   } else {
     showToast(res?.error || 'Error', 'error');
   }

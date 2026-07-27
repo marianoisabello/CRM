@@ -138,22 +138,32 @@ router.post('/proposal', async (req, res) => {
   }
 });
 
-// POST /api/agent-runs/performance  { since, until }
+// POST /api/agent-runs/performance  { since, until, client_id? }
 router.post('/performance', async (req, res) => {
-  const { since, until } = req.body;
+  const { since, until, client_id } = req.body || {};
   if (!since || !until) return res.status(400).json({ ok: false, error: 'since y until requeridos (YYYY-MM-DD)' });
 
-  res.json({ ok: true, message: 'Análisis de performance iniciado en background' });
-  analyzePerformance(since, until).catch(err => logger.error({ msg: 'Error performance manual', error: err.message }));
+  try {
+    const analysis = await analyzePerformance(since, until, client_id || null);
+    return res.json({ ok: true, message: 'Análisis de performance completado', analysis });
+  } catch (err) {
+    logger.error({ msg: 'Error performance manual', error: err.message });
+    return res.status(500).json({ ok: false, error: err.message });
+  }
 });
 
-// POST /api/agent-runs/reporting  { client_id, month }
+// POST /api/agent-runs/reporting  { client_id, month, team_notes? }
 router.post('/reporting', async (req, res) => {
-  const { client_id, month } = req.body;
+  const { client_id, month, team_notes } = req.body || {};
   if (!client_id || !month) return res.status(400).json({ ok: false, error: 'client_id y month (YYYY-MM) requeridos' });
 
-  res.json({ ok: true, message: 'Reporte mensual iniciado en background' });
-  generateMonthlyReport(client_id, month).catch(err => logger.error({ msg: 'Error reporting manual', error: err.message }));
+  try {
+    const report = await generateMonthlyReport(client_id, month, team_notes || '');
+    return res.json({ ok: true, message: 'Reporte mensual generado', report, status: 'pending_approval' });
+  } catch (err) {
+    logger.error({ msg: 'Error reporting manual', error: err.message });
+    return res.status(500).json({ ok: false, error: err.message });
+  }
 });
 
 module.exports = router;
