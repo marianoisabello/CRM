@@ -11,7 +11,7 @@ CRM Dana es el sistema operativo de Marketing Dana. Una plataforma con 5 agentes
 ## Estructura de archivos
 
 ```
-/lead-scoring-chatbot  - Chatbot React (deployado en chatbot-pampai-nu.vercel.app)
+/lead-scoring-chatbot  - Chatbot React (build → public/chatbox/ en deploy CRM)
   /src
     /components/       - ChatBot.tsx, ScoreDisplay.tsx, SuccessMessage.tsx
     /services/         - supabaseClient.ts
@@ -231,8 +231,9 @@ GOOGLE_ADS_CUSTOMER_ID=
 
 ## Deployment
 
-- **CRM (backend + frontend SPA):** Vercel project `crm` — https://crm-murex-tau.vercel.app (repo root `.`, Express)
-- **Chatbot standalone (opcional):** Vercel project `chatbot-pampai` — https://chatbot-pampai-nu.vercel.app (rootDirectory `lead-scoring-chatbot/`) — **no borrar** sin confirmación; el CRM ya hospeda una copia en `/chatbox/`
+- **CRM (backend + frontend SPA + chatbox):** Vercel project `crm` — https://crm-murex-tau.vercel.app (repo root `.`, Express)
+- **Chatbot unificado:** `installCommand` / `npm run build:chatbox` bakea Vite en `public/chatbox/` con `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` (legacy `builds` ignora `buildCommand` solo; por eso el build corre en install)
+- **Chatbot standalone (legacy, opcional):** Vercel project `chatbot-pampai` — https://chatbot-pampai-nu.vercel.app — **no borrar** sin confirmación; se puede redirigir a CRM `/chatbox/` o eliminar después
 - **GitHub:** https://github.com/marianoisabello/CRM
 - **Requisito Railway (legacy):** `NIXPACKS_NODE_VERSION=22` — ya no aplica si se usa Vercel
 - **Credenciales seed:** admin@dana.com / Dana2024!
@@ -240,9 +241,9 @@ GOOGLE_ADS_CUSTOMER_ID=
 ### Chatbot Lead Scoring (`/lead-scoring-chatbot`)
 
 - **Stack:** React 18 + Vite + Tailwind CSS + Supabase JS
-- **En CRM (unificado):** https://crm-murex-tau.vercel.app/app.html#chatbox → iframe a `/chatbox/` (mismo dominio)
-- **Standalone:** https://chatbot-pampai-nu.vercel.app
-- **Build CRM:** `npm run build:chatbox` → `public/chatbox/` (base `/chatbox/`)
+- **En CRM (unificado):** https://crm-murex-tau.vercel.app/app.html#chatbox → iframe same-origin `/chatbox/`
+- **Standalone (legacy):** https://chatbot-pampai-nu.vercel.app
+- **Build CRM:** `npm run build:chatbox` → `public/chatbox/` (Vite `base: '/chatbox/'`)
 - **Flujo:** 10 preguntas de datos → 6 preguntas Sí/No → score 0-100 → mensaje personalizado → guarda en tabla `leads` con `source: "chatbot"`
 - **Scoring:** negocio activo (+10), web/social activa (+10), necesidad urgente (+20), presupuesto (+20), tomador de decisiones (+20), resultados corto plazo (+20)
 - **Categorias:** Bajo (0-39), Medio (40-69), Alto (70-100)

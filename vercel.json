@@ -1,8 +1,15 @@
 {
   "version": 2,
+  "installCommand": "npm install && npm run build:chatbox",
   "buildCommand": "npm run build:chatbox",
   "builds": [
-    { "src": "src/server.js", "use": "@vercel/node" }
+    {
+      "src": "src/server.js",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": ["public/**"]
+      }
+    }
   ],
   "routes": [
     { "src": "/(.*)", "dest": "src/server.js" }

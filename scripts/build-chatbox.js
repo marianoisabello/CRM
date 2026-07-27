@@ -40,6 +40,14 @@ if (!process.env.VITE_SUPABASE_URL || !process.env.VITE_SUPABASE_ANON_KEY) {
   process.exit(1);
 }
 
+const supabaseUrl = String(process.env.VITE_SUPABASE_URL);
+if (!/supabase\.co/i.test(supabaseUrl) || supabaseUrl.length < 20) {
+  console.error(
+    'VITE_SUPABASE_URL looks invalid (need a real https://….supabase.co URL). Refusing broken chatbox build.'
+  );
+  process.exit(1);
+}
+
 process.env.CHATBOX_BASE = process.env.CHATBOX_BASE || '/chatbox/';
 process.env.CHATBOX_OUT = process.env.CHATBOX_OUT || '../public/chatbox';
 
