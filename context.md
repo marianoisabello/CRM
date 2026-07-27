@@ -242,7 +242,7 @@ GOOGLE_ADS_CUSTOMER_ID=
 
 - **Stack:** React 18 + Vite + Tailwind CSS + Supabase JS
 - **En CRM (unificado):** https://crm-murex-tau.vercel.app/app.html#chatbox → iframe same-origin `/chatbox/`
-- **Standalone (legacy):** https://chatbot-pampai-nu.vercel.app
+- **Standalone (legacy):** https://chatbot-pampai-nu.vercel.app — redirect a CRM `/chatbox/` pendiente (vercel.json redirects no activaron en el último deploy); **no borrar** el project `chatbot-pampai` sin confirmación del usuario
 - **Build CRM:** `npm run build:chatbox` → `public/chatbox/` (Vite `base: '/chatbox/'`)
 - **Flujo:** 10 preguntas de datos → 6 preguntas Sí/No → score 0-100 → mensaje personalizado → guarda en tabla `leads` con `source: "chatbot"`
 - **Scoring:** negocio activo (+10), web/social activa (+10), necesidad urgente (+20), presupuesto (+20), tomador de decisiones (+20), resultados corto plazo (+20)
