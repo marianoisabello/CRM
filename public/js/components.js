@@ -118,6 +118,8 @@ function renderLeadsTable(leads, emptyMsg = 'Sin leads') {
 function renderLeadDetail(l) {
   const msgParts = l.message ? l.message.split('|').map(p => p.trim()).filter(Boolean) : [];
   const questions = ['¿En qué los podemos ayudar?', '¿Qué los trajo por acá?'];
+  const email = (l.email || '').trim();
+  const safeEmail = email.replace(/'/g, "\\'");
 
   return `
     <div class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
@@ -163,5 +165,113 @@ function renderLeadDetail(l) {
     <div class="rounded-lg p-3.5 border" style="background:#EFF6FF;border-color:#BFDBFE;">
       <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#2563EB;">Análisis SDR</p>
       <p class="whitespace-pre-wrap text-xs leading-relaxed" style="color:#1E40AF;">${l.sdr_notes}</p>
-    </div>` : ''}`;
+    </div>` : ''}
+
+    <div class="rounded-lg p-3.5 border" style="background:#F9FAFB;border-color:#E5E7EB;" id="lead-assign-box">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#9CA3AF;">Asignar propuesta (manual)</p>
+      ${!email ? `
+        <p class="text-xs leading-relaxed" style="color:#B45309;background:#FFFBEB;border:1px solid #FDE68A;border-radius:6px;padding:8px 10px;">
+          Este lead no tiene email. Agregá un email para asignar una propuesta del catálogo (mismo criterio que Analista).
+        </p>
+      ` : `
+        <p class="text-xs mb-2" style="color:#6B7280;" id="lead-prop-current">Cargando asignación…</p>
+        <select id="lead-prop-select" class="input text-sm mb-2">
+          <option value="">Cargando catálogo…</option>
+        </select>
+        <input id="lead-prop-notas" class="input text-sm mb-2" placeholder="Notas (opcional)">
+        <div class="flex gap-2">
+          <button type="button" class="btn-primary text-xs" onclick="saveLeadPropuesta('${safeEmail}')">Guardar asignación</button>
+          <button type="button" class="btn-ghost text-xs" id="lead-prop-clear" style="display:none;" onclick="clearLeadPropuesta('${safeEmail}')">Quitar</button>
+        </div>
+      `}
+    </div>`;
+}
+
+async function initLeadPropuestaAssign(lead) {
+  const email = (lead?.email || '').trim().toLowerCase();
+  if (!email) return;
+
+  const currentEl = document.getElementById('lead-prop-current');
+  const sel = document.getElementById('lead-prop-select');
+  const notasEl = document.getElementById('lead-prop-notas');
+  const clearBtn = document.getElementById('lead-prop-clear');
+  if (!sel) return;
+
+  let selectedId = null;
+  try {
+    const byLead = await api(`/api/propuestas/by-lead/${encodeURIComponent(email)}`);
+    if (byLead?.propuesta) {
+      selectedId = byLead.propuesta.id;
+      if (currentEl) {
+        currentEl.innerHTML = `Actual: <span style="color:#111827;">${byLead.propuesta.nombre}</span> · origen ${byLead.perfil?.propuesta_origen || '—'}`;
+      }
+      if (notasEl) notasEl.value = byLead.perfil?.propuesta_notas || '';
+      if (clearBtn) clearBtn.style.display = '';
+    } else if (currentEl) {
+      currentEl.textContent = byLead?.perfil
+        ? 'Actual: ninguna'
+        : 'Sin perfil Analista aún — al guardar se requiere perfil enriquecido.';
+    }
+  } catch (_) {
+    if (currentEl) currentEl.textContent = 'Actual: —';
+  }
+
+  const res = await api('/api/propuestas?activo=true&limit=100');
+  const rows = res?.propuestas || [];
+  if (!rows.length) {
+    sel.innerHTML = '<option value="">Sin propuestas (creá en Menú · Propuestas)</option>';
+    return;
+  }
+  sel.innerHTML =
+    '<option value="">— Elegir propuesta —</option>' +
+    rows
+      .map((p) => {
+        const label = `${p.nombre}${p.precio_min != null || p.precio_max != null ? ` (${p.moneda || 'USD'} ${p.precio_min ?? '?'}-${p.precio_max ?? '?'})` : ''}`;
+        const selAttr = selectedId && p.id === selectedId ? ' selected' : '';
+        return `<option value="${p.id}"${selAttr}>${label}</option>`;
+      })
+      .join('');
+}
+
+async function saveLeadPropuesta(email) {
+  const propuesta_id = document.getElementById('lead-prop-select')?.value;
+  const notas = document.getElementById('lead-prop-notas')?.value || '';
+  if (!email) {
+    showToast('El lead no tiene email; no se puede asignar', 'error');
+    return;
+  }
+  if (!propuesta_id) {
+    showToast('Elegí una propuesta del catálogo', 'error');
+    return;
+  }
+  const lead_id = window._currentLead?.id || null;
+  const res = await api('/api/propuestas/assign', {
+    method: 'POST',
+    body: { email, propuesta_id, origen: 'manual', notas, lead_id },
+  });
+  if (res?.ok) {
+    showToast(res.message || 'Propuesta asignada');
+    closeModal();
+    if (typeof refreshLeads === 'function') refreshLeads();
+  } else {
+    showToast(res?.error || 'Error al asignar', 'error');
+  }
+}
+
+async function clearLeadPropuesta(email) {
+  if (!email) {
+    showToast('El lead no tiene email', 'error');
+    return;
+  }
+  const res = await api('/api/propuestas/assign', {
+    method: 'DELETE',
+    body: { email },
+  });
+  if (res?.ok) {
+    showToast('Asignación quitada');
+    closeModal();
+    if (typeof refreshLeads === 'function') refreshLeads();
+  } else {
+    showToast(res?.error || 'Error', 'error');
+  }
 }
