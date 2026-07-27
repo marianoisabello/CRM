@@ -469,6 +469,15 @@ ON CONFLICT (id) DO UPDATE SET
   approved_at = EXCLUDED.approved_at,
   created_at = EXCLUDED.created_at;
 
+-- Sincronizar columna channels desde analysis.channels_analyzed
+UPDATE performance_reports
+SET channels = COALESCE((
+  SELECT array_agg(x ORDER BY ord)
+  FROM jsonb_array_elements_text(analysis->'channels_analyzed') WITH ORDINALITY AS t(x, ord)
+), '{}'::text[])
+WHERE analysis->>'data_source' = 'demo'
+  AND analysis ? 'channels_analyzed';
+
 -- ═══════════════════════════════════════════════════════════════
 -- Monthly reports (6) — statuses pending_approval | approved | sent
 -- unique (client_id, month)

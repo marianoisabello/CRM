@@ -117,10 +117,12 @@ create table if not exists performance_reports (
   status                   text not null default 'done'
                            check (status in ('done', 'pending_approval', 'approved')),
   approved_at              timestamptz,
-  created_at               timestamptz not null default now()
+  created_at               timestamptz not null default now(),
+  channels                 text[] default '{}'
 );
 
 create index if not exists perf_reports_client on performance_reports (client_id, period_since desc);
+create index if not exists perf_reports_channels on performance_reports using gin (channels);
 
 -- ─── Monthly Reports (Agente 05) ────────────────────────────────
 create table if not exists monthly_reports (

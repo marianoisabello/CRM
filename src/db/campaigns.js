@@ -15,11 +15,17 @@ async function savePerformanceReport({ period_since, period_until, client_id, an
     row.channels = channels;
   }
 
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from('performance_reports')
     .insert(row)
     .select()
     .single();
+
+  // Si la columna channels aún no existe en prod, reintentar sin ella
+  if (error && row.channels && /channels/i.test(error.message || '')) {
+    delete row.channels;
+    ({ data, error } = await supabase.from('performance_reports').insert(row).select().single());
+  }
 
   if (error) throw new Error(`Error guardando PerformanceReport: ${error.message}`);
   return data;
@@ -34,7 +40,16 @@ async function listPerformanceReports({ limit = 50, offset = 0, status } = {}) {
 
   if (status) query = query.eq('status', status);
 
-  const { data, error } = await query;
+  let { data, error } = await query;
+  if (error && /channels/i.test(error.message || '')) {
+    query = supabase
+      .from('performance_reports')
+      .select('id, client_id, period_since, period_until, analysis, actions_pending_approval, status, approved_at, created_at, clients(id, company, status)')
+      .order('created_at', { ascending: false })
+      .range(Number(offset), Number(offset) + Number(limit) - 1);
+    if (status) query = query.eq('status', status);
+    ({ data, error } = await query);
+  }
   if (error) throw new Error(`Error listando performance reports: ${error.message}`);
   return data || [];
 }
