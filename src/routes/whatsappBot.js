@@ -26,6 +26,9 @@ router.post('/webhook', async (req, res) => {
     return res.status(401).json({ ok: false, error: 'secret inválido' });
   }
 
+  // TEMPORAL: loguear el payload crudo para confirmar la forma real que manda Whapi
+  logger.info({ msg: 'Whapi webhook payload crudo', body: req.body });
+
   const messages = req.body?.messages || [];
 
   for (const message of messages) {
