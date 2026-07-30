@@ -1,19 +1,12 @@
 import { LeadData } from '../types/lead'
 
-const CATEGORY_CONFIG = {
-  Bajo: { icon: '📚', color: 'text-orange-500', bg: 'from-orange-50 to-amber-50' },
-  Medio: { icon: '📬', color: 'text-yellow-500', bg: 'from-yellow-50 to-amber-50' },
-  Alto: { icon: '🎉', color: 'text-green-500', bg: 'from-green-50 to-emerald-50' },
-}
-
 export default function SuccessMessage({ leadData }: { leadData: LeadData }) {
-  const config = CATEGORY_CONFIG[leadData.categoria_lead]
   const firstName = leadData.nombre_apellido.split(' ')[0]
 
   return (
-    <div className={`min-h-screen flex items-center justify-center bg-gradient-to-br ${config.bg} p-4`}>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-sky-50 p-4">
       <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-8 text-center animate-slide-up space-y-5">
-        <div className="text-6xl">{config.icon}</div>
+        <div className="text-6xl">🎉</div>
 
         <div>
           <h1 className="text-2xl font-bold text-gray-800 mb-1">
@@ -23,14 +16,6 @@ export default function SuccessMessage({ leadData }: { leadData: LeadData }) {
         </div>
 
         <div className="bg-gray-50 rounded-2xl p-4 text-left space-y-2">
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-500">Score</span>
-            <span className={`text-lg font-bold ${config.color}`}>{leadData.score_total} / 100</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-500">Categoría</span>
-            <span className={`text-sm font-semibold ${config.color}`}>{leadData.categoria_lead} Potencial</span>
-          </div>
           <div className="flex justify-between items-center">
             <span className="text-sm text-gray-500">Email</span>
             <span className="text-sm text-gray-700">{leadData.email}</span>
