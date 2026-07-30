@@ -76,6 +76,27 @@ create index if not exists ingest_events_unprocessed
   on ingest_events (processed, created_at)
   where processed = false;
 
+-- ─── WhatsApp Bot Conversations (bot directo vía Whapi) ─────────
+create table if not exists whatsapp_conversations (
+  id           uuid primary key default gen_random_uuid(),
+  phone        text not null,
+  status       text not null default 'active'
+               check (status in ('active', 'completed', 'abandoned')),
+  step         int not null default 0,
+  answers      jsonb not null default '{}',
+  contact_name text,
+  lead_id      uuid references leads(id),
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now()
+);
+
+-- Solo puede haber una conversación activa por número
+create unique index if not exists whatsapp_conversations_active_phone
+  on whatsapp_conversations (phone)
+  where status = 'active';
+
+create index if not exists whatsapp_conversations_phone on whatsapp_conversations (phone);
+
 -- ─── Meetings ───────────────────────────────────────────────────
 create table if not exists meetings (
   id            uuid primary key default gen_random_uuid(),

@@ -13,6 +13,7 @@ const authRouter = require('./routes/auth');
 // Rutas protegidas
 const leadsRouter = require('./routes/leads');
 const ingestRouter = require('./routes/ingest');
+const whatsappBotRouter = require('./routes/whatsappBot');
 const meetingsRouter = require('./routes/meetings');
 const diagnosisRouter = require('./routes/diagnosis');
 const proposalsRouter = require('./routes/proposals');
@@ -50,6 +51,9 @@ app.use('/api/auth', authRouter);
 // Ingesta — público (las fuentes externas no mandan token)
 app.use('/api/leads/ingest', ingestRouter);
 app.use('/api/leads/reprocess', ingestRouter);
+
+// Bot de WhatsApp directo (Whapi.Cloud) — público, el webhook no manda JWT
+app.use('/api/whatsapp', whatsappBotRouter);
 
 // Agente 03 — webhooks públicos (Zoom / Google / WhatsApp) — NO pisan webhooks SDR
 app.use('/api/hooks/reuniones', webhooksReunionesRouter);

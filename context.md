@@ -55,7 +55,20 @@ supabase_schema.sql - Schema completo de la DB
 - **Output:** score, classification, next_action, first_message, follow_up_days
 - **Endpoint manual:** `POST /api/agent-runs/sdr`
 
-### 02 Analista — Diagnostico post-reunion
+### 02 Analista (Perfiles) — Enriquecimiento de leads
+- **Archivo:** `src/agents/perfiles.js`
+- **Trigger:** batch via `POST /api/hooks/perfiles-run` (header `x-crm-internal-key`) o manual
+- **Flujo:**
+  1. Lee leads calificados de Supabase (score ≥ 40 o categoria HOT/WARM/CALIENTE/TIBIO)
+  2. Research en paralelo: scrape del sitio web del lead + búsqueda web
+  3. Llama a Claude con datos del lead + research + catálogo de servicios (tabla `propuestas`)
+  4. Upsert en tabla `perfiles` con perfil enriquecido
+- **Research lib:** `src/lib/research.js` — scrape HTML propio + búsqueda con Serper → Tavily → Google CSE → DuckDuckGo (fallback en cadena)
+- **Output:** cargo_inferido, tamanio_inferido, pain_points[], servicios_recomendados[], oferta_estimada, score_potencial (0-100), razones
+- **Preserva:** asignación manual de propuesta (`propuesta_origen: 'manual'`) en re-enriquecimientos
+- **Hook n8n:** `POST /api/hooks/research` — mismo source of truth, para que n8n pueda llamar al research directamente
+
+### 02b Analista — Diagnostico post-reunion (legacy)
 - **Trigger:** manual via `POST /api/diagnosis`
 - **Input:** lead + notas de reunion de discovery
 - **Output:** situation_summary, opportunities[], priorities[], pending_questions[], dana_fit (High/Medium/Low)
@@ -93,6 +106,7 @@ GET  /api/auth/google-calendar    # OAuth flow
 GET  /api/auth/google-callback    # OAuth callback
 POST /api/leads/ingest?source=<s> # Webhook de todas las fuentes
 POST /api/leads/reprocess         # Re-procesar eventos fallidos
+POST /api/whatsapp/webhook        # Webhook de Whapi.Cloud — bot de WhatsApp directo
 ```
 
 ### Protegidas (requieren JWT)
@@ -123,6 +137,20 @@ GET   /api/agent-runs             # Historial de ejecuciones
 POST  /api/agent-runs/:agent      # Trigger manual de cualquier agente
 
 POST  /api/export/sheets          # Exportar leads a Google Sheets
+
+# Catálogo de propuestas (requiere auth)
+GET   /api/propuestas             # ?activo=true&q=<nombre>
+GET   /api/propuestas/:id
+POST  /api/propuestas             # Crear propuesta
+PATCH /api/propuestas/:id         # Editar propuesta
+DELETE /api/propuestas/:id        # Soft-delete (activo=false) o ?hard=1 para borrar
+POST  /api/propuestas/assign      # Asignar propuesta a un perfil (body: email, propuesta_id, origen, notas)
+DELETE /api/propuestas/assign     # Des-asignar propuesta de un perfil
+GET   /api/propuestas/by-lead/:email  # Propuesta activa + historial de asignaciones
+
+# Hooks internos (header x-crm-internal-key, sin JWT)
+POST  /api/hooks/perfiles-run    # Trigger batch Agente Perfiles (para n8n)
+POST  /api/hooks/research        # Research scrape+search de un lead (para n8n)
 ```
 
 ---
@@ -146,6 +174,19 @@ Fuente externa → POST /api/leads/ingest?source=manychat
 
 ---
 
+## Bot de WhatsApp directo (Whapi.Cloud)
+
+Alternativa a ManyChat que **no depende de la verificación de Meta**. Usa [Whapi.Cloud](https://whapi.cloud) (linkea el WhatsApp vía QR, sin aprobación de Meta Business).
+
+- **Archivos:** `src/integrations/whapi.js` (envío de mensajes), `src/agents/whatsappBot.js` (máquina de estados de la conversación), `src/routes/whatsappBot.js` (webhook), `src/db/whatsappConversations.js` (estado por número)
+- **Endpoint:** `POST /api/whatsapp/webhook` — público, registrado en el panel de Whapi
+- **Trigger:** mensaje entrante sin conversación activa que contenga alguna de las `WHATSAPP_BOT_TRIGGER_KEYWORDS` (default: informacion, información, info, quiero saber, dana mkt, dana marketing) — ej. "Quiero mas informacion sobre DANA MKT" activa el flujo
+- **Flujo:** mismas 16 preguntas que `lead-scoring-chatbot` (10 de datos + 6 Sí/No), conversación guardada en tabla `whatsapp_conversations` (una activa por teléfono)
+- **Al terminar:** crea/actualiza el Lead (`source: 'whatsapp'`) y dispara el Agente SDR existente (fuente de verdad de score/classification) — responde en WhatsApp con mensaje final según `hot/warm/cold`, con link de Calendly si es hot
+- **Estado:** código listo, pendiente configurar `WHAPI_TOKEN` (crear canal en panel.whapi.cloud, escanear QR) y registrar el webhook
+
+---
+
 ## Schema de DB (tablas principales)
 
 | Tabla | Proposito |
@@ -158,6 +199,10 @@ Fuente externa → POST /api/leads/ingest?source=manychat
 | `monthly_reports` | Reportes mensuales por cliente (unique: client_id + month) |
 | `agent_runs` | Auditoria: cada ejecucion de agente con tokens_used, duration_ms |
 | `users` | Usuarios del CRM (admin/viewer), bcrypt password |
+| `perfiles` | Perfiles enriquecidos por el Agente Analista: pain_points, servicios_recomendados, oferta_estimada, score_potencial, research_context (JSONB). Unique: email |
+| `propuestas` | Catalogo de servicios/propuestas de Dana: nombre, descripcion, precio_min, precio_max, moneda, tags[], rubros[], activo. Usado por Agente Perfiles como contexto |
+| `lead_propuestas` | Junction table: asignaciones de propuestas a leads. Unique: email + propuesta_id. Registra origen (manual/auto) y notas |
+| `whatsapp_conversations` | Estado del bot de WhatsApp directo (Whapi): phone, step, answers (JSONB), status (active/completed/abandoned). Única conversación activa por teléfono |
 
 ---
 
@@ -220,6 +265,11 @@ META_APP_SECRET=
 # ManyChat
 MANYCHAT_WEBHOOK_SECRET=
 
+# Whapi.Cloud (bot de WhatsApp directo)
+WHAPI_TOKEN=                        # pendiente — crear canal en panel.whapi.cloud
+WHAPI_BASE_URL=https://gate.whapi.cloud
+WHATSAPP_BOT_TRIGGER_KEYWORDS=informacion,información,info,quiero saber,dana mkt,dana marketing
+
 # Google Ads
 GOOGLE_ADS_CLIENT_ID=
 GOOGLE_ADS_CLIENT_SECRET=
@@ -235,7 +285,6 @@ GOOGLE_ADS_CUSTOMER_ID=
 - **Chatbot unificado:** `postinstall` (gated by `VERCEL=1`) corre `npm run build:chatbox` porque legacy `builds` ignora `installCommand`/`buildCommand`; Vite bakea en `public/chatbox/` con `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY`
 - **Chatbot standalone (legacy, opcional):** Vercel project `chatbot-pampai` — https://chatbot-pampai-nu.vercel.app — **no borrar** sin confirmación; se puede redirigir a CRM `/chatbox/` o eliminar después
 - **GitHub:** https://github.com/marianoisabello/CRM
-- **Requisito Railway (legacy):** `NIXPACKS_NODE_VERSION=22` — ya no aplica si se usa Vercel
 - **Credenciales seed:** admin@dana.com / Dana2024!
 
 ### Chatbot Lead Scoring (`/lead-scoring-chatbot`)
@@ -245,12 +294,26 @@ GOOGLE_ADS_CUSTOMER_ID=
 - **Standalone (legacy):** https://chatbot-pampai-nu.vercel.app — redirect a CRM `/chatbox/` pendiente (vercel.json redirects no activaron en el último deploy); **no borrar** el project `chatbot-pampai` sin confirmación del usuario
 - **Build CRM:** `npm run build:chatbox` → `public/chatbox/` (Vite `base: '/chatbox/'`)
 - **Flujo:** 10 preguntas de datos → 6 preguntas Sí/No → score 0-100 → mensaje personalizado → guarda en tabla `leads` con `source: "chatbot"`
-- **Scoring:** negocio activo (+10), web/social activa (+10), necesidad urgente (+20), presupuesto (+20), tomador de decisiones (+20), resultados corto plazo (+20)
+- **Preguntas de info (10):** nombre_apellido, empresa, cargo, email, whatsapp, web_sitio, red_social, tamaño_negocio, pais_ciudad, objetivo_necesidad
+- **Preguntas de scoring (6 Sí/No):**
+  1. ¿Tenés un negocio activo? (+10)
+  2. ¿Tenés presupuesto disponible? (+20)
+  3. ¿Tomás decisiones de compra? (+20)
+  4. ¿Necesidad real y urgente? (+20)
+  5. ¿Trabajás con proveedores o todo interno? (sin puntaje directo)
+  6. ¿Buscás resultados a corto plazo? (+20)
+  - **Bonus:** tener web/social activa (+10)
+- **Scoring total:** 0-100 puntos
 - **Categorias:** Bajo (0-39), Medio (40-69), Alto (70-100)
+- **Mensajes por categoria:**
+  - Alto → invita a agendar reunión + botón Calendly
+  - Medio → promete newsletter y seguimiento
+  - Bajo → material educativo, re-contactar en 3-6 meses
 - **Calendly (Alto):** https://calendly.com/marianoisabello-pampai/30min
 - **Link en sidebar CRM:** Herramientas (expandible) → **Chatbox** (vista in-app `#chatbox`)
 - **Chatbot UI:** página standalone sin sidebar CRM — el menú Marketing Dana vive solo en el CRM
 - **Tabla leads:** ya creada en Supabase — los leads del chatbot llegan con source="chatbot"
+- **UX:** barra de progreso, typing indicator animado, ScoreDisplay con resumen antes de confirmar, SuccessMessage tras guardado exitoso
 
 ### Pasos pendientes para funcionar completamente
 
@@ -259,6 +322,7 @@ GOOGLE_ADS_CUSTOMER_ID=
 3. **Vercel vars (CRM):** agregar `JWT_SECRET`, `TZ=America/Argentina/Buenos_Aires`
 4. **Google Sheets:** crear Service Account, habilitar API, poner credenciales como `GOOGLE_SHEETS_SA_KEY`
 5. **ManyChat webhook:** reconectar el External Request block al endpoint de ingesta
+6. **Whapi.Cloud:** crear canal en panel.whapi.cloud, escanear QR, poner `WHAPI_TOKEN`, y registrar `POST /api/whatsapp/webhook` como webhook (evento `messages`) para activar el bot directo
 
 ---
 
@@ -272,4 +336,5 @@ GOOGLE_ADS_CUSTOMER_ID=
 | Meta Ads API | Leer metricas de campanas | Token pendiente |
 | Google Ads API | Leer metricas de campanas | Credenciales pendientes |
 | ManyChat | Webhook de leads WA + IG | Webhook desconectado |
+| Whapi.Cloud | Bot de calificación directo por WhatsApp | Código listo, falta WHAPI_TOKEN |
 | Google Sheets | Exportar leads | Service Account pendiente |

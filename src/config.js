@@ -31,6 +31,22 @@ module.exports = {
     webhookSecret: optional('MANYCHAT_WEBHOOK_SECRET'),
   },
 
+  // Whapi.Cloud — bot de WhatsApp directo (sin pasar por Meta ni ManyChat)
+  whapi: {
+    token: optional('WHAPI_TOKEN'),
+    baseUrl: process.env.WHAPI_BASE_URL || 'https://gate.whapi.cloud',
+    webhookSecret: optional('WHAPI_WEBHOOK_SECRET'),
+  },
+
+  // Bot de calificación por WhatsApp — keywords que activan el flujo de preguntas
+  whatsappBot: {
+    triggerKeywords: (process.env.WHATSAPP_BOT_TRIGGER_KEYWORDS ||
+      'informacion,información,info,quiero saber,dana mkt,dana marketing')
+      .split(',')
+      .map((k) => k.trim().toLowerCase())
+      .filter(Boolean),
+  },
+
   // Meta Ads (solo para lectura de métricas de campañas, sin mensajería directa)
   metaAds: {
     accessToken: optional('META_ADS_ACCESS_TOKEN'),
