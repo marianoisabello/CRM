@@ -78,6 +78,7 @@ async function refreshLeads() {
   const countEl = document.getElementById('leads-count');
   if (countEl) countEl.innerHTML = `<span class="font-data font-semibold tnum" style="color:var(--primary);">${count}</span> lead${count !== 1 ? 's' : ''}`;
   document.getElementById('leads-table-wrap').innerHTML = renderLeadsTable(leads);
+  hydrateMotion(document.getElementById('leads-table-wrap'));
 }
 
 async function exportToSheets(source) {

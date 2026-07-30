@@ -110,7 +110,7 @@ function emptyState(opts = {}) {
     ? `<button type="button" class="btn-ghost mt-1" ${opts.actionOnclick ? `onclick="${opts.actionOnclick}"` : ''}>${_escHtml(opts.actionLabel)}</button>`
     : '';
   const extra = opts.className || '';
-  return `<div class="flex flex-col items-center justify-center gap-3 rounded-xl px-6 py-10 text-center ${extra}"
+  return `<div class="flex flex-col items-center justify-center gap-3 rounded-xl px-6 py-10 text-center anim-fade-up ${extra}"
     style="border:1px dashed var(--border);background:rgb(16 16 24 / 0.5);">
     <span class="grid place-items-center rounded-full" style="width:48px;height:48px;background:var(--primary-soft);color:var(--primary);">${icon}</span>
     <div class="flex flex-col gap-1.5 items-center">
@@ -165,6 +165,72 @@ async function celebrate(origin) {
   } catch (_) {}
 }
 
+function prefersReducedMotion() {
+  try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+  catch (_) { return false; }
+}
+
+/** Número que anima de 0 → value al hidratar */
+function countUpHtml(value, className = '') {
+  const n = Number(value) || 0;
+  return `<span class="font-data tnum ${className}" data-count-up="${n}">${prefersReducedMotion() ? n : 0}</span>`;
+}
+
+/** Barra de progreso animable — pct 0–100 */
+function progressBar(pct, color = 'var(--primary)', height = 6) {
+  const w = Math.max(0, Math.min(100, Number(pct) || 0));
+  return `<div class="bar-track" style="height:${height}px;">
+    <div class="bar-fill" data-width="${w}%" style="background:${color};--bar-target:${w}%;"></div>
+  </div>`;
+}
+
+/** Activa bars + count-ups dentro de un contenedor (solo visual). */
+function hydrateMotion(scope) {
+  const root = scope || document;
+  const reduce = prefersReducedMotion();
+
+  root.querySelectorAll('.bar-fill[data-width]').forEach((el) => {
+    const target = el.getAttribute('data-width') || '0%';
+    if (reduce) {
+      el.style.width = target;
+      return;
+    }
+    el.style.width = '0%';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => { el.style.width = target; });
+    });
+  });
+
+  root.querySelectorAll('[data-count-up]').forEach((el) => {
+    if (el.dataset.countDone === '1') return;
+    el.dataset.countDone = '1';
+    const target = parseFloat(el.dataset.countUp);
+    if (!Number.isFinite(target)) return;
+    if (reduce) {
+      el.textContent = String(Math.round(target));
+      return;
+    }
+    const duration = 900;
+    const start = performance.now();
+    const tick = (now) => {
+      const p = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = String(Math.round(target * eased));
+      if (p < 1) requestAnimationFrame(tick);
+      else el.textContent = String(Math.round(target));
+    };
+    requestAnimationFrame(tick);
+  });
+}
+
+function playViewEnter(root) {
+  if (!root || prefersReducedMotion()) return;
+  root.classList.remove('view-enter');
+  void root.offsetWidth;
+  root.classList.add('view-enter');
+  hydrateMotion(root);
+}
+
 // ─── Componentes ─────────────────────────────────────────────────────────────
 
 function scoreBar(score) {
@@ -174,8 +240,8 @@ function scoreBar(score) {
   // Umbrales de negocio intactos: >=65 / >=40
   const color = score >= 65 ? 'var(--danger)' : score >= 40 ? 'var(--warning)' : 'var(--info)';
   return `<div class="flex items-center gap-1.5">
-    <div class="w-14 h-1.5 rounded-full overflow-hidden" style="background:var(--secondary);">
-      <div class="h-full rounded-full" style="width:${score}%;background:${color};"></div>
+    <div class="bar-track w-14" style="height:6px;">
+      <div class="bar-fill" data-width="${score}%" style="background:${color};--bar-target:${score}%;"></div>
     </div>
     <span class="font-data text-xs tnum" style="color:var(--muted-foreground);">${score}</span>
   </div>`;
@@ -228,8 +294,8 @@ function renderLeadsTable(leads, emptyMsg = 'Sin leads') {
       </tr>
     </thead>
     <tbody>
-      ${leads.map(l => `
-        <tr class="lead-row transition" style="border-top:1px solid var(--border);"
+      ${leads.map((l, i) => `
+        <tr class="lead-row transition stagger-row" style="border-top:1px solid var(--border);animation-delay:${Math.min(i, 14) * 0.028}s;"
             onclick='openLeadModal(${JSON.stringify(l).replace(/'/g, "&#39;")})'>
           <td class="px-4 py-3">
             <div class="flex items-center gap-2.5">

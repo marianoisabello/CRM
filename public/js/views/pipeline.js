@@ -66,7 +66,7 @@ async function renderPipeline(root) {
       </div>`;
     }).join('');
 
-    return `<div class="kanban-col shrink-0 w-64 flex flex-col rounded-xl p-3" style="background:var(--elevated);border:1px solid var(--border);"
+    return `<div class="kanban-col shrink-0 w-64 flex flex-col rounded-xl p-3" data-status="${col.key}" style="background:var(--elevated);border:1px solid var(--border);"
                 ondragover="event.preventDefault();this.querySelector('.kanban-drop-zone').style.background='${col.soft}';"
                 ondragleave="this.querySelector('.kanban-drop-zone').style.background='';"
                 ondrop="this.querySelector('.kanban-drop-zone').style.background='';_pipelineDrop(event,'${col.key}');">
@@ -82,6 +82,7 @@ async function renderPipeline(root) {
       </div>
     </div>`;
   }).join('');
+  hydrateMotion(board);
 }
 
 async function _pipelineDrop(event, toStatus) {
@@ -89,6 +90,13 @@ async function _pipelineDrop(event, toStatus) {
   const leadId     = event.dataTransfer.getData('leadId');
   const fromStatus = event.dataTransfer.getData('fromStatus');
   if (!leadId || fromStatus === toStatus) return;
+
+  const col = event.currentTarget;
+  if (col && col.classList) {
+    col.classList.remove('drop-pulse');
+    void col.offsetWidth;
+    col.classList.add('drop-pulse');
+  }
 
   const res = await api(`/api/leads/${leadId}/status`, { method: 'PATCH', body: { status: toStatus } });
   if (res?.ok) {

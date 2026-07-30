@@ -292,12 +292,31 @@
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #2c2c3a; border-radius: 999px; }
 
-    /* Etapa F — micro-interacciones */
+    /* Micro-interacciones + paquete motion */
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(14px); }
       to { opacity: 1; transform: translateY(0); }
     }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: translateY(12px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes dropPulse {
+      0% { box-shadow: inset 0 0 0 0 transparent; }
+      40% { box-shadow: inset 0 0 0 1px rgb(43 212 189 / 0.45); }
+      100% { box-shadow: inset 0 0 0 0 transparent; }
+    }
     .anim-fade-up { animation: fadeUp 0.45s ease-out both; }
+    .view-enter { animation: fadeUp 0.35s ease-out both; }
+    .view-fade-out { opacity: 0; transform: translateY(6px); transition: opacity 0.12s ease, transform 0.12s ease; }
     .kpi-card { animation: fadeUp 0.5s ease-out both; }
     .kpi-card:nth-child(1) { animation-delay: 0.02s; }
     .kpi-card:nth-child(2) { animation-delay: 0.08s; }
@@ -306,11 +325,40 @@
     .kpi-card:nth-child(5) { animation-delay: 0.26s; }
     .kpi-card:nth-child(6) { animation-delay: 0.32s; }
     tr.lead-row, tr.data-row { transition: background 0.15s ease; }
+    .stagger-row { animation: fadeUp 0.35s ease-out both; }
+    .bar-track {
+      overflow: hidden; border-radius: 999px;
+      background: var(--secondary);
+    }
+    .bar-fill {
+      height: 100%; border-radius: 999px;
+      width: 0%;
+      transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    }
     .kanban-card { transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s; }
     .kanban-card:hover { transform: translateY(-1px); }
     .kanban-card.card-dragging { transform: rotate(2deg) scale(1.03); }
+    .kanban-col.drop-pulse { animation: dropPulse 0.45s ease-out; }
+    #lead-modal:not(.hidden) {
+      opacity: 0; transition: opacity 0.18s ease;
+    }
+    #lead-modal.is-open {
+      opacity: 1;
+    }
+    #lead-modal .modal-panel {
+      transform: translateY(12px) scale(0.97);
+      transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    #lead-modal.is-open .modal-panel {
+      transform: translateY(0) scale(1);
+      animation: modalIn 0.22s ease-out;
+    }
+    #toast.toast-in { animation: toastIn 0.28s ease-out both; }
     @media (prefers-reduced-motion: reduce) {
-      .anim-fade-up, .kpi-card { animation: none; }
+      .anim-fade-up, .kpi-card, .view-enter, .stagger-row, #toast.toast-in,
+      #lead-modal .modal-panel, .kanban-col.drop-pulse { animation: none !important; }
+      .view-fade-out, #lead-modal, #lead-modal .modal-panel, .bar-fill { transition: none !important; }
+      .bar-fill { width: var(--bar-target, 0%) !important; }
     }
   </style>
 </head>
@@ -430,7 +478,7 @@
 
   <!-- Modal Lead -->
   <div id="lead-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,0.55);">
-    <div class="w-full max-w-lg max-h-[88vh] flex flex-col rounded-xl shadow-2xl"
+    <div class="modal-panel w-full max-w-lg max-h-[88vh] flex flex-col rounded-xl shadow-2xl"
          style="background:var(--card);border:1px solid var(--border);">
       <div class="flex items-start justify-between p-5" style="border-bottom:1px solid var(--border);">
         <div>
@@ -522,7 +570,7 @@
       } catch (_) {}
     })();
 
-    function renderView(hash) {
+    async function renderView(hash) {
       const view = (hash || '').replace(/^#/, '') || 'dashboard';
 
       document.querySelectorAll('.nav-item, .nav-sub').forEach(el => {
@@ -542,6 +590,12 @@
       const root = document.getElementById('view-root');
       if (!root) return;
       const main = root.parentElement;
+
+      if (!prefersReducedMotion()) {
+        root.classList.add('view-fade-out');
+        await new Promise((r) => setTimeout(r, 110));
+        root.classList.remove('view-fade-out', 'view-enter');
+      }
 
       if (view === 'chatbox') {
         // Same-origin embed — Vite build outputs to public/chatbox/ with VITE_* baked in
@@ -567,24 +621,29 @@
         </div>
       </div>`;
 
-      if (view === 'dashboard')           return renderDashboard(root);
-      if (view === 'calendar')            return renderCalendar(root);
-      if (view === 'settings')            return renderSettings(root);
-      if (view === 'pipeline')            return renderPipeline(root);
-      if (view === 'propuestas')          return renderPropuestasMenu(root);
-      if (view.startsWith('agent/'))      return renderAgent(root, view.split('/')[1]);
-      if (view.startsWith('leads')) {
+      let pending = null;
+      if (view === 'dashboard')           pending = renderDashboard(root);
+      else if (view === 'calendar')       pending = renderCalendar(root);
+      else if (view === 'settings')       pending = Promise.resolve(renderSettings(root));
+      else if (view === 'pipeline')       pending = renderPipeline(root);
+      else if (view === 'propuestas')     pending = renderPropuestasMenu(root);
+      else if (view.startsWith('agent/')) pending = renderAgent(root, view.split('/')[1]);
+      else if (view.startsWith('leads')) {
         const source = view.includes('/') ? view.split('/')[1] : null;
-        return renderLeads(root, source);
+        pending = renderLeads(root, source);
+      } else {
+        root.innerHTML = `<div class="p-8 text-sm" style="color:var(--muted-foreground);">Vista no encontrada: <code>${view}</code></div>`;
       }
 
-      root.innerHTML = `<div class="p-8 text-sm" style="color:#6B7280;">Vista no encontrada: <code>${view}</code></div>`;
+      try { if (pending && typeof pending.then === 'function') await pending; } catch (_) {}
+      playViewEnter(root);
     }
 
     window.addEventListener('hashchange', () => renderView(window.location.hash));
     renderView(window.location.hash || '#dashboard');
 
     let currentLeadId = null;
+    let _modalCloseTimer = null;
     function openLeadModal(lead) {
       currentLeadId = lead.id;
       window._currentLead = lead;
@@ -602,14 +661,25 @@
           style="${s === lead.status ? statusColors[s] : statusInactive}">
           ${statusLabel[s]}
         </button>`).join('');
-      document.getElementById('lead-modal').classList.remove('hidden');
+      const modal = document.getElementById('lead-modal');
+      clearTimeout(_modalCloseTimer);
+      modal.classList.remove('hidden');
+      requestAnimationFrame(() => {
+        modal.classList.add('is-open');
+        hydrateMotion(modal);
+      });
       initLeadPropuestaAssign(lead);
     }
 
     function closeModal() {
-      document.getElementById('lead-modal').classList.add('hidden');
+      const modal = document.getElementById('lead-modal');
+      modal.classList.remove('is-open');
       currentLeadId = null;
       window._currentLead = null;
+      clearTimeout(_modalCloseTimer);
+      _modalCloseTimer = setTimeout(() => {
+        modal.classList.add('hidden');
+      }, prefersReducedMotion() ? 0 : 180);
     }
     document.getElementById('lead-modal').addEventListener('click', e => {
       if (e.target === document.getElementById('lead-modal')) closeModal();
@@ -635,10 +705,13 @@
       const accent = isError ? 'var(--danger)' : 'var(--success)';
       t.innerHTML = `<span>${msg}</span>`;
       t.style.cssText = `position:fixed;bottom:20px;right:20px;background:var(--elevated);border:1px solid var(--border);border-left:3px solid ${accent};border-radius:12px;padding:12px 16px;font-size:13px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.35);display:flex;align-items:center;gap:10px;min-width:192px;color:${isError?'var(--danger)':'var(--foreground)'};font-family:var(--font-sans);`;
-      t.classList.remove('hidden');
+      t.classList.remove('hidden', 'toast-in');
+      void t.offsetWidth;
+      t.classList.add('toast-in');
       clearTimeout(window._toastTimer);
       window._toastTimer = setTimeout(() => {
         t.classList.add('hidden');
+        t.classList.remove('toast-in');
         t.style.display = 'none';
       }, 3500);
     }

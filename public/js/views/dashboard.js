@@ -23,9 +23,7 @@ async function renderDashboard(root) {
       const pct = stats.total ? Math.round(count / stats.total * 100) : 0;
       return `<div class="flex items-center gap-3 py-1.5">
         <span class="text-xs w-32 shrink-0 truncate" style="color:var(--muted-foreground);">${sourceLabel[src] || src}</span>
-        <div class="flex-1 h-1.5 rounded-full overflow-hidden" style="background:var(--secondary);">
-          <div class="h-full rounded-full transition-all" style="width:${pct}%;background:${srcColors[src]||'var(--primary)'};"></div>
-        </div>
+        <div class="flex-1">${progressBar(pct, srcColors[src]||'var(--primary)', 6)}</div>
         <span class="font-data text-xs w-6 text-right tnum" style="color:var(--foreground);">${count}</span>
         <span class="font-data text-xs w-8 text-right" style="color:var(--muted-foreground);">${pct}%</span>
       </div>`;
@@ -79,7 +77,7 @@ async function renderDashboard(root) {
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
             </div>
           </div>
-          <p class="font-data text-3xl font-bold tnum" style="color:var(--foreground);">${stats.total || 0}</p>
+          <p class="font-data text-3xl font-bold tnum" style="color:var(--foreground);">${countUpHtml(stats.total || 0)}</p>
           <p class="text-xs mt-1" style="color:var(--muted-foreground);">Score prom. <span class="font-data" style="color:var(--foreground);">${stats.avg_score || 0}</span></p>
         </div>
         <div class="kpi-card" style="border:none;border-radius:0;border-left:3px solid var(--danger);">
@@ -87,7 +85,7 @@ async function renderDashboard(root) {
             <p class="eyebrow" style="color:var(--muted-foreground);">Hot</p>
             <span class="text-base leading-none">🔥</span>
           </div>
-          <p class="font-data text-3xl font-bold tnum" style="color:var(--danger);">${c.hot || 0}</p>
+          <p class="font-data text-3xl font-bold tnum" style="color:var(--danger);">${countUpHtml(c.hot || 0)}</p>
           <p class="text-xs mt-1" style="color:var(--muted-foreground);">Agendar reunión</p>
         </div>
         <div class="kpi-card" style="border:none;border-radius:0;border-left:3px solid var(--warning);">
@@ -95,7 +93,7 @@ async function renderDashboard(root) {
             <p class="eyebrow" style="color:var(--muted-foreground);">Warm</p>
             <span class="text-base leading-none">☀️</span>
           </div>
-          <p class="font-data text-3xl font-bold tnum" style="color:var(--warning);">${c.warm || 0}</p>
+          <p class="font-data text-3xl font-bold tnum" style="color:var(--warning);">${countUpHtml(c.warm || 0)}</p>
           <p class="text-xs mt-1" style="color:var(--muted-foreground);">Enviar info</p>
         </div>
         <div class="kpi-card" style="border:none;border-radius:0;border-left:3px solid var(--info);">
@@ -103,7 +101,7 @@ async function renderDashboard(root) {
             <p class="eyebrow" style="color:var(--muted-foreground);">Cold</p>
             <span class="text-base leading-none">❄️</span>
           </div>
-          <p class="font-data text-3xl font-bold tnum" style="color:var(--info);">${c.cold || 0}</p>
+          <p class="font-data text-3xl font-bold tnum" style="color:var(--info);">${countUpHtml(c.cold || 0)}</p>
           <p class="text-xs mt-1" style="color:var(--muted-foreground);">Nutrir</p>
         </div>
         <div class="kpi-card" style="border:none;border-radius:0;border-left:3px solid var(--primary);">
@@ -111,7 +109,7 @@ async function renderDashboard(root) {
             <p class="eyebrow" style="color:var(--muted-foreground);">Ganados</p>
             <span class="text-base leading-none">✅</span>
           </div>
-          <p class="font-data text-3xl font-bold tnum" style="color:var(--primary);">${s.won || 0}</p>
+          <p class="font-data text-3xl font-bold tnum" style="color:var(--primary);">${countUpHtml(s.won || 0)}</p>
           <p class="text-xs mt-1" style="color:var(--muted-foreground);">Clientes activos</p>
         </div>
       </div>
@@ -136,7 +134,7 @@ async function renderDashboard(root) {
               <a href="${it.href}" class="rounded-xl p-3 border transition block" style="border-color:var(--border);border-left:3px solid ${it.color};background:var(--elevated);"
                  onmouseover="this.style.borderColor='rgb(43 212 189 / 0.35)'" onmouseout="this.style.borderColor='var(--border)'">
                 <p class="eyebrow" style="color:var(--muted-foreground);">${it.label}</p>
-                <p class="font-data text-2xl font-bold mt-1 tnum" style="color:var(--foreground);">${it.val}</p>
+                <p class="font-data text-2xl font-bold mt-1 tnum" style="color:var(--foreground);">${countUpHtml(it.val)}</p>
               </a>`).join('')}
           </div>
         </div>`;
@@ -165,9 +163,7 @@ async function renderDashboard(root) {
                   <span style="color:var(--muted-foreground);">${p.label}</span>
                   <span class="font-data font-medium tnum" style="color:var(--foreground);">${p.val}</span>
                 </div>
-                <div class="h-1.5 rounded-full overflow-hidden" style="background:var(--secondary);">
-                  <div class="h-full rounded-full transition-all" style="width:${pipelineTotal ? Math.round(p.val/pipelineTotal*100) : 0}%;background:${p.color};"></div>
-                </div>
+                ${progressBar(pipelineTotal ? Math.round(p.val/pipelineTotal*100) : 0, p.color, 6)}
               </div>`).join('')}
           </div>
         </div>
