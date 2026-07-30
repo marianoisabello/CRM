@@ -49,6 +49,7 @@ router.post('/analyst', async (req, res) => {
   if (!lead_id) return res.status(400).json({ ok: false, error: 'lead_id requerido' });
 
   try {
+    await getLead(lead_id);
     res.json({ ok: true, message: 'Analista (diagnóstico) iniciado en background', lead_id });
     generateDiagnosis(lead_id, meeting_notes).catch(err => logger.error({ msg: 'Error analista manual', error: err.message }));
   } catch (err) {

@@ -89,8 +89,8 @@ async function renderAnalystPerfiles(root) {
         </div>
         <div class="lg:col-span-2">
           <div class="flex items-center justify-between mb-3">
-            <h2 class="font-semibold text-sm" style="color:#374151;">Historial de ejecuciones</h2>
-            <button onclick="loadAgentRuns('perfiles')" class="text-xs transition" style="color:#6B7280;">Actualizar</button>
+            <h2 class="font-semibold text-sm" style="color:#374151;">Historial de diagnósticos</h2>
+            <button type="button" onclick="loadAgentRuns('analyst')" class="text-xs transition" style="color:#6B7280;">Actualizar</button>
           </div>
           <div id="runs-table" class="bg-white border overflow-hidden" style="border-color:#E5E7EB;border-radius:8px;">
             <div class="flex items-center justify-center h-24 text-sm" style="color:#9CA3AF;">Cargando...</div>
@@ -121,7 +121,7 @@ async function renderAnalystPerfiles(root) {
       </div>
     </div>`;
 
-  await Promise.all([refreshPerfiles(), loadAgentRuns('perfiles')]);
+  await Promise.all([refreshPerfiles(), loadAgentRuns('analyst')]);
 }
 
 function sdrCategoriaBadge(cat) {
@@ -401,7 +401,7 @@ function buildAgentForm(agentId) {
 
     case 'analyst':
       return `<div class="space-y-3">
-        <div class="relative">
+        <div>
           <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Buscar lead</label>
           <input id="ag-lead-search" type="search" autocomplete="off"
             placeholder="Nombre o email…"
@@ -410,7 +410,7 @@ function buildAgentForm(agentId) {
             onkeydown="onAnalystLeadSearchKey(event)"
             onfocus="onAnalystLeadSearch(this.value)">
           <input type="hidden" id="ag-lead-id" value="">
-          <div id="ag-lead-selected" class="hidden mt-2 rounded-lg px-3 py-2 text-xs border" style="background:#F9FAFB;border-color:#E5E7EB;">
+          <div id="ag-lead-selected" class="hidden mt-2 rounded-lg px-3 py-2 text-xs border" style="display:none;background:#F9FAFB;border-color:#E5E7EB;">
             <div class="flex items-start justify-between gap-2">
               <div class="min-w-0">
                 <p id="ag-lead-selected-name" class="font-medium truncate" style="color:#111827;"></p>
@@ -419,13 +419,14 @@ function buildAgentForm(agentId) {
               <button type="button" onclick="clearAnalystLead()" class="shrink-0 text-xs" style="color:#9CA3AF;">Cambiar</button>
             </div>
           </div>
-          <div id="ag-lead-results" class="hidden absolute z-20 left-0 right-0 mt-1 max-h-56 overflow-auto bg-white border shadow-sm" style="border-color:#E5E7EB;border-radius:8px;"></div>
+          <div id="ag-lead-results" class="hidden mt-1 max-h-56 overflow-auto bg-white border shadow-sm" style="display:none;border-color:#E5E7EB;border-radius:8px;"></div>
         </div>
         <div>
           <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Notas de reunión</label>
           <textarea id="ag-meeting-notes" rows="4" placeholder="Qué se habló en la reunión..." class="${inputCls}" style="resize:vertical"></textarea>
         </div>
-        <button onclick="runAgent('analyst')" class="${btnCls}">🔍 Generar diagnóstico</button>
+        <button type="button" id="ag-generate-diag" onclick="submitAnalystDiagnosis()" class="${btnCls}">Generar diagnóstico</button>
+        <div id="ag-diag-status" class="text-xs leading-relaxed" style="display:none;"></div>
       </div>`;
 
     case 'proposal':
@@ -490,6 +491,7 @@ function buildAgentForm(agentId) {
 
 let _analystLeadSearchTimer = null;
 let _analystLeadResults = [];
+let _analystDiagBusy = false;
 
 function _analystEsc(s) {
   return String(s ?? '')
@@ -497,6 +499,31 @@ function _analystEsc(s) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+function _analystShow(el, show) {
+  if (!el) return;
+  if (show) {
+    el.classList.remove('hidden');
+    el.style.display = '';
+  } else {
+    el.classList.add('hidden');
+    el.style.display = 'none';
+  }
+}
+
+function _setAnalystDiagStatus(msg, kind = 'info') {
+  const el = document.getElementById('ag-diag-status');
+  if (!el) return;
+  if (!msg) {
+    el.style.display = 'none';
+    el.textContent = '';
+    return;
+  }
+  const colors = { info: '#6B7280', ok: '#047857', error: '#B91C1C' };
+  el.style.display = 'block';
+  el.style.color = colors[kind] || colors.info;
+  el.textContent = msg;
 }
 
 function clearAnalystLead() {
@@ -507,14 +534,15 @@ function clearAnalystLead() {
   if (idEl) idEl.value = '';
   if (searchEl) {
     searchEl.value = '';
-    searchEl.classList.remove('hidden');
+    _analystShow(searchEl, true);
   }
-  if (selected) selected.classList.add('hidden');
+  _analystShow(selected, false);
   if (results) {
-    results.classList.add('hidden');
     results.innerHTML = '';
+    _analystShow(results, false);
   }
   _analystLeadResults = [];
+  _setAnalystDiagStatus('');
 }
 
 function selectAnalystLead(id, name, email) {
@@ -527,12 +555,13 @@ function selectAnalystLead(id, name, email) {
   if (idEl) idEl.value = id || '';
   if (nameEl) nameEl.textContent = name || 'Sin nombre';
   if (emailEl) emailEl.textContent = email || '';
-  if (selected) selected.classList.remove('hidden');
-  if (searchEl) searchEl.classList.add('hidden');
+  _analystShow(selected, true);
+  _analystShow(searchEl, false);
   if (results) {
-    results.classList.add('hidden');
     results.innerHTML = '';
+    _analystShow(results, false);
   }
+  _setAnalystDiagStatus('');
 }
 
 function renderAnalystLeadResults(leads) {
@@ -541,7 +570,7 @@ function renderAnalystLeadResults(leads) {
   _analystLeadResults = leads || [];
   if (!_analystLeadResults.length) {
     results.innerHTML = `<div class="px-3 py-2.5 text-xs" style="color:#9CA3AF;">Sin coincidencias</div>`;
-    results.classList.remove('hidden');
+    _analystShow(results, true);
     return;
   }
   results.innerHTML = _analystLeadResults.map((l, i) => {
@@ -556,7 +585,7 @@ function renderAnalystLeadResults(leads) {
       <p class="text-xs mt-0.5 truncate" style="color:#6B7280;">${email}${src ? ' · ' + src : ''}</p>
     </button>`;
   }).join('');
-  results.classList.remove('hidden');
+  _analystShow(results, true);
 }
 
 function pickAnalystLead(idx) {
@@ -577,14 +606,14 @@ async function onAnalystLeadSearch(raw) {
     return;
   }
 
-  if (idEl && !document.getElementById('ag-lead-search')?.classList.contains('hidden')) {
+  if (idEl && document.getElementById('ag-lead-search')?.style.display !== 'none') {
     idEl.value = '';
   }
 
   if (q.length < 2) {
     if (results) {
-      results.classList.add('hidden');
       results.innerHTML = '';
+      _analystShow(results, false);
     }
     _analystLeadResults = [];
     return;
@@ -595,7 +624,7 @@ async function onAnalystLeadSearch(raw) {
     if (!res?.ok) {
       if (results) {
         results.innerHTML = `<div class="px-3 py-2.5 text-xs" style="color:#B91C1C;">${_analystEsc(res?.error || 'Error al buscar')}</div>`;
-        results.classList.remove('hidden');
+        _analystShow(results, true);
       }
       return;
     }
@@ -607,8 +636,8 @@ function onAnalystLeadSearchKey(event) {
   if (event.key === 'Escape') {
     const results = document.getElementById('ag-lead-results');
     if (results) {
-      results.classList.add('hidden');
       results.innerHTML = '';
+      _analystShow(results, false);
     }
   }
   if (event.key === 'Enter') {
@@ -617,7 +646,73 @@ function onAnalystLeadSearchKey(event) {
   }
 }
 
+async function submitAnalystDiagnosis() {
+  if (_analystDiagBusy) return;
+
+  const leadId = document.getElementById('ag-lead-id')?.value?.trim();
+  const notes = document.getElementById('ag-meeting-notes')?.value || '';
+  const btn = document.getElementById('ag-generate-diag');
+  const results = document.getElementById('ag-lead-results');
+  if (results) {
+    results.innerHTML = '';
+    _analystShow(results, false);
+  }
+
+  if (!leadId) {
+    _setAnalystDiagStatus('Elegí un lead por nombre o email antes de generar.', 'error');
+    showToast('Elegí un lead por nombre o email', 'error');
+    return;
+  }
+
+  _analystDiagBusy = true;
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Generando…';
+    btn.style.opacity = '0.7';
+  }
+  _setAnalystDiagStatus('Iniciando diagnóstico…', 'info');
+
+  try {
+    const res = await api('/api/agent-runs/analyst', {
+      method: 'POST',
+      body: { lead_id: leadId, meeting_notes: notes },
+    });
+
+    if (!res) {
+      _setAnalystDiagStatus('Sesión expirada — volvé a iniciar sesión.', 'error');
+      return;
+    }
+
+    if (!res.ok) {
+      const err = res.error || 'No se pudo iniciar el diagnóstico';
+      _setAnalystDiagStatus(err, 'error');
+      showToast(err, 'error');
+      return;
+    }
+
+    _setAnalystDiagStatus('Diagnóstico en curso. El historial se actualiza en unos segundos.', 'ok');
+    showToast('Diagnóstico iniciado');
+    setTimeout(() => loadAgentRuns('analyst'), 2000);
+    setTimeout(() => loadAgentRuns('analyst'), 8000);
+  } catch (err) {
+    const msg = err?.message || 'Error inesperado';
+    _setAnalystDiagStatus(msg, 'error');
+    showToast(msg, 'error');
+  } finally {
+    _analystDiagBusy = false;
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Generar diagnóstico';
+      btn.style.opacity = '';
+    }
+  }
+}
+
 async function runAgent(agentId) {
+  if (agentId === 'analyst') {
+    return submitAnalystDiagnosis();
+  }
+
   const body = {};
   const leadId = document.getElementById('ag-lead-id')?.value?.trim();
   if (leadId) body.lead_id = leadId;
@@ -630,20 +725,23 @@ async function runAgent(agentId) {
   if (document.getElementById('ag-month'))         body.month         = document.getElementById('ag-month').value;
   if (document.getElementById('ag-team-notes'))    body.team_notes    = document.getElementById('ag-team-notes').value;
 
-  if (agentId === 'analyst' && !body.lead_id) {
-    showToast('Elegí un lead por nombre o email', 'error');
-    return;
-  }
-
   const res = await api(`/api/agent-runs/${agentId}`, { method: 'POST', body });
   if (res?.ok) {
-    showToast(`${agentInfo[agentId]?.emoji} ${agentInfo[agentId]?.name} iniciado`);
-    const runsId = agentId === 'analyst' ? 'perfiles' : agentId;
-    setTimeout(() => loadAgentRuns(runsId), 2500);
+    showToast(`${agentInfo[agentId]?.emoji || ''} ${agentInfo[agentId]?.name || agentId} iniciado`);
+    setTimeout(() => loadAgentRuns(agentId), 2500);
   } else {
     showToast(res?.error || 'Error', 'error');
   }
 }
+
+// Ensure inline onclick handlers can always resolve these (some bundlers/scopes break globals)
+window.clearAnalystLead = clearAnalystLead;
+window.selectAnalystLead = selectAnalystLead;
+window.pickAnalystLead = pickAnalystLead;
+window.onAnalystLeadSearch = onAnalystLeadSearch;
+window.onAnalystLeadSearchKey = onAnalystLeadSearchKey;
+window.submitAnalystDiagnosis = submitAnalystDiagnosis;
+window.runAgent = runAgent;
 
 async function loadAgentRuns(agentId) {
   const { runs } = await api(`/api/agent-runs?agent_id=${agentId}&limit=20`);

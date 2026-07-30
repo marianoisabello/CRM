@@ -400,12 +400,17 @@
 
     function showToast(msg, type = 'success') {
       const t = document.getElementById('toast');
+      if (!t) return;
       const isError = type === 'error';
       const color = isError ? '#EF4444' : '#10B981';
       t.innerHTML = `<span>${msg}</span>`;
-      t.style.cssText = `position:fixed;bottom:20px;right:20px;background:white;border:1px solid #E5E7EB;border-left:3px solid ${color};border-radius:8px;padding:12px 16px;font-size:13px;z-index:50;box-shadow:0 4px 12px rgba(0,0,0,0.1);display:flex;align-items:center;gap:10px;min-width:192px;color:${isError?'#DC2626':'#111827'};font-family:Inter,sans-serif;`;
+      t.style.cssText = `position:fixed;bottom:20px;right:20px;background:white;border:1px solid #E5E7EB;border-left:3px solid ${color};border-radius:8px;padding:12px 16px;font-size:13px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.1);display:flex;align-items:center;gap:10px;min-width:192px;color:${isError?'#DC2626':'#111827'};font-family:Inter,sans-serif;`;
       t.classList.remove('hidden');
-      setTimeout(() => t.classList.add('hidden'), 3500);
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => {
+        t.classList.add('hidden');
+        t.style.display = 'none';
+      }, 3500);
     }
 
     setInterval(() => {
