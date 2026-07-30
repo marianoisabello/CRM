@@ -3,113 +3,334 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0A0A10">
   <title>CRM</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    * { font-family: 'Inter', system-ui, sans-serif; }
-    .font-data { font-family: 'JetBrains Mono', monospace !important; }
+    /* ── Design tokens (v0 → CRM) ───────────────────────────────────────── */
+    :root {
+      color-scheme: dark;
 
-    /* Sidebar nav — colors on a.nav-* (higher specificity than body text-gray-900) */
+      --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+      --font-serif: 'Instrument Serif', ui-serif, Georgia, serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+      --background: #0a0a10;
+      --foreground: #ffffff;
+      --card: #101018;
+      --card-foreground: #ffffff;
+      --elevated: #16161f;
+      --popover: #16161f;
+      --popover-foreground: #ffffff;
+      --secondary: #1a1a24;
+      --secondary-foreground: #ffffff;
+      --muted: #1a1a24;
+      --muted-foreground: #8a8a9c;
+      --border: #22222e;
+      --input: #22222e;
+
+      --primary: #2bd4bd;
+      --primary-foreground: #04140f;
+      --primary-soft: rgb(43 212 189 / 0.12);
+      --accent: #8b5cf6;
+      --accent-foreground: #ffffff;
+      --accent-soft: rgb(139 92 246 / 0.14);
+      --ring: #2bd4bd;
+
+      --success: #2bd4bd;
+      --success-soft: rgb(43 212 189 / 0.12);
+      --warning: #f5b14c;
+      --warning-soft: rgb(245 177 76 / 0.14);
+      --danger: #f2726d;
+      --danger-soft: rgb(242 114 109 / 0.14);
+      --info: #6aa6ff;
+      --info-soft: rgb(106 166 255 / 0.14);
+
+      --sidebar: #08080d;
+      --sidebar-foreground: #ffffff;
+      --sidebar-muted: #74748a;
+      --sidebar-accent: #16161f;
+
+      --radius: 1rem;
+      --radius-sm: 0.5rem;
+      --radius-md: 0.75rem;
+      --radius-lg: 1rem;
+      --radius-xl: 1.25rem;
+      --radius-2xl: 1.5rem;
+    }
+
+    * { font-family: var(--font-sans); box-sizing: border-box; }
+    body {
+      background: var(--background);
+      color: var(--foreground);
+      font-feature-settings: 'cv11', 'ss01';
+    }
+    .font-data { font-family: var(--font-mono) !important; }
+    .tnum { font-variant-numeric: tabular-nums; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--primary);
+    }
+    .display {
+      font-family: var(--font-serif);
+      font-weight: 400;
+      letter-spacing: -0.01em;
+      line-height: 1.05;
+    }
+    .grid-bg {
+      background-image:
+        linear-gradient(to right, rgb(255 255 255 / 0.035) 1px, transparent 1px),
+        linear-gradient(to bottom, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+      background-size: 56px 56px;
+    }
+    .aura { position: relative; }
+    .aura::before {
+      content: '';
+      position: absolute;
+      inset-inline: 0;
+      top: -220px;
+      height: 460px;
+      pointer-events: none;
+      background:
+        radial-gradient(520px 260px at 22% 40%, rgb(43 212 189 / 0.13), transparent 70%),
+        radial-gradient(560px 260px at 74% 30%, rgb(139 92 246 / 0.12), transparent 72%);
+    }
+    .gradient-ring { position: relative; }
+    .gradient-ring::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg, rgb(43 212 189 / 0.5), rgb(139 92 246 / 0.45));
+      -webkit-mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+      -webkit-mask-clip: content-box, border-box;
+      -webkit-mask-composite: xor;
+      mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+      mask-clip: content-box, border-box;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+    .card-dragging {
+      transform: rotate(2deg) scale(1.03);
+      box-shadow: 0 22px 50px -14px rgb(43 212 189 / 0.4);
+      opacity: 0.96;
+    }
+
+    /* Sidebar nav */
     .crm-sidebar .nav-item,
     a.nav-item {
       display: flex; align-items: center; gap: 8px;
-      padding: 6px 10px; border-radius: 6px; font-size: 13px;
-      color: #9CA3AF; cursor: pointer;
-      transition: background 0.12s, color 0.12s; user-select: none;
+      padding: 8px 12px; border-radius: 999px; font-size: 13px;
+      color: var(--sidebar-muted); cursor: pointer;
+      border: 1px solid transparent;
+      transition: background 0.2s, color 0.2s, transform 0.2s; user-select: none;
       text-decoration: none;
     }
     .crm-sidebar .nav-item:hover,
-    a.nav-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
+    a.nav-item:hover {
+      background: var(--sidebar-accent); color: var(--sidebar-foreground);
+      transform: translateX(2px);
+    }
     .crm-sidebar .nav-item.active,
-    a.nav-item.active { background: rgba(37,99,235,0.2); color: #93C5FD; border: 1px solid rgba(37,99,235,0.3); }
+    a.nav-item.active {
+      background: var(--primary-soft); color: var(--primary);
+      border-color: rgb(43 212 189 / 0.25); font-weight: 600;
+    }
     .crm-sidebar .nav-sub,
     a.nav-sub {
       display: flex; align-items: center; gap: 8px;
-      padding: 5px 10px 5px 28px; border-radius: 6px; font-size: 12px;
-      color: #9CA3AF; cursor: pointer;
-      transition: background 0.12s, color 0.12s; user-select: none;
+      padding: 6px 12px 6px 28px; border-radius: 999px; font-size: 12px;
+      color: var(--sidebar-muted); cursor: pointer;
+      border: 1px solid transparent;
+      transition: background 0.2s, color 0.2s; user-select: none;
       text-decoration: none;
     }
     .crm-sidebar .nav-sub:hover,
-    a.nav-sub:hover { color: #E5E7EB; background: rgba(255,255,255,0.04); }
+    a.nav-sub:hover { color: var(--sidebar-foreground); background: var(--sidebar-accent); }
     .crm-sidebar .nav-sub.active,
-    a.nav-sub.active { color: #93C5FD; }
-    .nav-section { font-size: 10px; color: #6B7280; text-transform: uppercase; letter-spacing: 0.1em; padding: 0 10px; margin: 16px 0 4px; }
-    .nav-group-toggle { justify-content: space-between; color: #9CA3AF; }
+    a.nav-sub.active { color: var(--primary); background: var(--primary-soft); border-color: rgb(43 212 189 / 0.2); }
+    .nav-section {
+      font-family: var(--font-mono);
+      font-size: 10px; color: var(--sidebar-muted);
+      text-transform: uppercase; letter-spacing: 0.14em;
+      padding: 0 12px; margin: 16px 0 4px;
+    }
+    .nav-group-toggle { justify-content: space-between; color: var(--sidebar-muted); }
     .nav-group-toggle .nav-group-label { display: flex; align-items: center; gap: 8px; min-width: 0; color: inherit; }
     .nav-chevron { width: 14px; height: 14px; flex-shrink: 0; transition: transform 0.15s; opacity: 0.7; color: inherit; }
     .nav-group.open .nav-chevron { transform: rotate(90deg); }
-    .nav-group-children { display: none; margin: 2px 0 4px; padding-left: 2px; border-left: 2px solid rgba(37,99,235,0.45); margin-left: 14px; }
+    .nav-group-children {
+      display: none; margin: 2px 0 4px; padding-left: 2px;
+      border-left: 2px solid rgb(43 212 189 / 0.35); margin-left: 14px;
+    }
     .nav-group.open .nav-group-children { display: block; }
     .crm-sidebar .nav-sub.nav-chatbox,
     a.nav-sub.nav-chatbox {
-      color: #93C5FD; font-weight: 600; font-size: 13px; padding: 7px 10px 7px 12px;
-      background: rgba(37,99,235,0.12); border: 1px solid rgba(37,99,235,0.35);
+      color: var(--primary); font-weight: 600; font-size: 13px;
+      padding: 7px 12px 7px 12px;
+      background: var(--primary-soft); border: 1px solid rgb(43 212 189 / 0.3);
     }
     .crm-sidebar .nav-sub.nav-chatbox:hover,
-    a.nav-sub.nav-chatbox:hover { color: #fff; background: rgba(37,99,235,0.22); }
+    a.nav-sub.nav-chatbox:hover { color: var(--foreground); background: rgb(43 212 189 / 0.2); }
     .crm-sidebar .nav-sub.nav-chatbox.active,
-    a.nav-sub.nav-chatbox.active { color: #BFDBFE; background: rgba(37,99,235,0.28); border-color: rgba(96,165,250,0.55); }
+    a.nav-sub.nav-chatbox.active {
+      color: var(--primary); background: rgb(43 212 189 / 0.22);
+      border-color: rgb(43 212 189 / 0.45);
+    }
 
-    /* Fixed sidebar: bound height so nav scrolls; footer stays pinned */
     .crm-sidebar {
       height: 100vh; max-height: 100vh; overflow: hidden;
-      color: #9CA3AF;
+      background: var(--sidebar);
+      color: var(--sidebar-muted);
+      border-right: 1px solid var(--border);
     }
     .crm-sidebar-nav {
       flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: #2c2c3a transparent;
     }
-    .crm-sidebar-header, .crm-sidebar-footer { flex-shrink: 0; }
+    .crm-sidebar-header, .crm-sidebar-footer { flex-shrink: 0; border-color: var(--border) !important; }
     .crm-sidebar svg { color: inherit; stroke: currentColor; }
 
-    .card { background: white; border: 1px solid #E5E7EB; border-radius: 8px; padding: 20px; }
-    .card-sm { background: white; border: 1px solid #E5E7EB; border-radius: 8px; padding: 14px 16px; }
-    .kpi-card { background: white; border: 1px solid #E5E7EB; border-radius: 8px; padding: 18px 20px; transition: border-color 0.15s, box-shadow 0.15s; }
-    .kpi-card:hover { border-color: #D1D5DB; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius-xl); padding: 20px; color: var(--card-foreground);
+    }
+    .card-sm {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 14px 16px; color: var(--card-foreground);
+    }
+    .kpi-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius-xl); padding: 18px 20px;
+      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+    }
+    .kpi-card:hover {
+      background: var(--elevated);
+      border-color: rgb(43 212 189 / 0.25);
+      box-shadow: 0 0 30px -12px rgb(43 212 189 / 0.35);
+    }
 
-    th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #6B7280; background: #F9FAFB; }
-    tr.data-row:hover td { background: #F3F4F6; }
-    tr.lead-row:hover td { background: #F3F4F6; cursor: pointer; }
+    th {
+      font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--muted-foreground); background: var(--secondary);
+    }
+    tr.data-row:hover td { background: var(--elevated); }
+    tr.lead-row:hover td { background: var(--elevated); cursor: pointer; }
 
-    .badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+    .badge {
+      font-size: 11px; font-weight: 600; padding: 2px 10px;
+      border-radius: 999px; display: inline-flex; align-items: center; gap: 4px;
+    }
+    .badge-neutral { background: var(--secondary); color: var(--muted-foreground); border: 1px solid var(--border); }
+    .badge-info { background: var(--info-soft); color: var(--info); border: 1px solid rgb(106 166 255 / 0.3); }
+    .badge-success { background: var(--success-soft); color: var(--success); border: 1px solid rgb(43 212 189 / 0.3); }
+    .badge-warning { background: var(--warning-soft); color: var(--warning); border: 1px solid rgb(245 177 76 / 0.3); }
+    .badge-danger { background: var(--danger-soft); color: var(--danger); border: 1px solid rgb(242 114 109 / 0.3); }
+    .badge-accent { background: var(--accent-soft); color: #a78bfa; border: 1px solid rgb(139 92 246 / 0.3); }
+    .badge-primary { background: var(--primary-soft); color: var(--primary); border: 1px solid rgb(43 212 189 / 0.35); }
+    .table-shell { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-xl); overflow: hidden; }
 
-    .btn-primary { background: #2563EB; color: white; border-radius: 6px; padding: 7px 16px; font-size: 13px; font-weight: 600; transition: background 0.15s; border: none; cursor: pointer; }
-    .btn-primary:hover { background: #1D4ED8; }
-    .btn-ghost { background: white; color: #374151; border-radius: 6px; padding: 7px 14px; font-size: 13px; font-weight: 500; transition: all 0.15s; border: 1px solid #E5E7EB; cursor: pointer; }
-    .btn-ghost:hover { background: #F9FAFB; border-color: #D1D5DB; }
+    .btn-primary {
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      color: var(--primary-foreground);
+      border-radius: 999px; padding: 7px 16px; font-size: 13px; font-weight: 600;
+      transition: box-shadow 0.2s, transform 0.15s; border: none; cursor: pointer;
+    }
+    .btn-primary:hover {
+      box-shadow: 0 0 30px -8px rgb(43 212 189 / 0.6);
+    }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-ghost {
+      background: rgb(26 26 36 / 0.6); color: var(--foreground);
+      border-radius: 999px; padding: 7px 14px; font-size: 13px; font-weight: 500;
+      transition: all 0.2s; border: 1px solid var(--border); cursor: pointer;
+    }
+    .btn-ghost:hover {
+      background: var(--primary-soft); border-color: rgb(43 212 189 / 0.4); color: var(--primary);
+    }
 
-    .input { background: white; border: 1px solid #D1D5DB; border-radius: 6px; padding: 8px 12px; font-size: 13px; color: #111827; outline: none; transition: border-color 0.15s, box-shadow 0.15s; width: 100%; }
-    .input:focus { border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
-    .input::placeholder { color: #9CA3AF; }
+    .input {
+      background: var(--elevated); border: 1px solid var(--input);
+      border-radius: var(--radius-md); padding: 8px 12px; font-size: 13px;
+      color: var(--foreground); outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s; width: 100%;
+    }
+    .input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgb(43 212 189 / 0.15);
+    }
+    .input::placeholder { color: var(--muted-foreground); }
     select.input { cursor: pointer; }
+    select.input option { background: var(--elevated); color: var(--foreground); }
 
-    .skeleton { background: linear-gradient(90deg,#F3F4F6 25%,#E5E7EB 50%,#F3F4F6 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; }
+    .skeleton {
+      background: linear-gradient(90deg, var(--secondary) 25%, var(--elevated) 50%, var(--secondary) 75%);
+      background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: var(--radius-sm);
+    }
     @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 
     .spinning { animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    .nice-scroll { scrollbar-width: thin; scrollbar-color: #2c2c3a transparent; }
+    .nice-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
+    .nice-scroll::-webkit-scrollbar-thumb { background: #2c2c3a; border-radius: 999px; }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb { background: #2c2c3a; border-radius: 999px; }
+
+    /* Etapa F — micro-interacciones */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .anim-fade-up { animation: fadeUp 0.45s ease-out both; }
+    .kpi-card { animation: fadeUp 0.5s ease-out both; }
+    .kpi-card:nth-child(1) { animation-delay: 0.02s; }
+    .kpi-card:nth-child(2) { animation-delay: 0.08s; }
+    .kpi-card:nth-child(3) { animation-delay: 0.14s; }
+    .kpi-card:nth-child(4) { animation-delay: 0.2s; }
+    .kpi-card:nth-child(5) { animation-delay: 0.26s; }
+    .kpi-card:nth-child(6) { animation-delay: 0.32s; }
+    tr.lead-row, tr.data-row { transition: background 0.15s ease; }
+    .kanban-card { transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s; }
+    .kanban-card:hover { transform: translateY(-1px); }
+    .kanban-card.card-dragging { transform: rotate(2deg) scale(1.03); }
+    @media (prefers-reduced-motion: reduce) {
+      .anim-fade-up, .kpi-card { animation: none; }
+    }
   </style>
 </head>
-<body style="background:#F8F9FA;" class="text-gray-900 min-h-screen flex">
+<body class="min-h-screen flex">
 
   <!-- Sidebar -->
-  <aside class="crm-sidebar w-56 flex flex-col fixed left-0 top-0 z-30" style="background:#1A1D23;border-right:1px solid rgba(255,255,255,0.06);">
-    <div class="crm-sidebar-header px-4 py-4 flex items-center gap-3" style="border-bottom:1px solid rgba(255,255,255,0.06);">
-      <div class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm shrink-0 text-white" style="background:#2563EB;">D</div>
+  <aside class="crm-sidebar w-64 flex flex-col fixed left-0 top-0 z-30">
+    <div class="crm-sidebar-header px-4 py-5 flex items-center gap-3" style="border-bottom:1px solid var(--border);">
+      <div class="shrink-0 rounded-full flex items-center justify-center"
+           style="width:36px;height:36px;background:linear-gradient(135deg,var(--primary),var(--accent));">
+        <span class="rounded-full flex items-center justify-center display"
+              style="width:30px;height:30px;background:var(--sidebar);color:var(--primary);font-size:16px;">D</span>
+      </div>
       <div class="min-w-0">
-        <p class="font-semibold text-sm leading-tight truncate text-white">Marketing Dana</p>
-        <p class="text-xs leading-tight" style="color:rgb(107,114,128);">Agentes IA</p>
+        <p class="display text-lg leading-tight truncate" style="color:var(--sidebar-foreground);">Dana<span style="color:var(--primary);">.</span></p>
+        <p class="eyebrow text-[9px] leading-tight" style="color:var(--sidebar-muted);">CRM Pampai</p>
       </div>
     </div>
 
-    <nav class="crm-sidebar-nav px-2 py-3" id="crm-sidebar-nav">
+    <nav class="crm-sidebar-nav px-3 py-4" id="crm-sidebar-nav">
       <a href="#dashboard" class="nav-item" data-view="dashboard">
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
         Dashboard
@@ -188,39 +409,45 @@
       </a>
     </nav>
 
-    <div class="crm-sidebar-footer px-3 py-3 flex items-center gap-2.5" style="border-top:1px solid rgba(255,255,255,0.06);">
-      <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 text-white" style="background:#2563EB;" id="user-avatar">M</div>
+    <div class="crm-sidebar-footer px-3 py-3 flex items-center gap-2.5" style="border-top:1px solid var(--border);">
+      <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+           style="background:var(--primary-soft);color:var(--primary);" id="user-avatar">M</div>
       <div class="min-w-0 flex-1">
-        <p id="user-name" class="text-xs font-medium truncate text-white">—</p>
-        <p id="user-email" class="text-xs truncate" style="color:rgb(107,114,128);">—</p>
+        <p id="user-name" class="text-xs font-semibold truncate" style="color:var(--sidebar-foreground);">—</p>
+        <p id="user-email" class="text-[11px] truncate" style="color:var(--sidebar-muted);">—</p>
       </div>
-      <button onclick="logout()" title="Salir" class="transition shrink-0" style="color:rgb(107,114,128);"
-        onmouseover="this.style.color='#EF4444'" onmouseout="this.style.color='rgb(107,114,128)'">
+      <button onclick="logout()" title="Salir" class="transition shrink-0" style="color:var(--sidebar-muted);"
+        onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--sidebar-muted)'">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
       </button>
     </div>
   </aside>
 
   <!-- Main -->
-  <main class="ml-56 flex-1 min-h-screen" style="background:#F8F9FA;">
+  <main class="ml-64 flex-1 min-h-screen" style="background:var(--background);">
     <div id="view-root" class="p-7 max-w-7xl mx-auto"></div>
   </main>
 
   <!-- Modal Lead -->
-  <div id="lead-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,0.4);">
-    <div class="bg-white border border-gray-200 rounded-xl w-full max-w-lg shadow-2xl max-h-[88vh] flex flex-col">
-      <div class="flex items-start justify-between p-5 border-b border-gray-100">
+  <div id="lead-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,0.55);">
+    <div class="w-full max-w-lg max-h-[88vh] flex flex-col rounded-xl shadow-2xl"
+         style="background:var(--card);border:1px solid var(--border);">
+      <div class="flex items-start justify-between p-5" style="border-bottom:1px solid var(--border);">
         <div>
-          <h2 id="modal-name" class="font-semibold text-base text-gray-900"></h2>
-          <p id="modal-source" class="text-gray-500 text-xs mt-0.5"></p>
+          <h2 id="modal-name" class="font-semibold text-base" style="color:var(--foreground);"></h2>
+          <p id="modal-source" class="text-xs mt-0.5" style="color:var(--muted-foreground);"></p>
         </div>
-        <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 transition p-1 rounded-lg hover:bg-gray-100">
+        <button onclick="closeModal()" class="transition p-1 rounded-lg"
+                style="color:var(--muted-foreground);"
+                onmouseover="this.style.background='var(--elevated)';this.style.color='var(--foreground)'"
+                onmouseout="this.style.background='transparent';this.style.color='var(--muted-foreground)'">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
-      <div id="modal-body" class="overflow-y-auto p-5 space-y-4 flex-1"></div>
-      <div class="border-t border-gray-100 p-4 bg-gray-50" id="modal-footer">
-        <p class="text-xs text-gray-500 mb-2.5 font-semibold uppercase tracking-wider" id="modal-footer-label">Cambiar estado</p>
+      <div id="modal-body" class="overflow-y-auto p-5 space-y-4 flex-1 nice-scroll"></div>
+      <div class="p-4" id="modal-footer" style="border-top:1px solid var(--border);background:var(--elevated);">
+        <p class="text-xs mb-2.5 font-semibold uppercase tracking-wider" id="modal-footer-label"
+           style="color:var(--muted-foreground);font-family:var(--font-mono);letter-spacing:0.14em;">Cambiar estado</p>
         <div class="flex gap-1.5 flex-wrap" id="modal-status-buttons"></div>
       </div>
     </div>
@@ -229,6 +456,7 @@
   <!-- Toast -->
   <div id="toast" class="hidden fixed bottom-5 right-5 z-50"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.browser.min.js"></script>
   <script src="/js/api.js"></script>
   <script src="/js/components.js"></script>
   <script src="/js/views/dashboard.js"></script>
@@ -319,21 +547,21 @@
         // Same-origin embed — Vite build outputs to public/chatbox/ with VITE_* baked in
         const CHATBOX_SRC = window.CRM_CHATBOX_URL || '/chatbox/';
         root.className = 'p-0 max-w-none h-screen';
-        if (main) main.style.background = '#0B1220';
+        if (main) main.style.background = 'var(--background)';
         root.innerHTML = `<iframe
           src="${CHATBOX_SRC}"
           title="Chatbox · Lead scoring"
           class="w-full border-0 block"
-          style="height:100vh;background:#0B1220;"
+          style="height:100vh;background:var(--background);"
           allow="clipboard-write"
         ></iframe>`;
         return;
       }
 
       root.className = 'p-7 max-w-7xl mx-auto';
-      if (main) main.style.background = '#F8F9FA';
+      if (main) main.style.background = 'var(--background)';
       root.innerHTML = `<div class="flex items-center justify-center h-64">
-        <div class="flex flex-col items-center gap-3" style="color:#9CA3AF;">
+        <div class="flex flex-col items-center gap-3" style="color:var(--muted-foreground);">
           <svg class="w-5 h-5 spinning" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
           <span class="text-sm">Cargando...</span>
         </div>
@@ -369,8 +597,9 @@
       if (footerLabel) footerLabel.style.display = '';
       const statuses = ['new','contacted','qualified','won','lost'];
       document.getElementById('modal-status-buttons').innerHTML = statuses.map(s => `
-        <button onclick="changeLeadStatus('${lead.id}','${s}')"
-          class="badge ${s === lead.status ? statusColors[s] : 'bg-gray-100 text-gray-500 border border-gray-200'} cursor-pointer hover:opacity-80 transition py-1 px-3">
+        <button type="button" onclick="changeLeadStatus('${lead.id}','${s}')"
+          class="badge cursor-pointer hover:opacity-80 transition py-1 px-3"
+          style="${s === lead.status ? statusColors[s] : statusInactive}">
           ${statusLabel[s]}
         </button>`).join('');
       document.getElementById('lead-modal').classList.remove('hidden');
@@ -389,6 +618,7 @@
     async function changeLeadStatus(id, status) {
       const res = await api(`/api/leads/${id}/status`, { method: 'PATCH', body: { status } });
       closeModal();
+      if (status === 'won' && typeof celebrate === 'function') celebrate();
       if (status === 'qualified') {
         showToast('Estado: Calificado — briefing encolado si hay email');
       } else {
@@ -402,9 +632,9 @@
       const t = document.getElementById('toast');
       if (!t) return;
       const isError = type === 'error';
-      const color = isError ? '#EF4444' : '#10B981';
+      const accent = isError ? 'var(--danger)' : 'var(--success)';
       t.innerHTML = `<span>${msg}</span>`;
-      t.style.cssText = `position:fixed;bottom:20px;right:20px;background:white;border:1px solid #E5E7EB;border-left:3px solid ${color};border-radius:8px;padding:12px 16px;font-size:13px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.1);display:flex;align-items:center;gap:10px;min-width:192px;color:${isError?'#DC2626':'#111827'};font-family:Inter,sans-serif;`;
+      t.style.cssText = `position:fixed;bottom:20px;right:20px;background:var(--elevated);border:1px solid var(--border);border-left:3px solid ${accent};border-radius:12px;padding:12px 16px;font-size:13px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.35);display:flex;align-items:center;gap:10px;min-width:192px;color:${isError?'var(--danger)':'var(--foreground)'};font-family:var(--font-sans);`;
       t.classList.remove('hidden');
       clearTimeout(window._toastTimer);
       window._toastTimer = setTimeout(() => {

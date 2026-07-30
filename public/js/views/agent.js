@@ -24,28 +24,28 @@ async function renderAgent(root, agentId) {
     <div class="space-y-5">
       <!-- Header -->
       <div class="flex items-center gap-4">
-        <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:white;border:1px solid #E5E7EB;">${info.emoji}</div>
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:var(--card);border:1px solid var(--border);">${info.emoji}</div>
         <div>
-          <h1 class="text-xl font-semibold" style="color:#111827;">Agente ${info.name}</h1>
-          <p class="text-sm mt-0.5" style="color:#6B7280;">${info.desc}</p>
+          <h1 class="display text-3xl" style="color:var(--foreground);">Agente ${info.name}</h1>
+          <p class="text-sm mt-0.5" style="color:var(--muted-foreground);">${info.desc}</p>
         </div>
       </div>
 
       <div class="grid lg:grid-cols-3 gap-5">
         <!-- Formulario -->
         <div class="card lg:col-span-1">
-          <h2 class="font-semibold text-sm mb-4" style="color:#374151;">Ejecutar manualmente</h2>
+          <h2 class="font-semibold text-sm mb-4" style="color:var(--foreground);">Ejecutar manualmente</h2>
           ${buildAgentForm(agentId)}
         </div>
 
         <!-- Historial -->
         <div class="lg:col-span-2">
           <div class="flex items-center justify-between mb-3">
-            <h2 class="font-semibold text-sm" style="color:#374151;">Historial de ejecuciones</h2>
-            <button onclick="loadAgentRuns('${agentId}')" class="text-xs transition" style="color:#6B7280;">Actualizar</button>
+            <h2 class="font-semibold text-sm" style="color:var(--foreground);">Historial de ejecuciones</h2>
+            <button onclick="loadAgentRuns('${agentId}')" class="text-xs transition" style="color:var(--muted-foreground);">Actualizar</button>
           </div>
-          <div id="runs-table" class="bg-white border overflow-hidden" style="border-color:#E5E7EB;border-radius:8px;">
-            <div class="flex items-center justify-center h-24 text-sm" style="color:#9CA3AF;">Cargando...</div>
+          <div id="runs-table" class="table-shell" style="border-color:var(--border);border-radius:8px;">
+            <div class="flex items-center justify-center h-24 text-sm" style="color:var(--muted-foreground);">Cargando...</div>
           </div>
         </div>
       </div>
@@ -62,10 +62,10 @@ async function renderAnalystPerfiles(root) {
     <div class="space-y-5">
       <div class="flex items-center justify-between gap-4 flex-wrap">
         <div class="flex items-center gap-4">
-          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:white;border:1px solid #E5E7EB;">${info.emoji}</div>
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:var(--card);border:1px solid var(--border);">${info.emoji}</div>
           <div>
-            <h1 class="text-xl font-semibold" style="color:#111827;">Agente ${info.name}</h1>
-            <p class="text-sm mt-0.5" style="color:#6B7280;">${info.desc}</p>
+            <h1 class="display text-3xl" style="color:var(--foreground);">Agente ${info.name}</h1>
+            <p class="text-sm mt-0.5" style="color:var(--muted-foreground);">${info.desc}</p>
           </div>
         </div>
         <div class="flex gap-2">
@@ -84,16 +84,16 @@ async function renderAnalystPerfiles(root) {
 
       <div class="grid lg:grid-cols-3 gap-5">
         <div class="card lg:col-span-1">
-          <h2 class="font-semibold text-sm mb-4" style="color:#374151;">Diagnóstico puntual</h2>
+          <h2 class="font-semibold text-sm mb-4" style="color:var(--foreground);">Diagnóstico puntual</h2>
           ${buildAgentForm('analyst')}
         </div>
         <div class="lg:col-span-2">
           <div class="flex items-center justify-between mb-3">
-            <h2 class="font-semibold text-sm" style="color:#374151;">Historial de diagnósticos</h2>
-            <button type="button" onclick="loadAgentRuns('analyst')" class="text-xs transition" style="color:#6B7280;">Actualizar</button>
+            <h2 class="font-semibold text-sm" style="color:var(--foreground);">Historial de diagnósticos</h2>
+            <button type="button" onclick="loadAgentRuns('analyst')" class="text-xs transition" style="color:var(--muted-foreground);">Actualizar</button>
           </div>
-          <div id="runs-table" class="bg-white border overflow-hidden" style="border-color:#E5E7EB;border-radius:8px;">
-            <div class="flex items-center justify-center h-24 text-sm" style="color:#9CA3AF;">Cargando...</div>
+          <div id="runs-table" class="table-shell" style="border-color:var(--border);border-radius:8px;">
+            <div class="flex items-center justify-center h-24 text-sm" style="color:var(--muted-foreground);">Cargando...</div>
           </div>
         </div>
       </div>
@@ -101,8 +101,8 @@ async function renderAnalystPerfiles(root) {
       <div>
         <div class="flex items-end justify-between gap-3 flex-wrap mb-3">
           <div>
-            <h2 class="font-semibold text-sm" style="color:#374151;">Análisis</h2>
-            <p class="text-xs mt-0.5" style="color:#9CA3AF;">Diagnósticos puntuales + perfiles enriquecidos</p>
+            <h2 class="font-semibold text-sm" style="color:var(--foreground);">Análisis</h2>
+            <p class="text-xs mt-0.5" style="color:var(--muted-foreground);">Diagnósticos puntuales + perfiles enriquecidos</p>
           </div>
           <select id="pf-kind" onchange="refreshPerfiles()" class="input" style="width:auto;min-width:150px;">
             <option value="">Todos</option>
@@ -123,10 +123,10 @@ async function renderAnalystPerfiles(root) {
             <option value="FRIO">Frío</option>
             <option value="COLD">Cold</option>
           </select>
-          <p id="perfiles-count" class="text-sm ml-1" style="color:#6B7280;">Cargando...</p>
+          <p id="perfiles-count" class="text-sm ml-1" style="color:var(--muted-foreground);">Cargando...</p>
         </div>
-        <div id="perfiles-table-wrap" class="bg-white border overflow-hidden" style="border-color:#E5E7EB;border-radius:8px;">
-          <div class="flex items-center justify-center h-32 text-sm" style="color:#9CA3AF;">Cargando...</div>
+        <div id="perfiles-table-wrap" class="table-shell" style="border-color:var(--border);border-radius:8px;">
+          <div class="flex items-center justify-center h-32 text-sm" style="color:var(--muted-foreground);">Cargando...</div>
         </div>
       </div>
     </div>`;
@@ -135,7 +135,7 @@ async function renderAnalystPerfiles(root) {
 }
 
 function sdrCategoriaBadge(cat) {
-  if (!cat) return '<span class="text-xs" style="color:#9CA3AF;">—</span>';
+  if (!cat) return '<span class="text-xs" style="color:var(--muted-foreground);">—</span>';
   const c = String(cat).toUpperCase();
   const map = {
     CALIENTE: 'hot', HOT: 'hot',
@@ -145,30 +145,30 @@ function sdrCategoriaBadge(cat) {
   };
   const key = map[c] || null;
   if (key) return classificationBadge(key);
-  return `<span class="badge bg-gray-100 text-gray-600 border border-gray-200">${cat}</span>`;
+  return `<span class="badge badge-neutral">${cat}</span>`;
 }
 
 let _analystAnalysesCache = { diagnosis: {}, perfil: {} };
 
 function _analysisKindBadge(kind) {
   if (kind === 'diagnosis') {
-    return '<span class="badge bg-violet-100 text-violet-700 border border-violet-200">Diagnóstico</span>';
+    return '<span class="badge badge-accent">Diagnóstico</span>';
   }
-  return '<span class="badge bg-sky-100 text-sky-700 border border-sky-200">Perfil</span>';
+  return '<span class="badge badge-info">Perfil</span>';
 }
 
 function _danaFitBadge(fit) {
-  if (!fit) return '<span class="text-xs" style="color:#9CA3AF;">—</span>';
+  if (!fit) return '<span class="text-xs" style="color:var(--muted-foreground);">—</span>';
   const f = String(fit).toLowerCase();
   const map = { alto: 'hot', medio: 'warm', bajo: 'cold', high: 'hot', medium: 'warm', low: 'cold' };
   const key = map[f];
   if (key) return classificationBadge(key);
-  return `<span class="badge bg-gray-100 text-gray-600 border border-gray-200">${fit}</span>`;
+  return `<span class="badge badge-neutral">${fit}</span>`;
 }
 
 function renderAnalystAnalysesTable(rows) {
   if (!rows?.length) {
-    return `<div class="flex flex-col items-center justify-center py-16" style="color:#9CA3AF;">
+    return `<div class="flex flex-col items-center justify-center py-16" style="color:var(--muted-foreground);">
       <svg class="w-10 h-10 mb-3 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
       <p class="text-sm">Sin análisis aún</p>
       <p class="text-xs mt-1">Generá un diagnóstico arriba o ejecutá el batch de perfiles</p>
@@ -177,7 +177,7 @@ function renderAnalystAnalysesTable(rows) {
 
   return `<table class="w-full text-sm">
     <thead>
-      <tr style="border-bottom:1px solid #E5E7EB;">
+      <tr style="border-bottom:1px solid var(--border);">
         <th class="text-left px-4 py-3">Tipo</th>
         <th class="text-left px-4 py-3">Contacto</th>
         <th class="text-left px-4 py-3">Señal</th>
@@ -193,21 +193,21 @@ function renderAnalystAnalysesTable(rows) {
         const onclick = row.kind === 'diagnosis'
           ? `openAnalystDiagnosisModal('${row.id}')`
           : `openAnalystPerfilById('${row.id}')`;
-        return `<tr class="data-row transition" style="border-top:1px solid #F3F4F6;cursor:pointer;"
+        return `<tr class="data-row transition" style="border-top:1px solid var(--secondary);cursor:pointer;"
             onclick="${onclick}">
           <td class="px-4 py-3">${_analysisKindBadge(row.kind)}</td>
           <td class="px-4 py-3">
             <div class="flex items-center gap-2.5">
-              <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style="background:#F5F3FF;color:#7C3AED;">${_avatarInitials(row.name || row.email)}</div>
+              <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style="background:var(--accent-soft);color:#a78bfa;">${_avatarInitials(row.name || row.email)}</div>
               <div class="min-w-0">
-                <p class="font-medium leading-tight" style="color:#111827;">${name}</p>
-                <p class="text-xs mt-0.5 truncate max-w-[180px]" style="color:#9CA3AF;">${email}</p>
+                <p class="font-medium leading-tight" style="color:var(--foreground);">${name}</p>
+                <p class="text-xs mt-0.5 truncate max-w-[180px]" style="color:var(--muted-foreground);">${email}</p>
               </div>
             </div>
           </td>
-          <td class="px-4 py-3">${row.signalHtml || '<span class="text-xs" style="color:#9CA3AF;">—</span>'}</td>
-          <td class="px-4 py-3 text-xs max-w-[280px]" style="color:#6B7280;" title="${summary}">${summary}</td>
-          <td class="px-4 py-3 font-data text-xs" style="color:#9CA3AF;">${fmtDate(row.updated_at)}</td>
+          <td class="px-4 py-3">${row.signalHtml || '<span class="text-xs" style="color:var(--muted-foreground);">—</span>'}</td>
+          <td class="px-4 py-3 text-xs max-w-[280px]" style="color:var(--muted-foreground);" title="${summary}">${summary}</td>
+          <td class="px-4 py-3 font-data text-xs" style="color:var(--muted-foreground);">${fmtDate(row.updated_at)}</td>
         </tr>`;
       }).join('')}
     </tbody>
@@ -234,82 +234,82 @@ function renderPerfilDetail(p) {
   return `
     <div class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Email</p>
-        <p style="color:#374151;">${p.email || '—'}</p>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:var(--muted-foreground);">Email</p>
+        <p style="color:var(--foreground);">${p.email || '—'}</p>
       </div>
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Teléfono</p>
-        <p style="color:#374151;">${p.telefono || '—'}</p>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:var(--muted-foreground);">Teléfono</p>
+        <p style="color:var(--foreground);">${p.telefono || '—'}</p>
       </div>
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Empresa</p>
-        <p style="color:#374151;">${p.empresa || '—'}</p>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:var(--muted-foreground);">Empresa</p>
+        <p style="color:var(--foreground);">${p.empresa || '—'}</p>
       </div>
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Cargo / Rubro</p>
-        <p style="color:#374151;">${[p.cargo, p.rubro].filter(Boolean).join(' · ') || '—'}</p>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:var(--muted-foreground);">Cargo / Rubro</p>
+        <p style="color:var(--foreground);">${[p.cargo, p.rubro].filter(Boolean).join(' · ') || '—'}</p>
       </div>
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Categoría SDR</p>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:var(--muted-foreground);">Categoría SDR</p>
         <div class="mt-0.5">${sdrCategoriaBadge(p.sdr_categoria)}</div>
       </div>
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Score potencial</p>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:var(--muted-foreground);">Score potencial</p>
         <div class="mt-1">${scoreBar(p.score_potencial)}</div>
       </div>
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Score SDR</p>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:var(--muted-foreground);">Score SDR</p>
         <div class="mt-1">${scoreBar(p.sdr_score)}</div>
       </div>
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Oferta estimada</p>
-        <p style="color:#374151;">${p.oferta_estimada || '—'}</p>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:var(--muted-foreground);">Oferta estimada</p>
+        <p style="color:var(--foreground);">${p.oferta_estimada || '—'}</p>
       </div>
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Ciudad</p>
-        <p style="color:#374151;">${p.ciudad || '—'}</p>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:var(--muted-foreground);">Ciudad</p>
+        <p style="color:var(--foreground);">${p.ciudad || '—'}</p>
       </div>
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Fuente</p>
-        <p style="color:#374151;">${sourceLabel[p.source] || p.source || '—'}</p>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:var(--muted-foreground);">Fuente</p>
+        <p style="color:var(--foreground);">${sourceLabel[p.source] || p.source || '—'}</p>
       </div>
     </div>
 
     ${p.objetivo_original ? `
-    <div class="rounded-lg p-3.5 border" style="background:#F9FAFB;border-color:#E5E7EB;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#9CA3AF;">Objetivo original</p>
-      <p class="text-xs leading-relaxed" style="color:#374151;">${p.objetivo_original}</p>
+    <div class="rounded-lg p-3.5 border" style="background:var(--elevated);border-color:var(--border);">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--muted-foreground);">Objetivo original</p>
+      <p class="text-xs leading-relaxed" style="color:var(--foreground);">${p.objetivo_original}</p>
     </div>` : ''}
 
     ${pains.length ? `
-    <div class="rounded-lg p-3.5 border" style="background:#FEF3C7;border-color:#FDE68A;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B45309;">Pain points</p>
+    <div class="rounded-lg p-3.5 border" style="background:var(--warning-soft);border-color:rgb(245 177 76 / 0.35);">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--warning);">Pain points</p>
       <ul class="space-y-1.5">${pains.map(x => `<li class="text-xs leading-relaxed" style="color:#92400E;">• ${typeof x === 'string' ? x : JSON.stringify(x)}</li>`).join('')}</ul>
     </div>` : ''}
 
     ${servicios.length ? `
-    <div class="rounded-lg p-3.5 border" style="background:#EFF6FF;border-color:#BFDBFE;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#2563EB;">Servicios recomendados</p>
-      <ul class="space-y-1.5">${servicios.map(x => `<li class="text-xs leading-relaxed" style="color:#1E40AF;">• ${typeof x === 'string' ? x : JSON.stringify(x)}</li>`).join('')}</ul>
+    <div class="rounded-lg p-3.5 border" style="background:var(--info-soft);border-color:rgb(106 166 255 / 0.35);">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--primary);">Servicios recomendados</p>
+      <ul class="space-y-1.5">${servicios.map(x => `<li class="text-xs leading-relaxed" style="color:var(--info);">• ${typeof x === 'string' ? x : JSON.stringify(x)}</li>`).join('')}</ul>
     </div>` : ''}
 
     ${p.razones ? `
-    <div class="rounded-lg p-3.5 border" style="background:#F5F3FF;border-color:#DDD6FE;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#7C3AED;">Razones / insight</p>
+    <div class="rounded-lg p-3.5 border" style="background:var(--accent-soft);border-color:rgb(139 92 246 / 0.35);">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#a78bfa;">Razones / insight</p>
       <p class="whitespace-pre-wrap text-xs leading-relaxed" style="color:#5B21B6;">${p.razones}</p>
     </div>` : ''}
 
     ${p.research_summary ? `
-    <div class="rounded-lg p-3.5 border" style="background:#F0FDF4;border-color:#BBF7D0;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#15803D;">Research (scrape / búsqueda)</p>
+    <div class="rounded-lg p-3.5 border" style="background:var(--success-soft);border-color:rgb(43 212 189 / 0.35);">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--success);">Research (scrape / búsqueda)</p>
       <p class="whitespace-pre-wrap text-xs leading-relaxed" style="color:#166534;">${String(p.research_summary).slice(0, 1200)}${String(p.research_summary).length > 1200 ? '…' : ''}</p>
     </div>` : ''}
 
-    <div class="rounded-lg p-3.5 border" style="background:#F9FAFB;border-color:#E5E7EB;" id="perfil-assign-box">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#9CA3AF;">Asignar propuesta (manual)</p>
-      <p class="text-xs mb-2" style="color:#6B7280;">
+    <div class="rounded-lg p-3.5 border" style="background:var(--elevated);border-color:var(--border);" id="perfil-assign-box">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--muted-foreground);">Asignar propuesta (manual)</p>
+      <p class="text-xs mb-2" style="color:var(--muted-foreground);">
         Actual: ${p.propuesta_id
-          ? `<span style="color:#111827;">${p._propuesta_nombre || p.propuesta_id}</span> · origen ${p.propuesta_origen || '—'}`
+          ? `<span style="color:var(--foreground);">${p._propuesta_nombre || p.propuesta_id}</span> · origen ${p.propuesta_origen || '—'}`
           : 'ninguna'}
       </p>
       <select id="perfil-prop-select" class="input text-sm mb-2">
@@ -348,18 +348,18 @@ function openAnalystPerfilById(id) {
 function _diagnosisList(arr, empty) {
   if (Array.isArray(arr) && arr.length) {
     return `<ul class="space-y-1.5">${arr.map((x) => {
-      if (typeof x === 'string') return `<li class="text-xs leading-relaxed" style="color:#374151;">• ${_analystEsc(x)}</li>`;
+      if (typeof x === 'string') return `<li class="text-xs leading-relaxed" style="color:var(--foreground);">• ${_analystEsc(x)}</li>`;
       if (x && typeof x === 'object') {
         const action = x.action || x.title || '';
         const impact = x.expected_impact ? ` · impacto ${x.expected_impact}` : '';
         const effort = x.effort ? ` · esfuerzo ${x.effort}` : '';
         const label = action || JSON.stringify(x);
-        return `<li class="text-xs leading-relaxed" style="color:#374151;">• ${_analystEsc(label)}${_analystEsc(impact + effort)}</li>`;
+        return `<li class="text-xs leading-relaxed" style="color:var(--foreground);">• ${_analystEsc(label)}${_analystEsc(impact + effort)}</li>`;
       }
-      return `<li class="text-xs leading-relaxed" style="color:#374151;">• ${_analystEsc(String(x))}</li>`;
+      return `<li class="text-xs leading-relaxed" style="color:var(--foreground);">• ${_analystEsc(String(x))}</li>`;
     }).join('')}</ul>`;
   }
-  return `<p class="text-xs" style="color:#9CA3AF;">${empty}</p>`;
+  return `<p class="text-xs" style="color:var(--muted-foreground);">${empty}</p>`;
 }
 
 function renderDiagnosisDetail(diagnosis, meta = {}) {
@@ -373,60 +373,60 @@ function renderDiagnosisDetail(diagnosis, meta = {}) {
   return `
     <div class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Lead</p>
-        <p style="color:#374151;">${_analystEsc(meta.name || '—')}</p>
-        <p class="text-xs mt-0.5" style="color:#9CA3AF;">${_analystEsc(meta.email || '')}</p>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:var(--muted-foreground);">Lead</p>
+        <p style="color:var(--foreground);">${_analystEsc(meta.name || '—')}</p>
+        <p class="text-xs mt-0.5" style="color:var(--muted-foreground);">${_analystEsc(meta.email || '')}</p>
       </div>
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Fit Dana / Estado</p>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:var(--muted-foreground);">Fit Dana / Estado</p>
         <div class="mt-0.5 flex items-center gap-2 flex-wrap">
           ${_danaFitBadge(d.dana_fit)}
-          ${meta.status ? `<span class="badge bg-gray-100 text-gray-600 border border-gray-200">${_analystEsc(meta.status)}</span>` : ''}
+          ${meta.status ? `<span class="badge badge-neutral">${_analystEsc(meta.status)}</span>` : ''}
         </div>
       </div>
     </div>
 
     ${resumen ? `
-    <div class="rounded-lg p-3.5 border" style="background:#F9FAFB;border-color:#E5E7EB;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#9CA3AF;">Resumen / situación</p>
-      <p class="text-xs leading-relaxed whitespace-pre-wrap" style="color:#374151;">${_analystEsc(resumen)}</p>
+    <div class="rounded-lg p-3.5 border" style="background:var(--elevated);border-color:var(--border);">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--muted-foreground);">Resumen / situación</p>
+      <p class="text-xs leading-relaxed whitespace-pre-wrap" style="color:var(--foreground);">${_analystEsc(resumen)}</p>
     </div>` : ''}
 
     ${d.dana_fit_reasoning ? `
-    <div class="rounded-lg p-3.5 border" style="background:#F5F3FF;border-color:#DDD6FE;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#7C3AED;">Por qué encaja con Dana</p>
+    <div class="rounded-lg p-3.5 border" style="background:var(--accent-soft);border-color:rgb(139 92 246 / 0.35);">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#a78bfa;">Por qué encaja con Dana</p>
       <p class="text-xs leading-relaxed" style="color:#5B21B6;">${_analystEsc(d.dana_fit_reasoning)}</p>
     </div>` : ''}
 
     ${Array.isArray(pains) && pains.length ? `
-    <div class="rounded-lg p-3.5 border" style="background:#FEF3C7;border-color:#FDE68A;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B45309;">Pain points</p>
+    <div class="rounded-lg p-3.5 border" style="background:var(--warning-soft);border-color:rgb(245 177 76 / 0.35);">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--warning);">Pain points</p>
       ${_diagnosisList(pains, 'Sin pain points')}
     </div>` : ''}
 
-    <div class="rounded-lg p-3.5 border" style="background:#EFF6FF;border-color:#BFDBFE;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#2563EB;">Oportunidades</p>
+    <div class="rounded-lg p-3.5 border" style="background:var(--info-soft);border-color:rgb(106 166 255 / 0.35);">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--primary);">Oportunidades</p>
       ${_diagnosisList(opportunities, 'Sin oportunidades')}
     </div>
 
-    <div class="rounded-lg p-3.5 border" style="background:#F0FDF4;border-color:#BBF7D0;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#15803D;">Prioridades</p>
+    <div class="rounded-lg p-3.5 border" style="background:var(--success-soft);border-color:rgb(43 212 189 / 0.35);">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--success);">Prioridades</p>
       ${_diagnosisList(priorities, 'Sin prioridades')}
     </div>
 
-    <div class="rounded-lg p-3.5 border" style="background:#FEF2F2;border-color:#FECACA;">
+    <div class="rounded-lg p-3.5 border" style="background:var(--danger-soft);border-color:rgb(242 114 109 / 0.35);">
       <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B91C1C;">Preguntas pendientes</p>
       ${_diagnosisList(pending, 'Sin preguntas pendientes')}
     </div>
 
     ${d.raw_response ? `
-    <div class="rounded-lg p-3.5 border" style="background:#F9FAFB;border-color:#E5E7EB;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#9CA3AF;">Respuesta cruda</p>
-      <pre class="text-xs whitespace-pre-wrap leading-relaxed" style="color:#374151;max-height:240px;overflow:auto;">${_analystEsc(String(d.raw_response).slice(0, 4000))}</pre>
+    <div class="rounded-lg p-3.5 border" style="background:var(--elevated);border-color:var(--border);">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--muted-foreground);">Respuesta cruda</p>
+      <pre class="text-xs whitespace-pre-wrap leading-relaxed" style="color:var(--foreground);max-height:240px;overflow:auto;">${_analystEsc(String(d.raw_response).slice(0, 4000))}</pre>
     </div>` : ''}
 
     ${meta.error ? `
-    <div class="rounded-lg p-3.5 border" style="background:#FEF2F2;border-color:#FECACA;">
+    <div class="rounded-lg p-3.5 border" style="background:var(--danger-soft);border-color:rgb(242 114 109 / 0.35);">
       <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B91C1C;">Error</p>
       <p class="text-xs" style="color:#991B1B;">${_analystEsc(meta.error)}</p>
     </div>` : ''}
@@ -564,7 +564,7 @@ async function refreshPerfiles() {
       email,
       summary,
       signalHtml: _danaFitBadge(d.dana_fit) + (r.status && r.status !== 'completed'
-        ? ` <span class="badge bg-gray-100 text-gray-600 border border-gray-200">${r.status}</span>`
+        ? ` <span class="badge badge-neutral">${r.status}</span>`
         : ''),
       updated_at: r.created_at,
       _ts: new Date(r.created_at || 0).getTime(),
@@ -595,8 +595,8 @@ async function refreshPerfiles() {
   const countEl = document.getElementById('perfiles-count');
   if (countEl) {
     countEl.innerHTML =
-      `<span class="font-data font-semibold" style="color:#7C3AED;">${rows.length}</span> análisis` +
-      ` <span style="color:#9CA3AF;">(${diagCount} diag · ${pfCount} perfiles)</span>`;
+      `<span class="font-data font-semibold" style="color:#a78bfa;">${rows.length}</span> análisis` +
+      ` <span style="color:var(--muted-foreground);">(${diagCount} diag · ${pfCount} perfiles)</span>`;
   }
   const wrap = document.getElementById('perfiles-table-wrap');
   if (wrap) wrap.innerHTML = renderAnalystAnalysesTable(rows);
@@ -623,7 +623,7 @@ function buildAgentForm(agentId) {
     case 'sdr':
       return `<div class="space-y-3">
         <div>
-          <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Lead ID</label>
+          <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:var(--muted-foreground);">Lead ID</label>
           <input id="ag-lead-id" placeholder="uuid del lead" class="${inputCls}">
         </div>
         <button onclick="runAgent('sdr')" class="${btnCls}">🎯 Ejecutar SDR</button>
@@ -632,7 +632,7 @@ function buildAgentForm(agentId) {
     case 'analyst':
       return `<div class="space-y-3">
         <div>
-          <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Buscar lead</label>
+          <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:var(--muted-foreground);">Buscar lead</label>
           <input id="ag-lead-search" type="search" autocomplete="off"
             placeholder="Nombre o email…"
             class="${inputCls}"
@@ -640,19 +640,19 @@ function buildAgentForm(agentId) {
             onkeydown="onAnalystLeadSearchKey(event)"
             onfocus="onAnalystLeadSearch(this.value)">
           <input type="hidden" id="ag-lead-id" value="">
-          <div id="ag-lead-selected" class="hidden mt-2 rounded-lg px-3 py-2 text-xs border" style="display:none;background:#F9FAFB;border-color:#E5E7EB;">
+          <div id="ag-lead-selected" class="hidden mt-2 rounded-lg px-3 py-2 text-xs border" style="display:none;background:var(--elevated);border-color:var(--border);">
             <div class="flex items-start justify-between gap-2">
               <div class="min-w-0">
-                <p id="ag-lead-selected-name" class="font-medium truncate" style="color:#111827;"></p>
-                <p id="ag-lead-selected-email" class="truncate mt-0.5" style="color:#6B7280;"></p>
+                <p id="ag-lead-selected-name" class="font-medium truncate" style="color:var(--foreground);"></p>
+                <p id="ag-lead-selected-email" class="truncate mt-0.5" style="color:var(--muted-foreground);"></p>
               </div>
-              <button type="button" onclick="clearAnalystLead()" class="shrink-0 text-xs" style="color:#9CA3AF;">Cambiar</button>
+              <button type="button" onclick="clearAnalystLead()" class="shrink-0 text-xs" style="color:var(--muted-foreground);">Cambiar</button>
             </div>
           </div>
-          <div id="ag-lead-results" class="hidden mt-1 max-h-56 overflow-auto bg-white border shadow-sm" style="display:none;border-color:#E5E7EB;border-radius:8px;"></div>
+          <div id="ag-lead-results" class="hidden mt-1 max-h-56 overflow-auto table-shell shadow-sm" style="display:none;border-color:var(--border);border-radius:8px;"></div>
         </div>
         <div>
-          <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Notas de reunión</label>
+          <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:var(--muted-foreground);">Notas de reunión</label>
           <textarea id="ag-meeting-notes" rows="4" placeholder="Qué se habló en la reunión..." class="${inputCls}" style="resize:vertical"></textarea>
         </div>
         <button type="button" id="ag-generate-diag" onclick="submitAnalystDiagnosis()" class="${btnCls}">Generar diagnóstico</button>
@@ -662,15 +662,15 @@ function buildAgentForm(agentId) {
     case 'proposal':
       return `<div class="space-y-3">
         <div>
-          <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Lead ID</label>
+          <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:var(--muted-foreground);">Lead ID</label>
           <input id="ag-lead-id" placeholder="uuid del lead" class="${inputCls}">
         </div>
         <div>
-          <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Notas de call</label>
+          <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:var(--muted-foreground);">Notas de call</label>
           <textarea id="ag-call-notes" rows="3" placeholder="Resumen de la llamada..." class="${inputCls}" style="resize:vertical"></textarea>
         </div>
         <div>
-          <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Presupuesto estimado (USD)</label>
+          <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:var(--muted-foreground);">Presupuesto estimado (USD)</label>
           <input id="ag-budget" type="number" placeholder="1500" class="${inputCls}">
         </div>
         <button onclick="runAgent('proposal')" class="${btnCls}">📋 Generar propuesta</button>
@@ -682,11 +682,11 @@ function buildAgentForm(agentId) {
       return `<div class="space-y-3">
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Desde</label>
+            <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:var(--muted-foreground);">Desde</label>
             <input id="ag-since" type="date" value="${weekAgo}" class="${inputCls}">
           </div>
           <div>
-            <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Hasta</label>
+            <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:var(--muted-foreground);">Hasta</label>
             <input id="ag-until" type="date" value="${today}" class="${inputCls}">
           </div>
         </div>
@@ -699,15 +699,15 @@ function buildAgentForm(agentId) {
       const monthStr = `${prevMonth.getFullYear()}-${String(prevMonth.getMonth()+1).padStart(2,'0')}`;
       return `<div class="space-y-3">
         <div>
-          <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Client ID</label>
+          <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:var(--muted-foreground);">Client ID</label>
           <input id="ag-client-id" placeholder="uuid del cliente" class="${inputCls}">
         </div>
         <div>
-          <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Mes (YYYY-MM)</label>
+          <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:var(--muted-foreground);">Mes (YYYY-MM)</label>
           <input id="ag-month" value="${monthStr}" class="${inputCls}">
         </div>
         <div>
-          <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Notas del equipo</label>
+          <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:var(--muted-foreground);">Notas del equipo</label>
           <textarea id="ag-team-notes" rows="3" placeholder="Eventos relevantes del mes..." class="${inputCls}" style="resize:vertical"></textarea>
         </div>
         <button onclick="runAgent('reporting')" class="${btnCls}">📊 Generar reporte</button>
@@ -715,7 +715,7 @@ function buildAgentForm(agentId) {
     }
 
     default:
-      return '<p class="text-sm" style="color:#9CA3AF;">Agente no configurado</p>';
+      return '<p class="text-sm" style="color:var(--muted-foreground);">Agente no configurado</p>';
   }
 }
 
@@ -750,7 +750,7 @@ function _setAnalystDiagStatus(msg, kind = 'info') {
     el.textContent = '';
     return;
   }
-  const colors = { info: '#6B7280', ok: '#047857', error: '#B91C1C' };
+  const colors = { info: 'var(--muted-foreground)', ok: '#047857', error: '#B91C1C' };
   el.style.display = 'block';
   el.style.color = colors[kind] || colors.info;
   el.textContent = msg;
@@ -799,7 +799,7 @@ function renderAnalystLeadResults(leads) {
   if (!results) return;
   _analystLeadResults = leads || [];
   if (!_analystLeadResults.length) {
-    results.innerHTML = `<div class="px-3 py-2.5 text-xs" style="color:#9CA3AF;">Sin coincidencias</div>`;
+    results.innerHTML = `<div class="px-3 py-2.5 text-xs" style="color:var(--muted-foreground);">Sin coincidencias</div>`;
     _analystShow(results, true);
     return;
   }
@@ -810,9 +810,9 @@ function renderAnalystLeadResults(leads) {
     return `<button type="button" data-idx="${i}"
         onclick="pickAnalystLead(${i})"
         class="w-full text-left px-3 py-2.5 transition hover:bg-gray-50"
-        style="border-top:1px solid #F3F4F6;">
-      <p class="text-sm font-medium leading-tight" style="color:#111827;">${name}</p>
-      <p class="text-xs mt-0.5 truncate" style="color:#6B7280;">${email}${src ? ' · ' + src : ''}</p>
+        style="border-top:1px solid var(--secondary);">
+      <p class="text-sm font-medium leading-tight" style="color:var(--foreground);">${name}</p>
+      <p class="text-xs mt-0.5 truncate" style="color:var(--muted-foreground);">${email}${src ? ' · ' + src : ''}</p>
     </button>`;
   }).join('');
   _analystShow(results, true);
@@ -986,9 +986,9 @@ async function loadAgentRuns(agentId) {
   if (!wrap) return;
 
   if (!runs?.length) {
-    wrap.innerHTML = `<div class="flex flex-col items-center justify-center py-12" style="color:#D1D5DB;">
+    wrap.innerHTML = `<div class="flex flex-col items-center justify-center py-12" style="color:var(--border);">
       <svg class="w-8 h-8 mb-2 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-      <p class="text-sm" style="color:#9CA3AF;">Sin ejecuciones aún</p>
+      <p class="text-sm" style="color:var(--muted-foreground);">Sin ejecuciones aún</p>
     </div>`;
     return;
   }
@@ -1003,16 +1003,16 @@ async function loadAgentRuns(agentId) {
   }
 
   const statusBadge = {
-    running:   'bg-amber-100 text-amber-700 border border-amber-200',
-    completed: 'bg-green-100 text-green-700 border border-green-200',
-    failed:    'bg-red-100 text-red-700 border border-red-200',
+    running:   'badge-warning',
+    completed: 'badge-success',
+    failed:    'badge-danger',
   };
 
   const clickable = agentId === 'analyst';
 
   wrap.innerHTML = `<table class="w-full text-sm">
     <thead>
-      <tr style="border-bottom:1px solid #E5E7EB;">
+      <tr style="border-bottom:1px solid var(--border);">
         <th class="text-left px-4 py-3">Lead</th>
         <th class="text-left px-4 py-3">Estado</th>
         <th class="text-left px-4 py-3">Tokens</th>
@@ -1023,22 +1023,22 @@ async function loadAgentRuns(agentId) {
     <tbody>
       ${runs.map(r => {
         const rowClick = clickable
-          ? ` class="data-row transition" style="border-top:1px solid #F3F4F6;cursor:pointer;" onclick="openAnalystDiagnosisModal('${r.id}')"`
-          : ` class="data-row transition" style="border-top:1px solid #F3F4F6;"`;
+          ? ` class="data-row transition" style="border-top:1px solid var(--secondary);cursor:pointer;" onclick="openAnalystDiagnosisModal('${r.id}')"`
+          : ` class="data-row transition" style="border-top:1px solid var(--secondary);"`;
         const preview = clickable && r.output_data?.situation_summary
-          ? `<p class="text-xs mt-0.5 truncate max-w-[220px]" style="color:#9CA3AF;">${_analystEsc(String(r.output_data.situation_summary).slice(0, 80))}</p>`
-          : `<p class="text-xs" style="color:#9CA3AF;">${_analystEsc(r.leads?.source || r.agent_id || '')}</p>`;
+          ? `<p class="text-xs mt-0.5 truncate max-w-[220px]" style="color:var(--muted-foreground);">${_analystEsc(String(r.output_data.situation_summary).slice(0, 80))}</p>`
+          : `<p class="text-xs" style="color:var(--muted-foreground);">${_analystEsc(r.leads?.source || r.agent_id || '')}</p>`;
         return `<tr${rowClick}>
         <td class="px-4 py-3">
-          <p class="font-medium leading-tight" style="color:#111827;">${r.leads?.name ? _analystEsc(r.leads.name) : '<span style="color:#9CA3AF;">Sin nombre</span>'}</p>
+          <p class="font-medium leading-tight" style="color:var(--foreground);">${r.leads?.name ? _analystEsc(r.leads.name) : '<span style="color:var(--muted-foreground);">Sin nombre</span>'}</p>
           ${preview}
         </td>
         <td class="px-4 py-3">
-          <span class="badge ${statusBadge[r.status] || 'bg-gray-100 text-gray-500'}">${r.status}</span>
+          <span class="badge ${statusBadge[r.status] || 'badge-neutral'}">${r.status}</span>
         </td>
-        <td class="px-4 py-3 font-data text-xs" style="color:#6B7280;">${r.tokens_used ? r.tokens_used.toLocaleString() : '—'}</td>
-        <td class="px-4 py-3 font-data text-xs" style="color:#6B7280;">${r.duration_ms ? `${(r.duration_ms/1000).toFixed(1)}s` : '—'}</td>
-        <td class="px-4 py-3 font-data text-xs" style="color:#9CA3AF;">${fmtDate(r.created_at)}</td>
+        <td class="px-4 py-3 font-data text-xs" style="color:var(--muted-foreground);">${r.tokens_used ? r.tokens_used.toLocaleString() : '—'}</td>
+        <td class="px-4 py-3 font-data text-xs" style="color:var(--muted-foreground);">${r.duration_ms ? `${(r.duration_ms/1000).toFixed(1)}s` : '—'}</td>
+        <td class="px-4 py-3 font-data text-xs" style="color:var(--muted-foreground);">${fmtDate(r.created_at)}</td>
       </tr>`;
       }).join('')}
     </tbody>
@@ -1053,10 +1053,10 @@ async function renderReunionesAgent(root) {
     <div class="space-y-5">
       <div class="flex items-center justify-between gap-4 flex-wrap">
         <div class="flex items-center gap-4">
-          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:white;border:1px solid #E5E7EB;">${info.emoji}</div>
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:var(--card);border:1px solid var(--border);">${info.emoji}</div>
           <div>
-            <h1 class="text-xl font-semibold" style="color:#111827;">Agente ${info.name}</h1>
-            <p class="text-sm mt-0.5" style="color:#6B7280;">${info.desc}</p>
+            <h1 class="display text-3xl" style="color:var(--foreground);">Agente ${info.name}</h1>
+            <p class="text-sm mt-0.5" style="color:var(--muted-foreground);">${info.desc}</p>
           </div>
         </div>
         <div class="flex gap-2">
@@ -1068,22 +1068,22 @@ async function renderReunionesAgent(root) {
 
       <div class="grid lg:grid-cols-3 gap-5">
         <div class="card lg:col-span-1">
-          <h2 class="font-semibold text-sm mb-4" style="color:#374151;">Subir transcript</h2>
+          <h2 class="font-semibold text-sm mb-4" style="color:var(--foreground);">Subir transcript</h2>
           <div class="space-y-3">
             <div>
-              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Título</label>
+              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:var(--muted-foreground);">Título</label>
               <input id="rn-titulo" class="input" placeholder="Discovery · Clínica X">
             </div>
             <div>
-              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Email lead</label>
+              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:var(--muted-foreground);">Email lead</label>
               <input id="rn-email" type="email" class="input" placeholder="lead@empresa.com">
             </div>
             <div>
-              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Teléfono</label>
+              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:var(--muted-foreground);">Teléfono</label>
               <input id="rn-phone" class="input" placeholder="+54911...">
             </div>
             <div>
-              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Fuente</label>
+              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:var(--muted-foreground);">Fuente</label>
               <select id="rn-source" class="input">
                 <option value="manual">Manual</option>
                 <option value="zoom">Zoom</option>
@@ -1092,11 +1092,11 @@ async function renderReunionesAgent(root) {
               </select>
             </div>
             <div>
-              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Transcript / notas</label>
+              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:var(--muted-foreground);">Transcript / notas</label>
               <textarea id="rn-transcript" rows="10" class="input" style="resize:vertical" placeholder="Pegá acá la transcripción o notas de la reunión..."></textarea>
             </div>
             <div>
-              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">O subir archivo .txt</label>
+              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:var(--muted-foreground);">O subir archivo .txt</label>
               <input id="rn-file" type="file" accept=".txt,.md,.text,text/plain" class="text-xs" onchange="loadReunionFile(event)">
             </div>
             <button onclick="submitReunionTranscript()" class="w-full btn-primary">Analizar reunión</button>
@@ -1115,18 +1115,18 @@ async function renderReunionesAgent(root) {
               <option value="done">Done</option>
               <option value="error">Error</option>
             </select>
-            <p id="reuniones-count" class="text-sm ml-1" style="color:#6B7280;">Cargando...</p>
+            <p id="reuniones-count" class="text-sm ml-1" style="color:var(--muted-foreground);">Cargando...</p>
           </div>
-          <div id="reuniones-table-wrap" class="bg-white border overflow-hidden" style="border-color:#E5E7EB;border-radius:8px;">
-            <div class="flex items-center justify-center h-32 text-sm" style="color:#9CA3AF;">Cargando...</div>
+          <div id="reuniones-table-wrap" class="table-shell" style="border-color:var(--border);border-radius:8px;">
+            <div class="flex items-center justify-center h-32 text-sm" style="color:var(--muted-foreground);">Cargando...</div>
           </div>
           <div>
             <div class="flex items-center justify-between mb-3">
-              <h2 class="font-semibold text-sm" style="color:#374151;">Historial de ejecuciones</h2>
-              <button onclick="loadAgentRuns('reuniones')" class="text-xs transition" style="color:#6B7280;">Actualizar</button>
+              <h2 class="font-semibold text-sm" style="color:var(--foreground);">Historial de ejecuciones</h2>
+              <button onclick="loadAgentRuns('reuniones')" class="text-xs transition" style="color:var(--muted-foreground);">Actualizar</button>
             </div>
-            <div id="runs-table" class="bg-white border overflow-hidden" style="border-color:#E5E7EB;border-radius:8px;">
-              <div class="flex items-center justify-center h-24 text-sm" style="color:#9CA3AF;">Cargando...</div>
+            <div id="runs-table" class="table-shell" style="border-color:var(--border);border-radius:8px;">
+              <div class="flex items-center justify-center h-24 text-sm" style="color:var(--muted-foreground);">Cargando...</div>
             </div>
           </div>
         </div>
@@ -1138,26 +1138,26 @@ async function renderReunionesAgent(root) {
 
 function reunionStatusBadge(status) {
   const map = {
-    pending: 'bg-amber-100 text-amber-700 border border-amber-200',
-    analyzing: 'bg-sky-100 text-sky-700 border border-sky-200',
-    done: 'bg-green-100 text-green-700 border border-green-200',
-    error: 'bg-red-100 text-red-700 border border-red-200',
+    pending: 'badge-warning',
+    analyzing: 'badge-info',
+    done: 'badge-success',
+    error: 'badge-danger',
   };
-  return `<span class="badge ${map[status] || 'bg-gray-100 text-gray-500'}">${status || '—'}</span>`;
+  return `<span class="badge ${map[status] || 'badge-neutral'}">${status || '—'}</span>`;
 }
 
 function interesBadge(nivel) {
-  if (!nivel) return '<span class="text-xs" style="color:#9CA3AF;">—</span>';
+  if (!nivel) return '<span class="text-xs" style="color:var(--muted-foreground);">—</span>';
   const c = String(nivel).toUpperCase();
   const map = { ALTO: 'hot', MEDIO: 'warm', BAJO: 'cold' };
   const key = map[c];
   if (key) return classificationBadge(key);
-  return `<span class="badge bg-gray-100 text-gray-600 border border-gray-200">${nivel}</span>`;
+  return `<span class="badge badge-neutral">${nivel}</span>`;
 }
 
 function renderReunionesTable(rows) {
   if (!rows?.length) {
-    return `<div class="flex flex-col items-center justify-center py-16" style="color:#9CA3AF;">
+    return `<div class="flex flex-col items-center justify-center py-16" style="color:var(--muted-foreground);">
       <p class="text-sm">Sin reuniones aún</p>
       <p class="text-xs mt-1">Subí un transcript a la izquierda para empezar</p>
     </div>`;
@@ -1165,7 +1165,7 @@ function renderReunionesTable(rows) {
 
   return `<table class="w-full text-sm">
     <thead>
-      <tr style="border-bottom:1px solid #E5E7EB;">
+      <tr style="border-bottom:1px solid var(--border);">
         <th class="text-left px-4 py-3">Reunión</th>
         <th class="text-left px-4 py-3">Fuente</th>
         <th class="text-left px-4 py-3">Interés</th>
@@ -1178,17 +1178,17 @@ function renderReunionesTable(rows) {
     <tbody>
       ${rows.map((r) => {
         const safe = JSON.stringify(r).replace(/'/g, '&#39;');
-        return `<tr class="data-row transition" style="border-top:1px solid #F3F4F6;cursor:pointer;"
+        return `<tr class="data-row transition" style="border-top:1px solid var(--secondary);cursor:pointer;"
             onclick='openReunionModal(${safe})'>
           <td class="px-4 py-3">
-            <p class="font-medium leading-tight" style="color:#111827;">${r.titulo || r.lead_email || 'Sin título'}</p>
-            <p class="text-xs mt-0.5 truncate max-w-[200px]" style="color:#9CA3AF;">${r.lead_email || r.lead_phone || ''}</p>
+            <p class="font-medium leading-tight" style="color:var(--foreground);">${r.titulo || r.lead_email || 'Sin título'}</p>
+            <p class="text-xs mt-0.5 truncate max-w-[200px]" style="color:var(--muted-foreground);">${r.lead_email || r.lead_phone || ''}</p>
           </td>
-          <td class="px-4 py-3 text-xs" style="color:#6B7280;">${r.source || '—'}</td>
+          <td class="px-4 py-3 text-xs" style="color:var(--muted-foreground);">${r.source || '—'}</td>
           <td class="px-4 py-3">${interesBadge(r.nivel_interes)}</td>
           <td class="px-4 py-3">${scoreBar(r.score_cierre)}</td>
           <td class="px-4 py-3">${reunionStatusBadge(r.status)}</td>
-          <td class="px-4 py-3 font-data text-xs" style="color:#9CA3AF;">${fmtDate(r.updated_at)}</td>
+          <td class="px-4 py-3 font-data text-xs" style="color:var(--muted-foreground);">${fmtDate(r.updated_at)}</td>
           <td class="px-4 py-3" onclick="event.stopPropagation()">
             ${r.status !== 'done' ? `<button class="btn-ghost text-xs" onclick="analyzeReunionById('${r.id}')">Analizar</button>` : `<button class="btn-ghost text-xs" onclick="analyzeReunionById('${r.id}', true)">Re-analizar</button>`}
           </td>
@@ -1201,57 +1201,57 @@ function renderReunionesTable(rows) {
 function renderReunionDetail(r) {
   const list = (arr, empty) =>
     Array.isArray(arr) && arr.length
-      ? `<ul class="space-y-1.5">${arr.map((x) => `<li class="text-xs leading-relaxed" style="color:#374151;">• ${typeof x === 'string' ? x : JSON.stringify(x)}</li>`).join('')}</ul>`
-      : `<p class="text-xs" style="color:#9CA3AF;">${empty}</p>`;
+      ? `<ul class="space-y-1.5">${arr.map((x) => `<li class="text-xs leading-relaxed" style="color:var(--foreground);">• ${typeof x === 'string' ? x : JSON.stringify(x)}</li>`).join('')}</ul>`
+      : `<p class="text-xs" style="color:var(--muted-foreground);">${empty}</p>`;
 
   return `
     <div class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Email / Tel</p>
-        <p style="color:#374151;">${r.lead_email || '—'} · ${r.lead_phone || '—'}</p>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:var(--muted-foreground);">Email / Tel</p>
+        <p style="color:var(--foreground);">${r.lead_email || '—'} · ${r.lead_phone || '—'}</p>
       </div>
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Fuente / Estado</p>
-        <p style="color:#374151;">${r.source || '—'} · ${r.status || '—'}</p>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:var(--muted-foreground);">Fuente / Estado</p>
+        <p style="color:var(--foreground);">${r.source || '—'} · ${r.status || '—'}</p>
       </div>
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Nivel interés</p>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:var(--muted-foreground);">Nivel interés</p>
         <div class="mt-0.5">${interesBadge(r.nivel_interes)}</div>
       </div>
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Score cierre</p>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:var(--muted-foreground);">Score cierre</p>
         <div class="mt-1">${scoreBar(r.score_cierre)}</div>
       </div>
     </div>
 
     ${r.resumen ? `
-    <div class="rounded-lg p-3.5 border" style="background:#F9FAFB;border-color:#E5E7EB;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#9CA3AF;">Resumen</p>
-      <p class="text-xs leading-relaxed" style="color:#374151;">${r.resumen}</p>
+    <div class="rounded-lg p-3.5 border" style="background:var(--elevated);border-color:var(--border);">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--muted-foreground);">Resumen</p>
+      <p class="text-xs leading-relaxed" style="color:var(--foreground);">${r.resumen}</p>
     </div>` : ''}
 
-    <div class="rounded-lg p-3.5 border" style="background:#FEF3C7;border-color:#FDE68A;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B45309;">Pain points</p>
+    <div class="rounded-lg p-3.5 border" style="background:var(--warning-soft);border-color:rgb(245 177 76 / 0.35);">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--warning);">Pain points</p>
       ${list(r.pain_points, 'Sin pain points')}
     </div>
 
-    <div class="rounded-lg p-3.5 border" style="background:#FEF2F2;border-color:#FECACA;">
+    <div class="rounded-lg p-3.5 border" style="background:var(--danger-soft);border-color:rgb(242 114 109 / 0.35);">
       <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B91C1C;">Objeciones</p>
       ${list(r.objeciones, 'Sin objeciones')}
     </div>
 
-    <div class="rounded-lg p-3.5 border" style="background:#F0FDF4;border-color:#BBF7D0;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#15803D;">Señales de compra</p>
+    <div class="rounded-lg p-3.5 border" style="background:var(--success-soft);border-color:rgb(43 212 189 / 0.35);">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--success);">Señales de compra</p>
       ${list(r.senales_compra, 'Sin señales')}
     </div>
 
-    <div class="rounded-lg p-3.5 border" style="background:#EFF6FF;border-color:#BFDBFE;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#2563EB;">Próximos pasos</p>
+    <div class="rounded-lg p-3.5 border" style="background:var(--info-soft);border-color:rgb(106 166 255 / 0.35);">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--primary);">Próximos pasos</p>
       ${list(r.proximos_pasos, 'Sin próximos pasos')}
     </div>
 
     ${r.error_message ? `
-    <div class="rounded-lg p-3.5 border" style="background:#FEF2F2;border-color:#FECACA;">
+    <div class="rounded-lg p-3.5 border" style="background:var(--danger-soft);border-color:rgb(242 114 109 / 0.35);">
       <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B91C1C;">Error</p>
       <p class="text-xs" style="color:#991B1B;">${r.error_message}</p>
     </div>` : ''}
@@ -1288,7 +1288,7 @@ async function refreshReuniones() {
   const rows = res?.reuniones || [];
   const countEl = document.getElementById('reuniones-count');
   if (countEl) {
-    countEl.innerHTML = `<span class="font-data font-semibold" style="color:#2563EB;">${rows.length}</span> reunión${rows.length !== 1 ? 'es' : ''}`;
+    countEl.innerHTML = `<span class="font-data font-semibold" style="color:var(--primary);">${rows.length}</span> reunión${rows.length !== 1 ? 'es' : ''}`;
   }
   const wrap = document.getElementById('reuniones-table-wrap');
   if (wrap) wrap.innerHTML = renderReunionesTable(rows);
@@ -1369,10 +1369,10 @@ async function renderBriefingAgent(root) {
     <div class="space-y-5">
       <div class="flex items-center justify-between gap-4 flex-wrap">
         <div class="flex items-center gap-4">
-          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:white;border:1px solid #E5E7EB;">${info.emoji}</div>
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:var(--card);border:1px solid var(--border);">${info.emoji}</div>
           <div>
-            <h1 class="text-xl font-semibold" style="color:#111827;">Agente ${info.name}</h1>
-            <p class="text-sm mt-0.5" style="color:#6B7280;">${info.desc}</p>
+            <h1 class="display text-3xl" style="color:var(--foreground);">Agente ${info.name}</h1>
+            <p class="text-sm mt-0.5" style="color:var(--muted-foreground);">${info.desc}</p>
           </div>
         </div>
         <div class="flex gap-2">
@@ -1383,21 +1383,21 @@ async function renderBriefingAgent(root) {
 
       <div class="grid lg:grid-cols-3 gap-5">
         <div class="card lg:col-span-1">
-          <h2 class="font-semibold text-sm mb-4" style="color:#374151;">Generar briefing</h2>
+          <h2 class="font-semibold text-sm mb-4" style="color:var(--foreground);">Generar briefing</h2>
           <div class="space-y-3">
             <div>
-              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Email del lead</label>
+              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:var(--muted-foreground);">Email del lead</label>
               <input id="bf-email" type="email" class="input" placeholder="lead@empresa.com">
             </div>
             <div>
-              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Lead ID (opcional)</label>
+              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:var(--muted-foreground);">Lead ID (opcional)</label>
               <input id="bf-lead-id" class="input" placeholder="uuid del lead">
             </div>
-            <label class="flex items-center gap-2 text-xs" style="color:#6B7280;">
+            <label class="flex items-center gap-2 text-xs" style="color:var(--muted-foreground);">
               <input id="bf-force" type="checkbox" checked>
               Forzar nueva versión
             </label>
-            <p class="text-xs leading-relaxed" style="color:#9CA3AF;">Usa el perfil (02), la última reunión done (03) y el catálogo de propuestas.</p>
+            <p class="text-xs leading-relaxed" style="color:var(--muted-foreground);">Usa el perfil (02), la última reunión done (03) y el catálogo de propuestas.</p>
             <button onclick="submitBriefingGenerate()" class="w-full btn-primary">Generar briefing</button>
           </div>
         </div>
@@ -1414,18 +1414,18 @@ async function renderBriefingAgent(root) {
               <option value="ENVIADO">ENVIADO</option>
               <option value="error">error</option>
             </select>
-            <p id="briefings-count" class="text-sm ml-1" style="color:#6B7280;">Cargando...</p>
+            <p id="briefings-count" class="text-sm ml-1" style="color:var(--muted-foreground);">Cargando...</p>
           </div>
-          <div id="briefings-table-wrap" class="bg-white border overflow-hidden" style="border-color:#E5E7EB;border-radius:8px;">
-            <div class="flex items-center justify-center h-32 text-sm" style="color:#9CA3AF;">Cargando...</div>
+          <div id="briefings-table-wrap" class="table-shell" style="border-color:var(--border);border-radius:8px;">
+            <div class="flex items-center justify-center h-32 text-sm" style="color:var(--muted-foreground);">Cargando...</div>
           </div>
           <div>
             <div class="flex items-center justify-between mb-3">
-              <h2 class="font-semibold text-sm" style="color:#374151;">Historial de ejecuciones</h2>
-              <button onclick="loadAgentRuns('briefing')" class="text-xs transition" style="color:#6B7280;">Actualizar</button>
+              <h2 class="font-semibold text-sm" style="color:var(--foreground);">Historial de ejecuciones</h2>
+              <button onclick="loadAgentRuns('briefing')" class="text-xs transition" style="color:var(--muted-foreground);">Actualizar</button>
             </div>
-            <div id="runs-table" class="bg-white border overflow-hidden" style="border-color:#E5E7EB;border-radius:8px;">
-              <div class="flex items-center justify-center h-24 text-sm" style="color:#9CA3AF;">Cargando...</div>
+            <div id="runs-table" class="table-shell" style="border-color:var(--border);border-radius:8px;">
+              <div class="flex items-center justify-center h-24 text-sm" style="color:var(--muted-foreground);">Cargando...</div>
             </div>
           </div>
         </div>
@@ -1437,17 +1437,17 @@ async function renderBriefingAgent(root) {
 
 function briefingStatusBadge(status) {
   const map = {
-    DRAFT: 'bg-amber-100 text-amber-700 border border-amber-200',
-    REVISADO: 'bg-sky-100 text-sky-700 border border-sky-200',
-    ENVIADO: 'bg-green-100 text-green-700 border border-green-200',
-    error: 'bg-red-100 text-red-700 border border-red-200',
+    DRAFT: 'badge-warning',
+    REVISADO: 'badge-info',
+    ENVIADO: 'badge-success',
+    error: 'badge-danger',
   };
-  return `<span class="badge ${map[status] || 'bg-gray-100 text-gray-500'}">${status || '—'}</span>`;
+  return `<span class="badge ${map[status] || 'badge-neutral'}">${status || '—'}</span>`;
 }
 
 function renderBriefingsTable(rows) {
   if (!rows?.length) {
-    return `<div class="flex flex-col items-center justify-center py-16" style="color:#9CA3AF;">
+    return `<div class="flex flex-col items-center justify-center py-16" style="color:var(--muted-foreground);">
       <p class="text-sm">Sin briefings aún</p>
       <p class="text-xs mt-1">Generá uno con el email del lead a la izquierda</p>
     </div>`;
@@ -1455,7 +1455,7 @@ function renderBriefingsTable(rows) {
 
   return `<table class="w-full text-sm">
     <thead>
-      <tr style="border-bottom:1px solid #E5E7EB;">
+      <tr style="border-bottom:1px solid var(--border);">
         <th class="text-left px-4 py-3">Lead</th>
         <th class="text-left px-4 py-3">Presupuesto</th>
         <th class="text-left px-4 py-3">Servicios</th>
@@ -1470,17 +1470,17 @@ function renderBriefingsTable(rows) {
         const svcs = Array.isArray(r.servicios_sugeridos)
           ? r.servicios_sugeridos.slice(0, 2).join(', ')
           : '';
-        return `<tr class="data-row transition" style="border-top:1px solid #F3F4F6;cursor:pointer;"
+        return `<tr class="data-row transition" style="border-top:1px solid var(--secondary);cursor:pointer;"
             onclick='openBriefingModal(${safe})'>
           <td class="px-4 py-3">
-            <p class="font-medium leading-tight" style="color:#111827;">${r.lead_email || '—'}</p>
-            <p class="text-xs mt-0.5 truncate max-w-[220px]" style="color:#9CA3AF;">${r.objetivo_cliente || ''}</p>
+            <p class="font-medium leading-tight" style="color:var(--foreground);">${r.lead_email || '—'}</p>
+            <p class="text-xs mt-0.5 truncate max-w-[220px]" style="color:var(--muted-foreground);">${r.objetivo_cliente || ''}</p>
           </td>
-          <td class="px-4 py-3 text-xs" style="color:#6B7280;">${r.presupuesto_estimado || '—'}</td>
-          <td class="px-4 py-3 text-xs truncate max-w-[180px]" style="color:#6B7280;">${svcs || '—'}</td>
-          <td class="px-4 py-3 font-data text-xs" style="color:#9CA3AF;">v${r.version || 1}</td>
+          <td class="px-4 py-3 text-xs" style="color:var(--muted-foreground);">${r.presupuesto_estimado || '—'}</td>
+          <td class="px-4 py-3 text-xs truncate max-w-[180px]" style="color:var(--muted-foreground);">${svcs || '—'}</td>
+          <td class="px-4 py-3 font-data text-xs" style="color:var(--muted-foreground);">v${r.version || 1}</td>
           <td class="px-4 py-3">${briefingStatusBadge(r.status)}</td>
-          <td class="px-4 py-3 font-data text-xs" style="color:#9CA3AF;">${fmtDate(r.updated_at)}</td>
+          <td class="px-4 py-3 font-data text-xs" style="color:var(--muted-foreground);">${fmtDate(r.updated_at)}</td>
         </tr>`;
       }).join('')}
     </tbody>
@@ -1490,63 +1490,63 @@ function renderBriefingsTable(rows) {
 function renderBriefingDetail(b) {
   const list = (arr, empty) =>
     Array.isArray(arr) && arr.length
-      ? `<ul class="space-y-1.5">${arr.map((x) => `<li class="text-xs leading-relaxed" style="color:#374151;">• ${typeof x === 'string' ? x : JSON.stringify(x)}</li>`).join('')}</ul>`
-      : `<p class="text-xs" style="color:#9CA3AF;">${empty}</p>`;
+      ? `<ul class="space-y-1.5">${arr.map((x) => `<li class="text-xs leading-relaxed" style="color:var(--foreground);">• ${typeof x === 'string' ? x : JSON.stringify(x)}</li>`).join('')}</ul>`
+      : `<p class="text-xs" style="color:var(--muted-foreground);">${empty}</p>`;
 
   return `
     <div class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Email</p>
-        <p style="color:#374151;">${b.lead_email || '—'}</p>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:var(--muted-foreground);">Email</p>
+        <p style="color:var(--foreground);">${b.lead_email || '—'}</p>
       </div>
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Estado / Versión</p>
-        <p style="color:#374151;">${b.status || '—'} · v${b.version || 1}</p>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:var(--muted-foreground);">Estado / Versión</p>
+        <p style="color:var(--foreground);">${b.status || '—'} · v${b.version || 1}</p>
       </div>
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Presupuesto</p>
-        <p style="color:#374151;">${b.presupuesto_estimado || '—'}</p>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:var(--muted-foreground);">Presupuesto</p>
+        <p style="color:var(--foreground);">${b.presupuesto_estimado || '—'}</p>
       </div>
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Plazo</p>
-        <p style="color:#374151;">${b.plazo || '—'}</p>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:var(--muted-foreground);">Plazo</p>
+        <p style="color:var(--foreground);">${b.plazo || '—'}</p>
       </div>
     </div>
 
     ${b.resumen_ejecutivo ? `
-    <div class="rounded-lg p-3.5 border" style="background:#F9FAFB;border-color:#E5E7EB;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#9CA3AF;">Resumen ejecutivo</p>
-      <p class="text-xs leading-relaxed" style="color:#374151;">${b.resumen_ejecutivo}</p>
+    <div class="rounded-lg p-3.5 border" style="background:var(--elevated);border-color:var(--border);">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--muted-foreground);">Resumen ejecutivo</p>
+      <p class="text-xs leading-relaxed" style="color:var(--foreground);">${b.resumen_ejecutivo}</p>
     </div>` : ''}
 
-    <div class="rounded-lg p-3.5 border" style="background:#EFF6FF;border-color:#BFDBFE;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#2563EB;">Servicios sugeridos</p>
+    <div class="rounded-lg p-3.5 border" style="background:var(--info-soft);border-color:rgb(106 166 255 / 0.35);">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--primary);">Servicios sugeridos</p>
       ${list(b.servicios_sugeridos, 'Sin servicios')}
     </div>
 
-    <div class="rounded-lg p-3.5 border" style="background:#F0FDF4;border-color:#BBF7D0;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#15803D;">KPIs</p>
+    <div class="rounded-lg p-3.5 border" style="background:var(--success-soft);border-color:rgb(43 212 189 / 0.35);">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--success);">KPIs</p>
       ${list(b.kpis, 'Sin KPIs')}
     </div>
 
-    <div class="rounded-lg p-3.5 border" style="background:#FEF3C7;border-color:#FDE68A;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B45309;">Riesgos</p>
+    <div class="rounded-lg p-3.5 border" style="background:var(--warning-soft);border-color:rgb(245 177 76 / 0.35);">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--warning);">Riesgos</p>
       ${list(b.riesgos_detectados, 'Sin riesgos')}
     </div>
 
-    <div class="rounded-lg p-3.5 border" style="background:#EEF2FF;border-color:#C7D2FE;">
+    <div class="rounded-lg p-3.5 border" style="background:#EEF2FF;border-color:rgb(106 166 255 / 0.35);">
       <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#4338CA;">Diferenciadores</p>
       ${list(b.diferenciadores, 'Sin diferenciadores')}
     </div>
 
     ${b.brief_markdown ? `
-    <div class="rounded-lg p-3.5 border" style="background:#F9FAFB;border-color:#E5E7EB;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#9CA3AF;">Brief (markdown)</p>
-      <pre class="text-xs whitespace-pre-wrap leading-relaxed" style="color:#374151;max-height:280px;overflow:auto;">${b.brief_markdown.replace(/</g, '&lt;')}</pre>
+    <div class="rounded-lg p-3.5 border" style="background:var(--elevated);border-color:var(--border);">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--muted-foreground);">Brief (markdown)</p>
+      <pre class="text-xs whitespace-pre-wrap leading-relaxed" style="color:var(--foreground);max-height:280px;overflow:auto;">${b.brief_markdown.replace(/</g, '&lt;')}</pre>
     </div>` : ''}
 
     ${b.error_message ? `
-    <div class="rounded-lg p-3.5 border" style="background:#FEF2F2;border-color:#FECACA;">
+    <div class="rounded-lg p-3.5 border" style="background:var(--danger-soft);border-color:rgb(242 114 109 / 0.35);">
       <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B91C1C;">Error</p>
       <p class="text-xs" style="color:#991B1B;">${b.error_message}</p>
     </div>` : ''}
@@ -1585,7 +1585,7 @@ async function refreshBriefings() {
   const rows = res?.briefings || [];
   const countEl = document.getElementById('briefings-count');
   if (countEl) {
-    countEl.innerHTML = `<span class="font-data font-semibold" style="color:#2563EB;">${rows.length}</span> briefing${rows.length !== 1 ? 's' : ''}`;
+    countEl.innerHTML = `<span class="font-data font-semibold" style="color:var(--primary);">${rows.length}</span> briefing${rows.length !== 1 ? 's' : ''}`;
   }
   const wrap = document.getElementById('briefings-table-wrap');
   if (wrap) wrap.innerHTML = renderBriefingsTable(rows);
@@ -1679,8 +1679,8 @@ async function renderPerformanceAgent(root) {
   const today = new Date().toISOString().split('T')[0];
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
   const channelChecks = PERF_CHANNEL_OPTIONS.map((c) => `
-    <label class="flex items-center gap-2 text-xs cursor-pointer" style="color:#374151;">
-      <input type="checkbox" class="pfm-channel" value="${c.id}" checked style="accent-color:#2563EB;">
+    <label class="flex items-center gap-2 text-xs cursor-pointer" style="color:var(--foreground);">
+      <input type="checkbox" class="pfm-channel" value="${c.id}" checked style="accent-color:var(--primary);">
       ${c.label}
     </label>`).join('');
 
@@ -1688,10 +1688,10 @@ async function renderPerformanceAgent(root) {
     <div class="space-y-5">
       <div class="flex items-center justify-between gap-4 flex-wrap">
         <div class="flex items-center gap-4">
-          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:white;border:1px solid #E5E7EB;">${info.emoji}</div>
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:var(--card);border:1px solid var(--border);">${info.emoji}</div>
           <div>
-            <h1 class="text-xl font-semibold" style="color:#111827;">Agente ${info.name}</h1>
-            <p class="text-sm mt-0.5" style="color:#6B7280;">${info.desc}</p>
+            <h1 class="display text-3xl" style="color:var(--foreground);">Agente ${info.name}</h1>
+            <p class="text-sm mt-0.5" style="color:var(--muted-foreground);">${info.desc}</p>
           </div>
         </div>
         <button onclick="refreshPerfReports()" class="btn-ghost flex items-center gap-1.5 text-xs">Actualizar</button>
@@ -1699,29 +1699,29 @@ async function renderPerformanceAgent(root) {
 
       <div class="grid lg:grid-cols-3 gap-5">
         <div class="card lg:col-span-1">
-          <h2 class="font-semibold text-sm mb-4" style="color:#374151;">Analizar período</h2>
+          <h2 class="font-semibold text-sm mb-4" style="color:var(--foreground);">Analizar período</h2>
           <div class="space-y-3">
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Desde</label>
+                <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:var(--muted-foreground);">Desde</label>
                 <input id="pfm-since" type="date" value="${weekAgo}" class="input">
               </div>
               <div>
-                <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Hasta</label>
+                <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:var(--muted-foreground);">Hasta</label>
                 <input id="pfm-until" type="date" value="${today}" class="input">
               </div>
             </div>
             <div>
               <div class="flex items-center justify-between mb-2">
-                <label class="text-xs font-semibold uppercase tracking-wider" style="color:#9CA3AF;">Canales</label>
+                <label class="text-xs font-semibold uppercase tracking-wider" style="color:var(--muted-foreground);">Canales</label>
                 <div class="flex gap-2">
-                  <button type="button" onclick="setAllPerfChannels(true)" class="text-xs" style="color:#2563EB;">Todos</button>
-                  <button type="button" onclick="setAllPerfChannels(false)" class="text-xs" style="color:#6B7280;">Ninguno</button>
+                  <button type="button" onclick="setAllPerfChannels(true)" class="text-xs" style="color:var(--primary);">Todos</button>
+                  <button type="button" onclick="setAllPerfChannels(false)" class="text-xs" style="color:var(--muted-foreground);">Ninguno</button>
                 </div>
               </div>
               <div class="space-y-1.5 max-h-48 overflow-y-auto pr-1">${channelChecks}</div>
             </div>
-            <p class="text-xs leading-relaxed" style="color:#9CA3AF;">Sin tokens live usa métricas DEMO por canal. Acciones sensibles quedan pendientes de aprobación. Fuentes en Configuración.</p>
+            <p class="text-xs leading-relaxed" style="color:var(--muted-foreground);">Sin tokens live usa métricas DEMO por canal. Acciones sensibles quedan pendientes de aprobación. Fuentes en Configuración.</p>
             <button onclick="submitPerformanceAnalyze()" class="w-full btn-primary">📈 Analizar performance</button>
           </div>
         </div>
@@ -1734,18 +1734,18 @@ async function renderPerformanceAgent(root) {
               <option value="approved">approved</option>
               <option value="done">done</option>
             </select>
-            <p id="perf-count" class="text-sm ml-1" style="color:#6B7280;">Cargando...</p>
+            <p id="perf-count" class="text-sm ml-1" style="color:var(--muted-foreground);">Cargando...</p>
           </div>
-          <div id="perf-table-wrap" class="bg-white border overflow-hidden" style="border-color:#E5E7EB;border-radius:8px;">
-            <div class="flex items-center justify-center h-32 text-sm" style="color:#9CA3AF;">Cargando...</div>
+          <div id="perf-table-wrap" class="table-shell" style="border-color:var(--border);border-radius:8px;">
+            <div class="flex items-center justify-center h-32 text-sm" style="color:var(--muted-foreground);">Cargando...</div>
           </div>
           <div>
             <div class="flex items-center justify-between mb-3">
-              <h2 class="font-semibold text-sm" style="color:#374151;">Historial de ejecuciones</h2>
-              <button onclick="loadAgentRuns('performance')" class="text-xs transition" style="color:#6B7280;">Actualizar</button>
+              <h2 class="font-semibold text-sm" style="color:var(--foreground);">Historial de ejecuciones</h2>
+              <button onclick="loadAgentRuns('performance')" class="text-xs transition" style="color:var(--muted-foreground);">Actualizar</button>
             </div>
-            <div id="runs-table" class="bg-white border overflow-hidden" style="border-color:#E5E7EB;border-radius:8px;">
-              <div class="flex items-center justify-center h-24 text-sm" style="color:#9CA3AF;">Cargando...</div>
+            <div id="runs-table" class="table-shell" style="border-color:var(--border);border-radius:8px;">
+              <div class="flex items-center justify-center h-24 text-sm" style="color:var(--muted-foreground);">Cargando...</div>
             </div>
           </div>
         </div>
@@ -1765,25 +1765,25 @@ function getSelectedPerfChannels() {
 
 function perfChannelChips(channels) {
   const ids = (channels || []).map((c) => (typeof c === 'string' ? c : c.id || c.channel)).filter(Boolean);
-  if (!ids.length) return '<span class="text-xs" style="color:#9CA3AF;">—</span>';
+  if (!ids.length) return '<span class="text-xs" style="color:var(--muted-foreground);">—</span>';
   const labelOf = (id) => (PERF_CHANNEL_OPTIONS.find((c) => c.id === id) || {}).label || id;
   return ids.slice(0, 5).map((id) =>
-    `<span class="text-xs px-1.5 py-0.5 rounded" style="background:#F3F4F6;color:#4B5563;">${labelOf(id)}</span>`
-  ).join(' ') + (ids.length > 5 ? ` <span class="text-xs" style="color:#9CA3AF;">+${ids.length - 5}</span>` : '');
+    `<span class="text-xs px-1.5 py-0.5 rounded" style="background:var(--secondary);color:var(--muted-foreground);">${labelOf(id)}</span>`
+  ).join(' ') + (ids.length > 5 ? ` <span class="text-xs" style="color:var(--muted-foreground);">+${ids.length - 5}</span>` : '');
 }
 
 function perfStatusBadge(status) {
   const map = {
-    pending_approval: 'bg-amber-100 text-amber-700 border border-amber-200',
-    approved: 'bg-green-100 text-green-700 border border-green-200',
-    done: 'bg-sky-100 text-sky-700 border border-sky-200',
+    pending_approval: 'badge-warning',
+    approved: 'badge-success',
+    done: 'badge-info',
   };
-  return `<span class="badge ${map[status] || 'bg-gray-100 text-gray-500'}">${status || '—'}</span>`;
+  return `<span class="badge ${map[status] || 'badge-neutral'}">${status || '—'}</span>`;
 }
 
 function renderPerfReportsTable(rows) {
   if (!rows?.length) {
-    return `<div class="flex flex-col items-center justify-center py-16" style="color:#9CA3AF;">
+    return `<div class="flex flex-col items-center justify-center py-16" style="color:var(--muted-foreground);">
       <p class="text-sm">Sin reportes de performance aún</p>
       <p class="text-xs mt-1">Analizá un período a la izquierda</p>
     </div>`;
@@ -1791,7 +1791,7 @@ function renderPerfReportsTable(rows) {
 
   return `<table class="w-full text-sm">
     <thead>
-      <tr style="border-bottom:1px solid #E5E7EB;">
+      <tr style="border-bottom:1px solid var(--border);">
         <th class="text-left px-4 py-3">Período</th>
         <th class="text-left px-4 py-3">Canales</th>
         <th class="text-left px-4 py-3">Resumen</th>
@@ -1806,14 +1806,14 @@ function renderPerfReportsTable(rows) {
         const summary = (r.analysis?.summary || '').slice(0, 70);
         const alerts = Array.isArray(r.analysis?.alerts) ? r.analysis.alerts.length : 0;
         const channels = r.analysis?.channels_analyzed || Object.keys(r.analysis?.metrics_snapshot || {});
-        return `<tr class="data-row transition" style="border-top:1px solid #F3F4F6;cursor:pointer;"
+        return `<tr class="data-row transition" style="border-top:1px solid var(--secondary);cursor:pointer;"
             onclick='openPerfReportModal(${safe})'>
-          <td class="px-4 py-3 font-data text-xs" style="color:#374151;">${r.period_since} → ${r.period_until}</td>
+          <td class="px-4 py-3 font-data text-xs" style="color:var(--foreground);">${r.period_since} → ${r.period_until}</td>
           <td class="px-4 py-3"><div class="flex flex-wrap gap-1">${perfChannelChips(channels)}</div></td>
-          <td class="px-4 py-3 text-xs truncate max-w-[200px]" style="color:#6B7280;">${summary || '—'}</td>
-          <td class="px-4 py-3 font-data text-xs" style="color:#6B7280;">${alerts}</td>
+          <td class="px-4 py-3 text-xs truncate max-w-[200px]" style="color:var(--muted-foreground);">${summary || '—'}</td>
+          <td class="px-4 py-3 font-data text-xs" style="color:var(--muted-foreground);">${alerts}</td>
           <td class="px-4 py-3">${perfStatusBadge(r.status)}</td>
-          <td class="px-4 py-3 font-data text-xs" style="color:#9CA3AF;">${fmtDate(r.created_at)}</td>
+          <td class="px-4 py-3 font-data text-xs" style="color:var(--muted-foreground);">${fmtDate(r.created_at)}</td>
         </tr>`;
       }).join('')}
     </tbody>
@@ -1826,21 +1826,21 @@ function renderPerfReportDetail(r) {
   const list = (arr, empty) =>
     Array.isArray(arr) && arr.length
       ? `<ul class="space-y-1.5">${arr.map((x) => {
-          if (typeof x === 'string') return `<li class="text-xs" style="color:#374151;">• ${x}</li>`;
+          if (typeof x === 'string') return `<li class="text-xs" style="color:var(--foreground);">• ${x}</li>`;
           const ch = x.channel ? `[${labelOf(x.channel)}] ` : '';
           const label = x.campaign || x.action || x.issue || x.highlight || JSON.stringify(x);
           const extra = x.severity || x.expected_impact || (x.issue && x.campaign ? x.issue : '') || '';
-          return `<li class="text-xs" style="color:#374151;">• ${ch}<strong>${label}</strong>${extra && extra !== label ? ` — ${extra}` : ''}</li>`;
+          return `<li class="text-xs" style="color:var(--foreground);">• ${ch}<strong>${label}</strong>${extra && extra !== label ? ` — ${extra}` : ''}</li>`;
         }).join('')}</ul>`
-      : `<p class="text-xs" style="color:#9CA3AF;">${empty}</p>`;
+      : `<p class="text-xs" style="color:var(--muted-foreground);">${empty}</p>`;
 
   const breakdown = Array.isArray(a.channel_breakdown) && a.channel_breakdown.length
-    ? `<div class="rounded-lg p-3.5 border" style="background:#F0FDF4;border-color:#BBF7D0;">
-        <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#15803D;">Breakdown por canal</p>
+    ? `<div class="rounded-lg p-3.5 border" style="background:var(--success-soft);border-color:rgb(43 212 189 / 0.35);">
+        <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--success);">Breakdown por canal</p>
         <ul class="space-y-1.5">${a.channel_breakdown.map((b) => {
           const id = b.channel || b.id;
           const hi = b.highlight || (b.rows != null ? `${b.rows} filas` : '') || '';
-          return `<li class="text-xs" style="color:#374151;">• <strong>${b.label || labelOf(id)}</strong>${hi ? ` — ${hi}` : ''}${b.severity ? ` · ${b.severity}` : ''}</li>`;
+          return `<li class="text-xs" style="color:var(--foreground);">• <strong>${b.label || labelOf(id)}</strong>${hi ? ` — ${hi}` : ''}${b.severity ? ` · ${b.severity}` : ''}</li>`;
         }).join('')}</ul>
       </div>`
     : '';
@@ -1848,33 +1848,33 @@ function renderPerfReportDetail(r) {
   return `
     <div class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Período</p>
-        <p style="color:#374151;">${r.period_since} → ${r.period_until}</p>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:var(--muted-foreground);">Período</p>
+        <p style="color:var(--foreground);">${r.period_since} → ${r.period_until}</p>
       </div>
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Estado / Fuente</p>
-        <p style="color:#374151;">${r.status || '—'} · ${a.data_source || '—'}</p>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:var(--muted-foreground);">Estado / Fuente</p>
+        <p style="color:var(--foreground);">${r.status || '—'} · ${a.data_source || '—'}</p>
       </div>
     </div>
     <div>
-      <p class="text-xs font-semibold mb-1.5 uppercase tracking-wider" style="color:#9CA3AF;">Canales</p>
+      <p class="text-xs font-semibold mb-1.5 uppercase tracking-wider" style="color:var(--muted-foreground);">Canales</p>
       <div class="flex flex-wrap gap-1">${perfChannelChips(a.channels_analyzed || Object.keys(a.metrics_snapshot || {}))}</div>
     </div>
-    ${a.summary ? `<div class="rounded-lg p-3.5 border" style="background:#F9FAFB;border-color:#E5E7EB;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#9CA3AF;">Resumen</p>
-      <p class="text-xs leading-relaxed" style="color:#374151;">${a.summary}</p>
+    ${a.summary ? `<div class="rounded-lg p-3.5 border" style="background:var(--elevated);border-color:var(--border);">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--muted-foreground);">Resumen</p>
+      <p class="text-xs leading-relaxed" style="color:var(--foreground);">${a.summary}</p>
     </div>` : ''}
     ${breakdown}
-    <div class="rounded-lg p-3.5 border" style="background:#FEF2F2;border-color:#FECACA;">
+    <div class="rounded-lg p-3.5 border" style="background:var(--danger-soft);border-color:rgb(242 114 109 / 0.35);">
       <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B91C1C;">Alertas por canal</p>
       ${list(a.alerts, 'Sin alertas')}
     </div>
-    <div class="rounded-lg p-3.5 border" style="background:#EFF6FF;border-color:#BFDBFE;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#2563EB;">Recomendaciones</p>
+    <div class="rounded-lg p-3.5 border" style="background:var(--info-soft);border-color:rgb(106 166 255 / 0.35);">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--primary);">Recomendaciones</p>
       ${list(a.recommendations, 'Sin recomendaciones')}
     </div>
-    <div class="rounded-lg p-3.5 border" style="background:#FEF3C7;border-color:#FDE68A;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B45309;">Pendiente aprobación</p>
+    <div class="rounded-lg p-3.5 border" style="background:var(--warning-soft);border-color:rgb(245 177 76 / 0.35);">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--warning);">Pendiente aprobación</p>
       ${list(r.actions_pending_approval || a.actions_pending_approval, 'Nada pendiente')}
     </div>
     ${r.status === 'pending_approval' ? `
@@ -1957,10 +1957,10 @@ async function renderReportingAgent(root) {
     <div class="space-y-5">
       <div class="flex items-center justify-between gap-4 flex-wrap">
         <div class="flex items-center gap-4">
-          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:white;border:1px solid #E5E7EB;">${info.emoji}</div>
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:var(--card);border:1px solid var(--border);">${info.emoji}</div>
           <div>
-            <h1 class="text-xl font-semibold" style="color:#111827;">Agente ${info.name}</h1>
-            <p class="text-sm mt-0.5" style="color:#6B7280;">${info.desc}</p>
+            <h1 class="display text-3xl" style="color:var(--foreground);">Agente ${info.name}</h1>
+            <p class="text-sm mt-0.5" style="color:var(--muted-foreground);">${info.desc}</p>
           </div>
         </div>
         <button onclick="refreshMonthlyReports()" class="btn-ghost flex items-center gap-1.5 text-xs">Actualizar</button>
@@ -1968,21 +1968,21 @@ async function renderReportingAgent(root) {
 
       <div class="grid lg:grid-cols-3 gap-5">
         <div class="card lg:col-span-1">
-          <h2 class="font-semibold text-sm mb-4" style="color:#374151;">Generar reporte</h2>
+          <h2 class="font-semibold text-sm mb-4" style="color:var(--foreground);">Generar reporte</h2>
           <div class="space-y-3">
             <div>
-              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Cliente</label>
+              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:var(--muted-foreground);">Cliente</label>
               <select id="rpt-client" class="input"><option value="">Cargando clientes…</option></select>
             </div>
             <div>
-              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Mes (YYYY-MM)</label>
+              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:var(--muted-foreground);">Mes (YYYY-MM)</label>
               <input id="rpt-month" value="${monthStr}" class="input" placeholder="2026-06">
             </div>
             <div>
-              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Notas del equipo</label>
+              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:var(--muted-foreground);">Notas del equipo</label>
               <textarea id="rpt-notes" rows="3" class="input" style="resize:vertical" placeholder="Eventos relevantes del mes…"></textarea>
             </div>
-            <p class="text-xs leading-relaxed" style="color:#9CA3AF;">Queda en pending_approval hasta que lo revises.</p>
+            <p class="text-xs leading-relaxed" style="color:var(--muted-foreground);">Queda en pending_approval hasta que lo revises.</p>
             <button onclick="submitMonthlyReport()" class="w-full btn-primary">📊 Generar reporte</button>
           </div>
         </div>
@@ -1995,18 +1995,18 @@ async function renderReportingAgent(root) {
               <option value="approved">approved</option>
               <option value="sent">sent</option>
             </select>
-            <p id="rpt-count" class="text-sm ml-1" style="color:#6B7280;">Cargando...</p>
+            <p id="rpt-count" class="text-sm ml-1" style="color:var(--muted-foreground);">Cargando...</p>
           </div>
-          <div id="rpt-table-wrap" class="bg-white border overflow-hidden" style="border-color:#E5E7EB;border-radius:8px;">
-            <div class="flex items-center justify-center h-32 text-sm" style="color:#9CA3AF;">Cargando...</div>
+          <div id="rpt-table-wrap" class="table-shell" style="border-color:var(--border);border-radius:8px;">
+            <div class="flex items-center justify-center h-32 text-sm" style="color:var(--muted-foreground);">Cargando...</div>
           </div>
           <div>
             <div class="flex items-center justify-between mb-3">
-              <h2 class="font-semibold text-sm" style="color:#374151;">Historial de ejecuciones</h2>
-              <button onclick="loadAgentRuns('reporting')" class="text-xs transition" style="color:#6B7280;">Actualizar</button>
+              <h2 class="font-semibold text-sm" style="color:var(--foreground);">Historial de ejecuciones</h2>
+              <button onclick="loadAgentRuns('reporting')" class="text-xs transition" style="color:var(--muted-foreground);">Actualizar</button>
             </div>
-            <div id="runs-table" class="bg-white border overflow-hidden" style="border-color:#E5E7EB;border-radius:8px;">
-              <div class="flex items-center justify-center h-24 text-sm" style="color:#9CA3AF;">Cargando...</div>
+            <div id="runs-table" class="table-shell" style="border-color:var(--border);border-radius:8px;">
+              <div class="flex items-center justify-center h-24 text-sm" style="color:var(--muted-foreground);">Cargando...</div>
             </div>
           </div>
         </div>
@@ -2034,16 +2034,16 @@ async function loadReportingClients() {
 
 function monthlyStatusBadge(status) {
   const map = {
-    pending_approval: 'bg-amber-100 text-amber-700 border border-amber-200',
-    approved: 'bg-sky-100 text-sky-700 border border-sky-200',
-    sent: 'bg-green-100 text-green-700 border border-green-200',
+    pending_approval: 'badge-warning',
+    approved: 'badge-info',
+    sent: 'badge-success',
   };
-  return `<span class="badge ${map[status] || 'bg-gray-100 text-gray-500'}">${status || '—'}</span>`;
+  return `<span class="badge ${map[status] || 'badge-neutral'}">${status || '—'}</span>`;
 }
 
 function renderMonthlyReportsTable(rows) {
   if (!rows?.length) {
-    return `<div class="flex flex-col items-center justify-center py-16" style="color:#9CA3AF;">
+    return `<div class="flex flex-col items-center justify-center py-16" style="color:var(--muted-foreground);">
       <p class="text-sm">Sin reportes mensuales aún</p>
       <p class="text-xs mt-1">Elegí un cliente y generá el del mes</p>
     </div>`;
@@ -2051,7 +2051,7 @@ function renderMonthlyReportsTable(rows) {
 
   return `<table class="w-full text-sm">
     <thead>
-      <tr style="border-bottom:1px solid #E5E7EB;">
+      <tr style="border-bottom:1px solid var(--border);">
         <th class="text-left px-4 py-3">Cliente</th>
         <th class="text-left px-4 py-3">Mes</th>
         <th class="text-left px-4 py-3">Headline</th>
@@ -2064,13 +2064,13 @@ function renderMonthlyReportsTable(rows) {
         const safe = JSON.stringify(r).replace(/'/g, '&#39;');
         const company = r.clients?.company || r.client_id?.slice(0, 8) || '—';
         const headline = (r.report?.headline || '').slice(0, 80);
-        return `<tr class="data-row transition" style="border-top:1px solid #F3F4F6;cursor:pointer;"
+        return `<tr class="data-row transition" style="border-top:1px solid var(--secondary);cursor:pointer;"
             onclick='openMonthlyReportModal(${safe})'>
-          <td class="px-4 py-3 font-medium text-xs" style="color:#111827;">${company}</td>
-          <td class="px-4 py-3 font-data text-xs" style="color:#6B7280;">${r.month}</td>
-          <td class="px-4 py-3 text-xs truncate max-w-[240px]" style="color:#6B7280;">${headline || '—'}</td>
+          <td class="px-4 py-3 font-medium text-xs" style="color:var(--foreground);">${company}</td>
+          <td class="px-4 py-3 font-data text-xs" style="color:var(--muted-foreground);">${r.month}</td>
+          <td class="px-4 py-3 text-xs truncate max-w-[240px]" style="color:var(--muted-foreground);">${headline || '—'}</td>
           <td class="px-4 py-3">${monthlyStatusBadge(r.status)}</td>
-          <td class="px-4 py-3 font-data text-xs" style="color:#9CA3AF;">${fmtDate(r.created_at)}</td>
+          <td class="px-4 py-3 font-data text-xs" style="color:var(--muted-foreground);">${fmtDate(r.created_at)}</td>
         </tr>`;
       }).join('')}
     </tbody>
@@ -2082,46 +2082,46 @@ function renderMonthlyReportDetail(r) {
   const list = (arr, empty) =>
     Array.isArray(arr) && arr.length
       ? `<ul class="space-y-1.5">${arr.map((x) => {
-          if (typeof x === 'string') return `<li class="text-xs" style="color:#374151;">• ${x}</li>`;
-          return `<li class="text-xs" style="color:#374151;">• <strong>${x.metric || ''}</strong> ${x.value || ''} <span style="color:#9CA3AF;">${x.vs_previous || ''}</span></li>`;
+          if (typeof x === 'string') return `<li class="text-xs" style="color:var(--foreground);">• ${x}</li>`;
+          return `<li class="text-xs" style="color:var(--foreground);">• <strong>${x.metric || ''}</strong> ${x.value || ''} <span style="color:var(--muted-foreground);">${x.vs_previous || ''}</span></li>`;
         }).join('')}</ul>`
-      : `<p class="text-xs" style="color:#9CA3AF;">${empty}</p>`;
+      : `<p class="text-xs" style="color:var(--muted-foreground);">${empty}</p>`;
 
   return `
     <div class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Cliente</p>
-        <p style="color:#374151;">${r.clients?.company || r.client_id || '—'}</p>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:var(--muted-foreground);">Cliente</p>
+        <p style="color:var(--foreground);">${r.clients?.company || r.client_id || '—'}</p>
       </div>
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Mes / Estado</p>
-        <p style="color:#374151;">${r.month} · ${r.status}</p>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:var(--muted-foreground);">Mes / Estado</p>
+        <p style="color:var(--foreground);">${r.month} · ${r.status}</p>
       </div>
     </div>
-    ${rep.headline ? `<div class="rounded-lg p-3.5 border" style="background:#EFF6FF;border-color:#BFDBFE;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#2563EB;">Headline</p>
-      <p class="text-sm font-medium" style="color:#111827;">${rep.headline}</p>
+    ${rep.headline ? `<div class="rounded-lg p-3.5 border" style="background:var(--info-soft);border-color:rgb(106 166 255 / 0.35);">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--primary);">Headline</p>
+      <p class="text-sm font-medium" style="color:var(--foreground);">${rep.headline}</p>
     </div>` : ''}
-    <div class="rounded-lg p-3.5 border" style="background:#F9FAFB;border-color:#E5E7EB;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#9CA3AF;">Key metrics</p>
+    <div class="rounded-lg p-3.5 border" style="background:var(--elevated);border-color:var(--border);">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--muted-foreground);">Key metrics</p>
       ${list(rep.key_metrics, 'Sin métricas')}
     </div>
     ${Array.isArray(rep.channel_highlights) && rep.channel_highlights.length ? `
-    <div class="rounded-lg p-3.5 border" style="background:#ECFDF5;border-color:#A7F3D0;">
+    <div class="rounded-lg p-3.5 border" style="background:var(--success-soft);border-color:rgb(43 212 189 / 0.35);">
       <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#047857;">Highlights por canal</p>
       <ul class="space-y-1.5">${rep.channel_highlights.map((h) =>
-        `<li class="text-xs" style="color:#374151;">• <strong>${h.channel || ''}</strong> — ${h.note || ''}</li>`
+        `<li class="text-xs" style="color:var(--foreground);">• <strong>${h.channel || ''}</strong> — ${h.note || ''}</li>`
       ).join('')}</ul>
     </div>` : ''}
-    <div class="rounded-lg p-3.5 border" style="background:#F0FDF4;border-color:#BBF7D0;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#15803D;">Wins</p>
+    <div class="rounded-lg p-3.5 border" style="background:var(--success-soft);border-color:rgb(43 212 189 / 0.35);">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--success);">Wins</p>
       ${list(rep.wins, 'Sin wins')}
     </div>
-    <div class="rounded-lg p-3.5 border" style="background:#FEF3C7;border-color:#FDE68A;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B45309;">Explicaciones</p>
+    <div class="rounded-lg p-3.5 border" style="background:var(--warning-soft);border-color:rgb(245 177 76 / 0.35);">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--warning);">Explicaciones</p>
       ${list(rep.explanations, 'Sin explicaciones')}
     </div>
-    <div class="rounded-lg p-3.5 border" style="background:#EEF2FF;border-color:#C7D2FE;">
+    <div class="rounded-lg p-3.5 border" style="background:#EEF2FF;border-color:rgb(106 166 255 / 0.35);">
       <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#4338CA;">Plan próximo mes</p>
       ${list(rep.next_month_plan, 'Sin plan')}
     </div>
@@ -2210,10 +2210,10 @@ async function renderProposalAgent(root) {
     <div class="space-y-5">
       <div class="flex items-center justify-between gap-4 flex-wrap">
         <div class="flex items-center gap-4">
-          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:white;border:1px solid #E5E7EB;">${info.emoji}</div>
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:var(--card);border:1px solid var(--border);">${info.emoji}</div>
           <div>
-            <h1 class="text-xl font-semibold" style="color:#111827;">Agente ${info.name}</h1>
-            <p class="text-sm mt-0.5" style="color:#6B7280;">${info.desc} Usa perfil/reunión si no hay diagnóstico legacy.</p>
+            <h1 class="display text-3xl" style="color:var(--foreground);">Agente ${info.name}</h1>
+            <p class="text-sm mt-0.5" style="color:var(--muted-foreground);">${info.desc} Usa perfil/reunión si no hay diagnóstico legacy.</p>
           </div>
         </div>
         <div class="flex gap-2">
@@ -2225,18 +2225,18 @@ async function renderProposalAgent(root) {
 
       <div class="grid lg:grid-cols-3 gap-5">
         <div class="card lg:col-span-1">
-          <h2 class="font-semibold text-sm mb-4" style="color:#374151;">Generar propuesta IA</h2>
+          <h2 class="font-semibold text-sm mb-4" style="color:var(--foreground);">Generar propuesta IA</h2>
           <div class="space-y-3">
             <div>
-              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Lead ID</label>
+              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:var(--muted-foreground);">Lead ID</label>
               <input id="prop-lead-id" class="input" placeholder="uuid del lead">
             </div>
             <div>
-              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Notas de call</label>
+              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:var(--muted-foreground);">Notas de call</label>
               <textarea id="prop-notes" rows="3" class="input" style="resize:vertical" placeholder="Resumen discovery…"></textarea>
             </div>
             <div>
-              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Presupuesto (USD)</label>
+              <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:var(--muted-foreground);">Presupuesto (USD)</label>
               <input id="prop-budget" type="number" class="input" placeholder="1500">
             </div>
             <button onclick="submitIaProposal()" class="w-full btn-primary">📋 Generar propuesta</button>
@@ -2244,17 +2244,17 @@ async function renderProposalAgent(root) {
         </div>
 
         <div class="lg:col-span-2 space-y-3">
-          <p id="prop-count" class="text-sm" style="color:#6B7280;">Cargando...</p>
-          <div id="prop-table-wrap" class="bg-white border overflow-hidden" style="border-color:#E5E7EB;border-radius:8px;">
-            <div class="flex items-center justify-center h-32 text-sm" style="color:#9CA3AF;">Cargando...</div>
+          <p id="prop-count" class="text-sm" style="color:var(--muted-foreground);">Cargando...</p>
+          <div id="prop-table-wrap" class="table-shell" style="border-color:var(--border);border-radius:8px;">
+            <div class="flex items-center justify-center h-32 text-sm" style="color:var(--muted-foreground);">Cargando...</div>
           </div>
           <div>
             <div class="flex items-center justify-between mb-3">
-              <h2 class="font-semibold text-sm" style="color:#374151;">Historial de ejecuciones</h2>
-              <button onclick="loadAgentRuns('proposal')" class="text-xs transition" style="color:#6B7280;">Actualizar</button>
+              <h2 class="font-semibold text-sm" style="color:var(--foreground);">Historial de ejecuciones</h2>
+              <button onclick="loadAgentRuns('proposal')" class="text-xs transition" style="color:var(--muted-foreground);">Actualizar</button>
             </div>
-            <div id="runs-table" class="bg-white border overflow-hidden" style="border-color:#E5E7EB;border-radius:8px;">
-              <div class="flex items-center justify-center h-24 text-sm" style="color:#9CA3AF;">Cargando...</div>
+            <div id="runs-table" class="table-shell" style="border-color:var(--border);border-radius:8px;">
+              <div class="flex items-center justify-center h-24 text-sm" style="color:var(--muted-foreground);">Cargando...</div>
             </div>
           </div>
         </div>
@@ -2266,7 +2266,7 @@ async function renderProposalAgent(root) {
 
 function renderIaProposalsTable(rows) {
   if (!rows?.length) {
-    return `<div class="flex flex-col items-center justify-center py-16" style="color:#9CA3AF;">
+    return `<div class="flex flex-col items-center justify-center py-16" style="color:var(--muted-foreground);">
       <p class="text-sm">Sin propuestas IA aún</p>
       <p class="text-xs mt-1">Para brief comercial usá Briefing; el catálogo vive en Menú · Propuestas</p>
     </div>`;
@@ -2274,7 +2274,7 @@ function renderIaProposalsTable(rows) {
 
   return `<table class="w-full text-sm">
     <thead>
-      <tr style="border-bottom:1px solid #E5E7EB;">
+      <tr style="border-bottom:1px solid var(--border);">
         <th class="text-left px-4 py-3">Lead</th>
         <th class="text-left px-4 py-3">Resumen</th>
         <th class="text-left px-4 py-3">Estado</th>
@@ -2285,15 +2285,15 @@ function renderIaProposalsTable(rows) {
       ${rows.map((r) => {
         const safe = JSON.stringify(r).replace(/'/g, '&#39;');
         const summary = (r.proposal?.investment_range || r.proposal?.services_recommended?.[0] || r.proposal?.raw_response || '').toString().slice(0, 80);
-        return `<tr class="data-row transition" style="border-top:1px solid #F3F4F6;cursor:pointer;"
+        return `<tr class="data-row transition" style="border-top:1px solid var(--secondary);cursor:pointer;"
             onclick='openIaProposalModal(${safe})'>
           <td class="px-4 py-3">
-            <p class="font-medium text-xs" style="color:#111827;">${r.name || '—'}</p>
-            <p class="text-xs" style="color:#9CA3AF;">${r.email || ''}</p>
+            <p class="font-medium text-xs" style="color:var(--foreground);">${r.name || '—'}</p>
+            <p class="text-xs" style="color:var(--muted-foreground);">${r.email || ''}</p>
           </td>
-          <td class="px-4 py-3 text-xs truncate max-w-[240px]" style="color:#6B7280;">${summary || '—'}</td>
+          <td class="px-4 py-3 text-xs truncate max-w-[240px]" style="color:var(--muted-foreground);">${summary || '—'}</td>
           <td class="px-4 py-3">${monthlyStatusBadge(r.proposal_status || 'pending_approval')}</td>
-          <td class="px-4 py-3 font-data text-xs" style="color:#9CA3AF;">${fmtDate(r.updated_at)}</td>
+          <td class="px-4 py-3 font-data text-xs" style="color:var(--muted-foreground);">${fmtDate(r.updated_at)}</td>
         </tr>`;
       }).join('')}
     </tbody>
@@ -2304,39 +2304,39 @@ function renderIaProposalDetail(lead) {
   const p = lead.proposal || {};
   const list = (arr, empty) =>
     Array.isArray(arr) && arr.length
-      ? `<ul class="space-y-1.5">${arr.map((x) => `<li class="text-xs" style="color:#374151;">• ${typeof x === 'string' ? x : JSON.stringify(x)}</li>`).join('')}</ul>`
-      : `<p class="text-xs" style="color:#9CA3AF;">${empty}</p>`;
+      ? `<ul class="space-y-1.5">${arr.map((x) => `<li class="text-xs" style="color:var(--foreground);">• ${typeof x === 'string' ? x : JSON.stringify(x)}</li>`).join('')}</ul>`
+      : `<p class="text-xs" style="color:var(--muted-foreground);">${empty}</p>`;
 
   return `
     <div class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Lead</p>
-        <p style="color:#374151;">${lead.name || '—'} · ${lead.email || ''}</p>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:var(--muted-foreground);">Lead</p>
+        <p style="color:var(--foreground);">${lead.name || '—'} · ${lead.email || ''}</p>
       </div>
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Estado</p>
-        <p style="color:#374151;">${lead.proposal_status || '—'}</p>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:var(--muted-foreground);">Estado</p>
+        <p style="color:var(--foreground);">${lead.proposal_status || '—'}</p>
       </div>
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Inversión</p>
-        <p style="color:#374151;">${p.investment_range || '—'}</p>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:var(--muted-foreground);">Inversión</p>
+        <p style="color:var(--foreground);">${p.investment_range || '—'}</p>
       </div>
     </div>
-    <div class="rounded-lg p-3.5 border" style="background:#EFF6FF;border-color:#BFDBFE;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#2563EB;">Servicios</p>
+    <div class="rounded-lg p-3.5 border" style="background:var(--info-soft);border-color:rgb(106 166 255 / 0.35);">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--primary);">Servicios</p>
       ${list(p.services_recommended, 'Sin servicios')}
     </div>
-    <div class="rounded-lg p-3.5 border" style="background:#F0FDF4;border-color:#BBF7D0;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#15803D;">Resultados esperados</p>
+    <div class="rounded-lg p-3.5 border" style="background:var(--success-soft);border-color:rgb(43 212 189 / 0.35);">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--success);">Resultados esperados</p>
       ${list(p.expected_results, '—')}
     </div>
-    <div class="rounded-lg p-3.5 border" style="background:#FEF3C7;border-color:#FDE68A;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B45309;">Próximos pasos</p>
+    <div class="rounded-lg p-3.5 border" style="background:var(--warning-soft);border-color:rgb(245 177 76 / 0.35);">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--warning);">Próximos pasos</p>
       ${list(p.next_steps, '—')}
     </div>
-    ${p.onboarding_plan ? `<div class="rounded-lg p-3.5 border" style="background:#F9FAFB;border-color:#E5E7EB;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#9CA3AF;">Onboarding</p>
-      <p class="text-xs leading-relaxed" style="color:#374151;">${typeof p.onboarding_plan === 'string' ? p.onboarding_plan : JSON.stringify(p.onboarding_plan)}</p>
+    ${p.onboarding_plan ? `<div class="rounded-lg p-3.5 border" style="background:var(--elevated);border-color:var(--border);">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--muted-foreground);">Onboarding</p>
+      <p class="text-xs leading-relaxed" style="color:var(--foreground);">${typeof p.onboarding_plan === 'string' ? p.onboarding_plan : JSON.stringify(p.onboarding_plan)}</p>
     </div>` : ''}
     ${lead.proposal_status === 'pending_approval' ? `
     <button class="btn-primary text-xs" onclick="approveIaProposal('${lead.id}')">Aprobar propuesta</button>` : ''}

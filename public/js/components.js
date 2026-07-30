@@ -1,20 +1,22 @@
 // ─── Constantes compartidas ──────────────────────────────────────────────────
+// Badge tones = estilos inline (tokens v0). Usar con: style="${classColors.hot}"
 
 const classColors = {
-  hot:         'bg-red-100 text-red-700 border border-red-200',
-  warm:        'bg-amber-100 text-amber-700 border border-amber-200',
-  cold:        'bg-blue-100 text-blue-700 border border-blue-200',
-  unqualified: 'bg-gray-100 text-gray-500 border border-gray-200',
+  hot:         'background:var(--danger-soft);color:var(--danger);border:1px solid rgb(242 114 109 / 0.3)',
+  warm:        'background:var(--warning-soft);color:var(--warning);border:1px solid rgb(245 177 76 / 0.3)',
+  cold:        'background:var(--info-soft);color:var(--info);border:1px solid rgb(106 166 255 / 0.3)',
+  unqualified: 'background:var(--secondary);color:var(--muted-foreground);border:1px solid var(--border)',
 };
 const classEmoji = { hot: '🔥', warm: '☀️', cold: '❄️', unqualified: '✗' };
 
 const statusColors = {
-  new:       'bg-blue-100 text-blue-700 border border-blue-200',
-  contacted: 'bg-sky-100 text-sky-700 border border-sky-200',
-  qualified: 'bg-emerald-100 text-emerald-700 border border-emerald-200',
-  won:       'bg-green-100 text-green-700 border border-green-200',
-  lost:      'bg-gray-100 text-gray-500 border border-gray-200',
+  new:       'background:var(--info-soft);color:var(--info);border:1px solid rgb(106 166 255 / 0.3)',
+  contacted: 'background:var(--accent-soft);color:#a78bfa;border:1px solid rgb(139 92 246 / 0.3)',
+  qualified: 'background:var(--success-soft);color:var(--success);border:1px solid rgb(43 212 189 / 0.3)',
+  won:       'background:var(--primary-soft);color:var(--primary);border:1px solid rgb(43 212 189 / 0.35)',
+  lost:      'background:var(--secondary);color:var(--muted-foreground);border:1px solid var(--border)',
 };
+const statusInactive = 'background:var(--secondary);color:var(--muted-foreground);border:1px solid var(--border)';
 const statusLabel = {
   new: 'Nuevo', contacted: 'Contactado', qualified: 'Calificado', won: 'Ganado', lost: 'Perdido',
 };
@@ -46,16 +48,136 @@ const agentInfo = {
   reporting:   { emoji: '📊', name: 'Reporting',   desc: 'Genera reportes mensuales consolidados multi-canal por cliente.' },
 };
 
+// ─── Primitives visuales (v0 → helpers HTML) ─────────────────────────────────
+// Etapa B: disponibles para restyle en C–E. No cambian lógica ni fetches.
+
+const avatarPalette = [
+  { bg: 'rgb(43 212 189 / 0.18)', fg: '#2bd4bd' },
+  { bg: 'rgb(139 92 246 / 0.2)', fg: '#a78bfa' },
+  { bg: 'rgb(106 166 255 / 0.18)', fg: '#6aa6ff' },
+  { bg: 'rgb(245 177 76 / 0.18)', fg: '#f5b14c' },
+  { bg: 'rgb(242 114 109 / 0.18)', fg: '#f2726d' },
+  { bg: 'rgb(255 255 255 / 0.1)', fg: '#d4d4e0' },
+];
+
+function _escHtml(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function colorFromName(name) {
+  const s = String(name || '');
+  let hash = 0;
+  for (let i = 0; i < s.length; i++) hash = (hash * 31 + s.charCodeAt(i)) % 9973;
+  return avatarPalette[hash % avatarPalette.length];
+}
+
+/** Label mono uppercase teal — equivalente Eyebrow */
+function eyebrow(text, className = '') {
+  return `<p class="eyebrow ${className}">${_escHtml(text)}</p>`;
+}
+
+/** Título display Instrument Serif — equivalente .display */
+function displayTitle(text, className = '') {
+  return `<h2 class="display ${className}">${_escHtml(text)}</h2>`;
+}
+
+/**
+ * Wrapper tipo Surface / card.
+ * @param {string} html — contenido interno (ya escapado o markup controlado)
+ * @param {{ glow?: boolean, className?: string, padding?: boolean }} [opts]
+ */
+function surface(html, opts = {}) {
+  const glow = opts.glow ? 'gradient-ring' : '';
+  const extra = opts.className || '';
+  const padStyle = opts.padding === false ? 'padding:0;' : '';
+  return `<div class="relative card ${glow} ${extra}" style="${padStyle}">${html}</div>`;
+}
+
+/**
+ * Estado vacío reutilizable — equivalente EmptyState.
+ * actionLabel/actionOnclick opcionales (sin CTAs mock por defecto).
+ * @param {{ headline: string, body?: string, iconHtml?: string, actionLabel?: string, actionOnclick?: string, className?: string }} opts
+ */
+function emptyState(opts = {}) {
+  const headline = _escHtml(opts.headline || 'Sin datos');
+  const body = opts.body ? `<p class="max-w-xs text-sm leading-relaxed" style="color:var(--muted-foreground);">${_escHtml(opts.body)}</p>` : '';
+  const icon = opts.iconHtml || `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M20 13V7a2 2 0 00-2-2H6a2 2 0 00-2 2v6m16 0v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6m16 0H4"/></svg>`;
+  const action = opts.actionLabel
+    ? `<button type="button" class="btn-ghost mt-1" ${opts.actionOnclick ? `onclick="${opts.actionOnclick}"` : ''}>${_escHtml(opts.actionLabel)}</button>`
+    : '';
+  const extra = opts.className || '';
+  return `<div class="flex flex-col items-center justify-center gap-3 rounded-xl px-6 py-10 text-center ${extra}"
+    style="border:1px dashed var(--border);background:rgb(16 16 24 / 0.5);">
+    <span class="grid place-items-center rounded-full" style="width:48px;height:48px;background:var(--primary-soft);color:var(--primary);">${icon}</span>
+    <div class="flex flex-col gap-1.5 items-center">
+      <p class="display text-xl">${headline}</p>
+      ${body}
+    </div>
+    ${action}
+  </div>`;
+}
+
+/**
+ * Avatar con color derivado del nombre — equivalente Avatar.
+ * @param {string} name
+ * @param {{ size?: number, className?: string }} [opts]
+ */
+function avatarHtml(name, opts = {}) {
+  const size = opts.size || 28;
+  const label = name || '?';
+  const { bg, fg } = colorFromName(label);
+  const initials = _avatarInitials(label);
+  const fontSize = Math.max(10, Math.round(size * 0.36));
+  const extra = opts.className || '';
+  return `<span aria-hidden="true" title="${_escHtml(label)}" class="inline-flex shrink-0 items-center justify-center rounded-full font-semibold select-none ${extra}"
+    style="width:${size}px;height:${size}px;background:${bg};color:${fg};font-size:${fontSize}px;">${_escHtml(initials)}</span>`;
+}
+
+/**
+ * Confetti visual (Etapa F) — solo UI, no toca estado.
+ * @param {{ x?: number, y?: number }} [origin]
+ */
+async function celebrate(origin) {
+  try {
+    if (typeof confetti !== 'function') return;
+    const colors = ['#2BD4BD', '#8B5CF6', '#6AA6FF', '#FFFFFF'];
+    const base = { colors, disableForReducedMotion: true, zIndex: 100 };
+    confetti({
+      ...base,
+      particleCount: 90,
+      spread: 70,
+      startVelocity: 45,
+      origin: origin || { x: 0.5, y: 0.6 },
+    });
+    setTimeout(() => {
+      confetti({
+        ...base,
+        particleCount: 50,
+        spread: 110,
+        scalar: 0.8,
+        origin: origin || { x: 0.5, y: 0.6 },
+      });
+    }, 140);
+  } catch (_) {}
+}
+
 // ─── Componentes ─────────────────────────────────────────────────────────────
 
 function scoreBar(score) {
-  if (score === null || score === undefined) return '<span class="font-data text-xs" style="color:#9CA3AF;">—</span>';
-  const color = score >= 65 ? '#EF4444' : score >= 40 ? '#F59E0B' : '#3B82F6';
+  if (score === null || score === undefined) {
+    return '<span class="font-data text-xs" style="color:var(--muted-foreground);">—</span>';
+  }
+  // Umbrales de negocio intactos: >=65 / >=40
+  const color = score >= 65 ? 'var(--danger)' : score >= 40 ? 'var(--warning)' : 'var(--info)';
   return `<div class="flex items-center gap-1.5">
-    <div class="w-14 h-1.5 rounded-full overflow-hidden" style="background:#F3F4F6;">
+    <div class="w-14 h-1.5 rounded-full overflow-hidden" style="background:var(--secondary);">
       <div class="h-full rounded-full" style="width:${score}%;background:${color};"></div>
     </div>
-    <span class="font-data text-xs tabular-nums" style="color:#6B7280;">${score}</span>
+    <span class="font-data text-xs tnum" style="color:var(--muted-foreground);">${score}</span>
   </div>`;
 }
 
@@ -65,8 +187,18 @@ function fmtDate(ts) {
 }
 
 function classificationBadge(c) {
-  if (!c) return '<span class="text-xs" style="color:#9CA3AF;">—</span>';
-  return `<span class="badge ${classColors[c]}">${classEmoji[c]} ${c}</span>`;
+  if (!c) return '<span class="text-xs" style="color:var(--muted-foreground);">—</span>';
+  const style = classColors[c] || classColors.unqualified;
+  return `<span class="badge" style="${style}">${classEmoji[c] || ''} ${c}</span>`;
+}
+
+function statusBadge(status, opts = {}) {
+  const label = statusLabel[status] || status || '—';
+  const active = opts.active !== false;
+  const style = active && statusColors[status] ? statusColors[status] : statusInactive;
+  const extra = opts.className || '';
+  const onClick = opts.onclick ? ` onclick="${opts.onclick}"` : '';
+  return `<span class="badge ${extra}" style="${style}"${onClick}>${label}</span>`;
 }
 
 function _avatarInitials(name) {
@@ -76,14 +208,16 @@ function _avatarInitials(name) {
 
 function renderLeadsTable(leads, emptyMsg = 'Sin leads') {
   if (!leads || !leads.length) {
-    return `<div class="flex flex-col items-center justify-center py-16" style="color:#9CA3AF;">
-      <svg class="w-10 h-10 mb-3 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-      <p class="text-sm">${emptyMsg}</p>
-    </div>`;
+    return emptyState({
+      headline: emptyMsg,
+      body: 'Cuando entren leads por los canales, aparecen acá.',
+      iconHtml: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`,
+    });
   }
-  return `<table class="w-full text-sm">
+  return `<div class="card overflow-hidden" style="padding:0;">
+  <table class="w-full text-sm">
     <thead>
-      <tr style="border-bottom:1px solid #E5E7EB;">
+      <tr style="border-bottom:1px solid var(--border);">
         <th class="text-left px-4 py-3">Lead</th>
         <th class="text-left px-4 py-3">Fuente</th>
         <th class="text-left px-4 py-3">Score</th>
@@ -95,26 +229,27 @@ function renderLeadsTable(leads, emptyMsg = 'Sin leads') {
     </thead>
     <tbody>
       ${leads.map(l => `
-        <tr class="lead-row transition" style="border-top:1px solid #F3F4F6;"
+        <tr class="lead-row transition" style="border-top:1px solid var(--border);"
             onclick='openLeadModal(${JSON.stringify(l).replace(/'/g, "&#39;")})'>
           <td class="px-4 py-3">
             <div class="flex items-center gap-2.5">
-              <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style="background:#EFF6FF;color:#2563EB;">${_avatarInitials(l.name)}</div>
+              ${avatarHtml(l.name || '?', { size: 28 })}
               <div class="min-w-0">
-                <p class="font-medium leading-tight" style="color:#111827;">${l.name || '<span style="color:#9CA3AF;">Sin nombre</span>'}</p>
-                <p class="text-xs mt-0.5 truncate max-w-[140px]" style="color:#9CA3AF;">${l.email || l.contact || ''}</p>
+                <p class="font-medium leading-tight" style="color:var(--foreground);">${l.name || '<span style="color:var(--muted-foreground);">Sin nombre</span>'}</p>
+                <p class="text-xs mt-0.5 truncate max-w-[140px]" style="color:var(--muted-foreground);">${l.email || l.contact || ''}</p>
               </div>
             </div>
           </td>
-          <td class="px-4 py-3 text-xs" style="color:#6B7280;">${sourceLabel[l.source] || l.source}</td>
+          <td class="px-4 py-3 text-xs" style="color:var(--muted-foreground);">${sourceLabel[l.source] || l.source}</td>
           <td class="px-4 py-3">${scoreBar(l.score)}</td>
           <td class="px-4 py-3">${classificationBadge(l.classification)}</td>
-          <td class="px-4 py-3 text-xs" style="color:#6B7280;">${actionLabel[l.next_action] || '—'}</td>
-          <td class="px-4 py-3"><span class="badge ${statusColors[l.status] || 'bg-gray-100 text-gray-500'}">${statusLabel[l.status] || l.status}</span></td>
-          <td class="px-4 py-3 font-data text-xs" style="color:#9CA3AF;">${fmtDate(l.created_at)}</td>
+          <td class="px-4 py-3 text-xs" style="color:var(--muted-foreground);">${actionLabel[l.next_action] || '—'}</td>
+          <td class="px-4 py-3">${statusBadge(l.status)}</td>
+          <td class="px-4 py-3 font-data text-xs" style="color:var(--muted-foreground);">${fmtDate(l.created_at)}</td>
         </tr>`).join('')}
     </tbody>
-  </table>`;
+  </table>
+  </div>`;
 }
 
 function renderLeadDetail(l) {
@@ -122,61 +257,63 @@ function renderLeadDetail(l) {
   const questions = ['¿En qué los podemos ayudar?', '¿Qué los trajo por acá?'];
   const email = (l.email || '').trim();
   const safeEmail = email.replace(/'/g, "\\'");
+  const labelCls = 'text-xs font-semibold mb-1 uppercase tracking-wider';
+  const labelStyle = 'color:var(--muted-foreground);font-family:var(--font-mono);letter-spacing:0.14em;';
 
   return `
     <div class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Email</p>
-        <p style="color:#374151;">${l.email || '<span style="color:#9CA3AF;">—</span>'}</p>
+        <p class="${labelCls}" style="${labelStyle}">Email</p>
+        <p style="color:var(--foreground);">${l.email || '<span style="color:var(--muted-foreground);">—</span>'}</p>
       </div>
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Contacto</p>
-        <p style="color:#374151;">${l.contact || '<span style="color:#9CA3AF;">—</span>'}</p>
+        <p class="${labelCls}" style="${labelStyle}">Contacto</p>
+        <p style="color:var(--foreground);">${l.contact || '<span style="color:var(--muted-foreground);">—</span>'}</p>
       </div>
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Fuente</p>
-        <p style="color:#374151;">${sourceLabel[l.source] || l.source}</p>
+        <p class="${labelCls}" style="${labelStyle}">Fuente</p>
+        <p style="color:var(--foreground);">${sourceLabel[l.source] || l.source}</p>
       </div>
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Score SDR</p>
+        <p class="${labelCls}" style="${labelStyle}">Score SDR</p>
         <div class="mt-1">${scoreBar(l.score)}</div>
       </div>
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Clasificación</p>
+        <p class="${labelCls}" style="${labelStyle}">Clasificación</p>
         <div class="mt-0.5">${classificationBadge(l.classification)}</div>
       </div>
       <div>
-        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Próxima acción</p>
-        <p class="text-xs" style="color:#6B7280;">${actionLabel[l.next_action] || '—'}</p>
+        <p class="${labelCls}" style="${labelStyle}">Próxima acción</p>
+        <p class="text-xs" style="color:var(--muted-foreground);">${actionLabel[l.next_action] || '—'}</p>
       </div>
     </div>
 
     ${msgParts.length ? `
-    <div class="rounded-lg p-3.5 border" style="background:#F9FAFB;border-color:#E5E7EB;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-3" style="color:#9CA3AF;">Conversación</p>
+    <div class="rounded-xl p-3.5 border" style="background:var(--elevated);border-color:var(--border);">
+      <p class="${labelCls} mb-3" style="${labelStyle}">Conversación</p>
       <div class="space-y-2.5">
         ${msgParts.map((p, i) => `
           <div>
-            <p class="text-xs mb-1" style="color:#9CA3AF;">${questions[i] || `Respuesta ${i+1}`}</p>
-            <p class="text-xs rounded-lg px-3 py-2 leading-relaxed" style="background:white;border:1px solid #E5E7EB;color:#374151;">${p}</p>
+            <p class="text-xs mb-1" style="color:var(--muted-foreground);">${questions[i] || `Respuesta ${i+1}`}</p>
+            <p class="text-xs rounded-lg px-3 py-2 leading-relaxed" style="background:var(--card);border:1px solid var(--border);color:var(--foreground);">${p}</p>
           </div>`).join('')}
       </div>
     </div>` : ''}
 
     ${l.sdr_notes ? `
-    <div class="rounded-lg p-3.5 border" style="background:#EFF6FF;border-color:#BFDBFE;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#2563EB;">Análisis SDR</p>
-      <p class="whitespace-pre-wrap text-xs leading-relaxed" style="color:#1E40AF;">${l.sdr_notes}</p>
+    <div class="rounded-xl p-3.5 border" style="background:var(--info-soft);border-color:rgb(106 166 255 / 0.35);">
+      <p class="${labelCls} mb-2" style="color:var(--info);font-family:var(--font-mono);letter-spacing:0.14em;">Análisis SDR</p>
+      <p class="whitespace-pre-wrap text-xs leading-relaxed" style="color:var(--foreground);">${l.sdr_notes}</p>
     </div>` : ''}
 
-    <div class="rounded-lg p-3.5 border" style="background:#F9FAFB;border-color:#E5E7EB;" id="lead-assign-box">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#9CA3AF;">Asignar propuesta (manual)</p>
+    <div class="rounded-xl p-3.5 border" style="background:var(--elevated);border-color:var(--border);" id="lead-assign-box">
+      <p class="${labelCls} mb-2" style="${labelStyle}">Asignar propuesta (manual)</p>
       ${!email ? `
-        <p class="text-xs leading-relaxed" style="color:#B45309;background:#FFFBEB;border:1px solid #FDE68A;border-radius:6px;padding:8px 10px;">
+        <p class="text-xs leading-relaxed" style="color:var(--warning);background:var(--warning-soft);border:1px solid rgb(245 177 76 / 0.35);border-radius:8px;padding:8px 10px;">
           Este lead no tiene email. Agregá un email para asignar una propuesta del catálogo (mismo criterio que Analista).
         </p>
       ` : `
-        <p class="text-xs mb-2" style="color:#6B7280;" id="lead-prop-current">Cargando asignación…</p>
+        <p class="text-xs mb-2" style="color:var(--muted-foreground);" id="lead-prop-current">Cargando asignación…</p>
         <select id="lead-prop-select" class="input text-sm mb-2">
           <option value="">Cargando catálogo…</option>
         </select>
@@ -189,9 +326,9 @@ function renderLeadDetail(l) {
     </div>
 
     ${email ? `
-    <div class="rounded-lg p-3.5 border" style="background:#F5F3FF;border-color:#DDD6FE;">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#7C3AED;">Cadena agentes (02 → 04)</p>
-      <p class="text-xs mb-3" style="color:#6B7280;">Perfil (Analista) → opcional reunión (Reuniones) → briefing comercial. Empezá por el perfil si aún no existe.</p>
+    <div class="rounded-xl p-3.5 border" style="background:var(--accent-soft);border-color:rgb(139 92 246 / 0.35);">
+      <p class="${labelCls} mb-2" style="color:#a78bfa;font-family:var(--font-mono);letter-spacing:0.14em;">Cadena agentes (02 → 04)</p>
+      <p class="text-xs mb-3" style="color:var(--muted-foreground);">Perfil (Analista) → opcional reunión (Reuniones) → briefing comercial. Empezá por el perfil si aún no existe.</p>
       <div class="flex flex-wrap gap-2">
         <button type="button" class="btn-ghost text-xs" onclick="generatePerfilFromLead('${safeEmail}')">Generar perfil</button>
         <button type="button" class="btn-primary text-xs" onclick="generateBriefingFromLead('${safeEmail}')">Generar briefing</button>
@@ -217,7 +354,7 @@ async function initLeadPropuestaAssign(lead) {
     if (byLead?.propuesta) {
       selectedId = byLead.propuesta.id;
       if (currentEl) {
-        currentEl.innerHTML = `Actual: <span style="color:#111827;">${byLead.propuesta.nombre}</span> · origen ${byLead.perfil?.propuesta_origen || '—'}`;
+        currentEl.innerHTML = `Actual: <span style="color:var(--foreground);">${byLead.propuesta.nombre}</span> · origen ${byLead.perfil?.propuesta_origen || '—'}`;
       }
       if (notasEl) notasEl.value = byLead.perfil?.propuesta_notas || '';
       if (clearBtn) clearBtn.style.display = '';

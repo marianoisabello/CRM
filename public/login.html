@@ -3,63 +3,112 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0A0A10">
   <title>CRM — Login</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    * { font-family: 'Inter', system-ui, sans-serif; }
-    .input-field {
-      width: 100%; background: white; border: 1px solid #D1D5DB;
-      border-radius: 6px; padding: 10px 14px; font-size: 14px;
-      color: #111827; outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+    :root {
+      color-scheme: dark;
+      --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+      --font-serif: 'Instrument Serif', ui-serif, Georgia, serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+      --background: #0a0a10;
+      --foreground: #ffffff;
+      --card: #101018;
+      --elevated: #16161f;
+      --muted-foreground: #8a8a9c;
+      --border: #22222e;
+      --input: #22222e;
+      --primary: #2bd4bd;
+      --primary-foreground: #04140f;
+      --accent: #8b5cf6;
+      --danger: #f2726d;
+      --danger-soft: rgb(242 114 109 / 0.14);
+      --radius-md: 0.75rem;
+      --radius-xl: 1.25rem;
     }
-    .input-field:focus { border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
-    .input-field::placeholder { color: #9CA3AF; }
+    * { font-family: var(--font-sans); box-sizing: border-box; }
+    body {
+      background: var(--background);
+      color: var(--foreground);
+      font-feature-settings: 'cv11', 'ss01';
+    }
+    .display {
+      font-family: var(--font-serif);
+      font-weight: 400;
+      letter-spacing: -0.01em;
+      line-height: 1.05;
+    }
+    .input-field {
+      width: 100%; background: var(--elevated); border: 1px solid var(--input);
+      border-radius: var(--radius-md); padding: 10px 14px; font-size: 14px;
+      color: var(--foreground); outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .input-field:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgb(43 212 189 / 0.15);
+    }
+    .input-field::placeholder { color: var(--muted-foreground); }
+    .btn-login {
+      width: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      color: var(--primary-foreground);
+      border: none; border-radius: 999px;
+      padding: 10px 16px; font-size: 14px; font-weight: 600;
+      cursor: pointer;
+      transition: box-shadow 0.2s, transform 0.15s;
+    }
+    .btn-login:hover { box-shadow: 0 0 30px -8px rgb(43 212 189 / 0.6); }
+    .btn-login:active { transform: scale(0.98); }
+    .btn-login:disabled { opacity: 0.6; cursor: not-allowed; box-shadow: none; }
   </style>
 </head>
-<body style="background:#F8F9FA;" class="min-h-screen flex items-center justify-center p-4">
+<body class="min-h-screen flex items-center justify-center p-4">
 
   <div class="w-full max-w-sm">
     <!-- Logo -->
     <div class="text-center mb-8">
-      <div class="w-14 h-14 rounded-xl flex items-center justify-center font-bold text-xl mx-auto mb-5 shadow-md text-white" style="background:#1A1D23;">D</div>
-      <h1 class="text-2xl font-bold tracking-tight" style="color:#111827;">Marketing Dana</h1>
-      <p class="text-sm mt-1.5" style="color:#6B7280;">Sistema operativo de la agencia</p>
+      <div class="w-14 h-14 rounded-full flex items-center justify-center text-xl mx-auto mb-5"
+           style="background:linear-gradient(135deg,var(--primary),var(--accent));">
+        <span class="w-11 h-11 rounded-full flex items-center justify-center display text-2xl"
+              style="background:var(--background);color:var(--primary);">D</span>
+      </div>
+      <h1 class="display text-3xl tracking-tight" style="color:var(--foreground);">Dana<span style="color:var(--primary);">.</span></h1>
+      <p class="text-sm mt-1.5" style="color:var(--muted-foreground);">CRM · Sistema operativo de la agencia</p>
     </div>
 
     <!-- Card -->
-    <div class="bg-white border border-gray-200 rounded-xl p-7 shadow-sm">
+    <div class="rounded-xl p-7" style="background:var(--card);border:1px solid var(--border);">
       <form id="login-form" class="space-y-4">
         <div>
-          <label class="text-xs font-semibold uppercase tracking-wider mb-1.5 block" style="color:#6B7280;">Email</label>
+          <label class="text-xs font-semibold uppercase tracking-wider mb-1.5 block" style="color:var(--muted-foreground);font-family:var(--font-mono);letter-spacing:0.14em;">Email</label>
           <input id="email" type="email" required placeholder="tu@email.com" class="input-field">
         </div>
         <div>
-          <label class="text-xs font-semibold uppercase tracking-wider mb-1.5 block" style="color:#6B7280;">Contraseña</label>
+          <label class="text-xs font-semibold uppercase tracking-wider mb-1.5 block" style="color:var(--muted-foreground);font-family:var(--font-mono);letter-spacing:0.14em;">Contraseña</label>
           <input id="password" type="password" required placeholder="••••••••" class="input-field">
         </div>
 
-        <div id="error-wrap" class="hidden bg-red-50 border border-red-200 rounded-lg px-3 py-2.5">
-          <p id="error-msg" class="text-red-600 text-sm"></p>
+        <div id="error-wrap" class="hidden rounded-lg px-3 py-2.5" style="background:var(--danger-soft);border:1px solid rgb(242 114 109 / 0.35);">
+          <p id="error-msg" class="text-sm" style="color:var(--danger);"></p>
         </div>
 
-        <button type="submit" id="login-btn"
-          class="w-full text-white rounded-lg py-2.5 text-sm font-semibold mt-1 flex items-center justify-center gap-2 transition-colors"
-          style="background:#2563EB;">
+        <button type="submit" id="login-btn" class="btn-login mt-1 flex items-center justify-center gap-2">
           Ingresar
         </button>
       </form>
     </div>
 
-    <p class="text-center text-xs mt-6" style="color:#9CA3AF;">CRM · Agentes IA</p>
+    <p class="text-center text-xs mt-6" style="color:var(--muted-foreground);">Marketing Dana · Agentes IA</p>
   </div>
 
   <script>
     if (localStorage.getItem('crm_token')) window.location.href = '/app.html';
-
-    document.getElementById('login-btn').addEventListener('mouseover', function() { this.style.background='#1D4ED8'; });
-    document.getElementById('login-btn').addEventListener('mouseout',  function() { this.style.background='#2563EB'; });
 
     document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();

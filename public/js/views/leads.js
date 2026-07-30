@@ -6,18 +6,17 @@ async function renderLeads(root, sourceFilter = null) {
   const title = sourceFilter ? (sourceLabel[sourceFilter] || sourceFilter) : 'Todos los leads';
 
   root.innerHTML = `
-    <div class="space-y-4">
-      <!-- Header -->
-      <div class="flex items-center justify-between">
+    <div class="space-y-4 anim-fade-up">
+      <div class="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 class="text-xl font-semibold" style="color:#111827;">${title}</h1>
-          <p id="leads-count" class="text-sm mt-0.5" style="color:#6B7280;">Cargando...</p>
+          ${eyebrow('Leads')}
+          <h1 class="display text-3xl mt-1" style="color:var(--foreground);">${title}</h1>
+          <p id="leads-count" class="text-sm mt-1" style="color:var(--muted-foreground);">Cargando...</p>
         </div>
         <div class="flex gap-2">
           <button onclick="exportToSheets('${sourceFilter || ''}')"
-            class="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-lg transition"
-            style="background:#F0FDF4;border:1px solid #BBF7D0;color:#15803D;"
-            onmouseover="this.style.background='#DCFCE7'" onmouseout="this.style.background='#F0FDF4'">
+            class="btn-ghost flex items-center gap-1.5 text-xs"
+            style="border-color:rgb(43 212 189 / 0.35);color:var(--primary);">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             Exportar Sheets
           </button>
@@ -28,7 +27,6 @@ async function renderLeads(root, sourceFilter = null) {
         </div>
       </div>
 
-      <!-- Filtros inline -->
       <div class="flex gap-2 flex-wrap">
         <select id="f-class" onchange="refreshLeads()" class="input" style="width:auto;min-width:160px;">
           <option value="">Todas las clasificaciones</option>
@@ -52,9 +50,8 @@ async function renderLeads(root, sourceFilter = null) {
         </select>` : ''}
       </div>
 
-      <!-- Tabla -->
-      <div id="leads-table-wrap" class="bg-white border overflow-hidden" style="border-color:#E5E7EB;border-radius:8px;">
-        <div class="flex items-center justify-center h-32 text-sm" style="color:#9CA3AF;">Cargando...</div>
+      <div id="leads-table-wrap">
+        <div class="flex items-center justify-center h-32 text-sm" style="color:var(--muted-foreground);">Cargando...</div>
       </div>
     </div>`;
 
@@ -79,7 +76,7 @@ async function refreshLeads() {
   const { leads } = await api(`/api/leads?${params}`);
   const count = leads?.length || 0;
   const countEl = document.getElementById('leads-count');
-  if (countEl) countEl.innerHTML = `<span class="font-data font-semibold" style="color:#2563EB;">${count}</span> lead${count !== 1 ? 's' : ''}`;
+  if (countEl) countEl.innerHTML = `<span class="font-data font-semibold tnum" style="color:var(--primary);">${count}</span> lead${count !== 1 ? 's' : ''}`;
   document.getElementById('leads-table-wrap').innerHTML = renderLeadsTable(leads);
 }
 
