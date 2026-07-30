@@ -15,16 +15,18 @@ function verifyWebhookSecret(req) {
 /**
  * POST /api/whatsapp/webhook
  * Recibe eventos de mensajes entrantes desde Whapi.Cloud (bot directo, sin ManyChat).
- * Responde 200 de inmediato; el bot procesa y contesta en background.
+ *
+ * Se espera (await) el procesamiento antes de responder: en funciones serverless de
+ * Vercel el trabajo "fire-and-forget" lanzado después de res.json() puede cortarse
+ * antes de completarse. El timeout de función (300s) da margen de sobra para esto.
  */
-router.post('/webhook', (req, res) => {
+router.post('/webhook', async (req, res) => {
   if (!verifyWebhookSecret(req)) {
     logger.warn({ msg: 'Webhook Whapi rechazado: secret inválido', ip: req.ip });
     return res.status(401).json({ ok: false, error: 'secret inválido' });
   }
 
   const messages = req.body?.messages || [];
-  res.status(200).json({ ok: true });
 
   for (const message of messages) {
     if (message.from_me) continue; // ignorar eco de mensajes salientes propios
@@ -39,10 +41,14 @@ router.post('/webhook', (req, res) => {
 
     if (!phone || !text) continue;
 
-    handleIncomingMessage({ phone, text, contactName: message.from_name || null }).catch((err) => {
+    try {
+      await handleIncomingMessage({ phone, text, contactName: message.from_name || null });
+    } catch (err) {
       logger.error({ msg: 'Error procesando mensaje del bot de WhatsApp', phone, error: err.message });
-    });
+    }
   }
+
+  res.status(200).json({ ok: true });
 });
 
 module.exports = router;
