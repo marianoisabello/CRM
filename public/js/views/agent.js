@@ -82,26 +82,6 @@ async function renderAnalystPerfiles(root) {
         </div>
       </div>
 
-      <div class="flex gap-2 flex-wrap items-center">
-        <input id="pf-q" type="search" placeholder="Buscar email, nombre o empresa…"
-          class="input" style="width:auto;min-width:220px;max-width:320px;"
-          onkeydown="if(event.key==='Enter')refreshPerfiles()">
-        <select id="pf-cat" onchange="refreshPerfiles()" class="input" style="width:auto;min-width:160px;">
-          <option value="">Todas las categorías</option>
-          <option value="CALIENTE">Caliente</option>
-          <option value="TIBIO">Tibio</option>
-          <option value="HOT">Hot</option>
-          <option value="WARM">Warm</option>
-          <option value="FRIO">Frío</option>
-          <option value="COLD">Cold</option>
-        </select>
-        <p id="perfiles-count" class="text-sm ml-1" style="color:#6B7280;">Cargando...</p>
-      </div>
-
-      <div id="perfiles-table-wrap" class="bg-white border overflow-hidden" style="border-color:#E5E7EB;border-radius:8px;">
-        <div class="flex items-center justify-center h-32 text-sm" style="color:#9CA3AF;">Cargando...</div>
-      </div>
-
       <div class="grid lg:grid-cols-3 gap-5">
         <div class="card lg:col-span-1">
           <h2 class="font-semibold text-sm mb-4" style="color:#374151;">Diagnóstico puntual</h2>
@@ -115,6 +95,28 @@ async function renderAnalystPerfiles(root) {
           <div id="runs-table" class="bg-white border overflow-hidden" style="border-color:#E5E7EB;border-radius:8px;">
             <div class="flex items-center justify-center h-24 text-sm" style="color:#9CA3AF;">Cargando...</div>
           </div>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="font-semibold text-sm mb-3" style="color:#374151;">Análisis / perfiles</h2>
+        <div class="flex gap-2 flex-wrap items-center mb-3">
+          <input id="pf-q" type="search" placeholder="Buscar email, nombre o empresa…"
+            class="input" style="width:auto;min-width:220px;max-width:320px;"
+            onkeydown="if(event.key==='Enter')refreshPerfiles()">
+          <select id="pf-cat" onchange="refreshPerfiles()" class="input" style="width:auto;min-width:160px;">
+            <option value="">Todas las categorías</option>
+            <option value="CALIENTE">Caliente</option>
+            <option value="TIBIO">Tibio</option>
+            <option value="HOT">Hot</option>
+            <option value="WARM">Warm</option>
+            <option value="FRIO">Frío</option>
+            <option value="COLD">Cold</option>
+          </select>
+          <p id="perfiles-count" class="text-sm ml-1" style="color:#6B7280;">Cargando...</p>
+        </div>
+        <div id="perfiles-table-wrap" class="bg-white border overflow-hidden" style="border-color:#E5E7EB;border-radius:8px;">
+          <div class="flex items-center justify-center h-32 text-sm" style="color:#9CA3AF;">Cargando...</div>
         </div>
       </div>
     </div>`;
@@ -399,9 +401,25 @@ function buildAgentForm(agentId) {
 
     case 'analyst':
       return `<div class="space-y-3">
-        <div>
-          <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Lead ID</label>
-          <input id="ag-lead-id" placeholder="uuid del lead" class="${inputCls}">
+        <div class="relative">
+          <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Buscar lead</label>
+          <input id="ag-lead-search" type="search" autocomplete="off"
+            placeholder="Nombre o email…"
+            class="${inputCls}"
+            oninput="onAnalystLeadSearch(this.value)"
+            onkeydown="onAnalystLeadSearchKey(event)"
+            onfocus="onAnalystLeadSearch(this.value)">
+          <input type="hidden" id="ag-lead-id" value="">
+          <div id="ag-lead-selected" class="hidden mt-2 rounded-lg px-3 py-2 text-xs border" style="background:#F9FAFB;border-color:#E5E7EB;">
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0">
+                <p id="ag-lead-selected-name" class="font-medium truncate" style="color:#111827;"></p>
+                <p id="ag-lead-selected-email" class="truncate mt-0.5" style="color:#6B7280;"></p>
+              </div>
+              <button type="button" onclick="clearAnalystLead()" class="shrink-0 text-xs" style="color:#9CA3AF;">Cambiar</button>
+            </div>
+          </div>
+          <div id="ag-lead-results" class="hidden absolute z-20 left-0 right-0 mt-1 max-h-56 overflow-auto bg-white border shadow-sm" style="border-color:#E5E7EB;border-radius:8px;"></div>
         </div>
         <div>
           <label class="text-xs font-semibold mb-1.5 block uppercase tracking-wider" style="color:#9CA3AF;">Notas de reunión</label>
@@ -470,9 +488,138 @@ function buildAgentForm(agentId) {
   }
 }
 
+let _analystLeadSearchTimer = null;
+let _analystLeadResults = [];
+
+function _analystEsc(s) {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function clearAnalystLead() {
+  const idEl = document.getElementById('ag-lead-id');
+  const searchEl = document.getElementById('ag-lead-search');
+  const selected = document.getElementById('ag-lead-selected');
+  const results = document.getElementById('ag-lead-results');
+  if (idEl) idEl.value = '';
+  if (searchEl) {
+    searchEl.value = '';
+    searchEl.classList.remove('hidden');
+  }
+  if (selected) selected.classList.add('hidden');
+  if (results) {
+    results.classList.add('hidden');
+    results.innerHTML = '';
+  }
+  _analystLeadResults = [];
+}
+
+function selectAnalystLead(id, name, email) {
+  const idEl = document.getElementById('ag-lead-id');
+  const searchEl = document.getElementById('ag-lead-search');
+  const selected = document.getElementById('ag-lead-selected');
+  const nameEl = document.getElementById('ag-lead-selected-name');
+  const emailEl = document.getElementById('ag-lead-selected-email');
+  const results = document.getElementById('ag-lead-results');
+  if (idEl) idEl.value = id || '';
+  if (nameEl) nameEl.textContent = name || 'Sin nombre';
+  if (emailEl) emailEl.textContent = email || '';
+  if (selected) selected.classList.remove('hidden');
+  if (searchEl) searchEl.classList.add('hidden');
+  if (results) {
+    results.classList.add('hidden');
+    results.innerHTML = '';
+  }
+}
+
+function renderAnalystLeadResults(leads) {
+  const results = document.getElementById('ag-lead-results');
+  if (!results) return;
+  _analystLeadResults = leads || [];
+  if (!_analystLeadResults.length) {
+    results.innerHTML = `<div class="px-3 py-2.5 text-xs" style="color:#9CA3AF;">Sin coincidencias</div>`;
+    results.classList.remove('hidden');
+    return;
+  }
+  results.innerHTML = _analystLeadResults.map((l, i) => {
+    const name = _analystEsc(l.name || 'Sin nombre');
+    const email = _analystEsc(l.email || '');
+    const src = _analystEsc(l.source || l.classification || '');
+    return `<button type="button" data-idx="${i}"
+        onclick="pickAnalystLead(${i})"
+        class="w-full text-left px-3 py-2.5 transition hover:bg-gray-50"
+        style="border-top:1px solid #F3F4F6;">
+      <p class="text-sm font-medium leading-tight" style="color:#111827;">${name}</p>
+      <p class="text-xs mt-0.5 truncate" style="color:#6B7280;">${email}${src ? ' · ' + src : ''}</p>
+    </button>`;
+  }).join('');
+  results.classList.remove('hidden');
+}
+
+function pickAnalystLead(idx) {
+  const l = _analystLeadResults[idx];
+  if (!l?.id) return;
+  selectAnalystLead(l.id, l.name || 'Sin nombre', l.email || '');
+}
+
+async function onAnalystLeadSearch(raw) {
+  const q = String(raw || '').trim();
+  const results = document.getElementById('ag-lead-results');
+  const idEl = document.getElementById('ag-lead-id');
+  if (_analystLeadSearchTimer) clearTimeout(_analystLeadSearchTimer);
+
+  const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  if (uuidRe.test(q)) {
+    selectAnalystLead(q, 'Lead por ID', q);
+    return;
+  }
+
+  if (idEl && !document.getElementById('ag-lead-search')?.classList.contains('hidden')) {
+    idEl.value = '';
+  }
+
+  if (q.length < 2) {
+    if (results) {
+      results.classList.add('hidden');
+      results.innerHTML = '';
+    }
+    _analystLeadResults = [];
+    return;
+  }
+
+  _analystLeadSearchTimer = setTimeout(async () => {
+    const res = await api(`/api/leads?q=${encodeURIComponent(q)}&limit=12`);
+    if (!res?.ok) {
+      if (results) {
+        results.innerHTML = `<div class="px-3 py-2.5 text-xs" style="color:#B91C1C;">${_analystEsc(res?.error || 'Error al buscar')}</div>`;
+        results.classList.remove('hidden');
+      }
+      return;
+    }
+    renderAnalystLeadResults(res.leads || []);
+  }, 250);
+}
+
+function onAnalystLeadSearchKey(event) {
+  if (event.key === 'Escape') {
+    const results = document.getElementById('ag-lead-results');
+    if (results) {
+      results.classList.add('hidden');
+      results.innerHTML = '';
+    }
+  }
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    if (_analystLeadResults.length === 1) pickAnalystLead(0);
+  }
+}
+
 async function runAgent(agentId) {
   const body = {};
-  const leadId = document.getElementById('ag-lead-id')?.value;
+  const leadId = document.getElementById('ag-lead-id')?.value?.trim();
   if (leadId) body.lead_id = leadId;
   if (document.getElementById('ag-meeting-notes')) body.meeting_notes = document.getElementById('ag-meeting-notes').value;
   if (document.getElementById('ag-call-notes'))    body.call_notes    = document.getElementById('ag-call-notes').value;
@@ -482,6 +629,11 @@ async function runAgent(agentId) {
   if (document.getElementById('ag-client-id'))     body.client_id     = document.getElementById('ag-client-id').value;
   if (document.getElementById('ag-month'))         body.month         = document.getElementById('ag-month').value;
   if (document.getElementById('ag-team-notes'))    body.team_notes    = document.getElementById('ag-team-notes').value;
+
+  if (agentId === 'analyst' && !body.lead_id) {
+    showToast('Elegí un lead por nombre o email', 'error');
+    return;
+  }
 
   const res = await api(`/api/agent-runs/${agentId}`, { method: 'POST', body });
   if (res?.ok) {

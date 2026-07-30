@@ -4,9 +4,9 @@ const express = require('express');
 const router = express.Router();
 const supabase = require('../db/client');
 
-// GET /api/leads?classification=hot&status=new&source=manychat&limit=50&offset=0
+// GET /api/leads?classification=hot&status=new&source=manychat&q=nombre|email&limit=50&offset=0
 router.get('/', async (req, res) => {
-  const { classification, status, source, limit = 50, offset = 0 } = req.query;
+  const { classification, status, source, q, limit = 50, offset = 0 } = req.query;
 
   let query = supabase
     .from('leads')
@@ -17,6 +17,13 @@ router.get('/', async (req, res) => {
   if (classification) query = query.eq('classification', classification);
   if (status) query = query.eq('status', status);
   if (source) query = query.eq('source', source);
+  if (q) {
+    const safe = String(q).trim().replace(/[%*,()"\\]/g, '').slice(0, 80);
+    if (safe) {
+      const term = `"%${safe}%"`;
+      query = query.or(`name.ilike.${term},email.ilike.${term}`);
+    }
+  }
 
   const { data, error } = await query;
   if (error) return res.status(500).json({ ok: false, error: error.message });
