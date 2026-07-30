@@ -99,7 +99,17 @@ async function renderAnalystPerfiles(root) {
       </div>
 
       <div>
-        <h2 class="font-semibold text-sm mb-3" style="color:#374151;">Análisis / perfiles</h2>
+        <div class="flex items-end justify-between gap-3 flex-wrap mb-3">
+          <div>
+            <h2 class="font-semibold text-sm" style="color:#374151;">Análisis</h2>
+            <p class="text-xs mt-0.5" style="color:#9CA3AF;">Diagnósticos puntuales + perfiles enriquecidos</p>
+          </div>
+          <select id="pf-kind" onchange="refreshPerfiles()" class="input" style="width:auto;min-width:150px;">
+            <option value="">Todos</option>
+            <option value="diagnosis">Diagnósticos</option>
+            <option value="perfil">Perfiles</option>
+          </select>
+        </div>
         <div class="flex gap-2 flex-wrap items-center mb-3">
           <input id="pf-q" type="search" placeholder="Buscar email, nombre o empresa…"
             class="input" style="width:auto;min-width:220px;max-width:320px;"
@@ -138,57 +148,83 @@ function sdrCategoriaBadge(cat) {
   return `<span class="badge bg-gray-100 text-gray-600 border border-gray-200">${cat}</span>`;
 }
 
-function renderPerfilesTable(perfiles) {
-  if (!perfiles?.length) {
+let _analystAnalysesCache = { diagnosis: {}, perfil: {} };
+
+function _analysisKindBadge(kind) {
+  if (kind === 'diagnosis') {
+    return '<span class="badge bg-violet-100 text-violet-700 border border-violet-200">Diagnóstico</span>';
+  }
+  return '<span class="badge bg-sky-100 text-sky-700 border border-sky-200">Perfil</span>';
+}
+
+function _danaFitBadge(fit) {
+  if (!fit) return '<span class="text-xs" style="color:#9CA3AF;">—</span>';
+  const f = String(fit).toLowerCase();
+  const map = { alto: 'hot', medio: 'warm', bajo: 'cold', high: 'hot', medium: 'warm', low: 'cold' };
+  const key = map[f];
+  if (key) return classificationBadge(key);
+  return `<span class="badge bg-gray-100 text-gray-600 border border-gray-200">${fit}</span>`;
+}
+
+function renderAnalystAnalysesTable(rows) {
+  if (!rows?.length) {
     return `<div class="flex flex-col items-center justify-center py-16" style="color:#9CA3AF;">
       <svg class="w-10 h-10 mb-3 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-      <p class="text-sm">Sin perfiles aún</p>
+      <p class="text-sm">Sin análisis aún</p>
+      <p class="text-xs mt-1">Generá un diagnóstico arriba o ejecutá el batch de perfiles</p>
     </div>`;
   }
 
   return `<table class="w-full text-sm">
     <thead>
       <tr style="border-bottom:1px solid #E5E7EB;">
+        <th class="text-left px-4 py-3">Tipo</th>
         <th class="text-left px-4 py-3">Contacto</th>
-        <th class="text-left px-4 py-3">Empresa</th>
-        <th class="text-left px-4 py-3">Categoría</th>
-        <th class="text-left px-4 py-3">Score</th>
-        <th class="text-left px-4 py-3">Oferta</th>
-        <th class="text-left px-4 py-3">Propuesta</th>
-        <th class="text-left px-4 py-3">Insight</th>
+        <th class="text-left px-4 py-3">Señal</th>
+        <th class="text-left px-4 py-3">Resumen</th>
         <th class="text-left px-4 py-3">Actualizado</th>
       </tr>
     </thead>
     <tbody>
-      ${perfiles.map(p => {
-        const safe = JSON.stringify(p).replace(/'/g, '&#39;');
-        const insight = (p.razones || '').trim();
-        const shortInsight = insight.length > 72 ? insight.slice(0, 72) + '…' : insight;
+      ${rows.map((row) => {
+        const name = _analystEsc(row.name || 'Sin nombre');
+        const email = _analystEsc(row.email || '');
+        const summary = _analystEsc(row.summary || '—');
+        const onclick = row.kind === 'diagnosis'
+          ? `openAnalystDiagnosisModal('${row.id}')`
+          : `openAnalystPerfilById('${row.id}')`;
         return `<tr class="data-row transition" style="border-top:1px solid #F3F4F6;cursor:pointer;"
-            onclick='openPerfilModal(${safe})'>
+            onclick="${onclick}">
+          <td class="px-4 py-3">${_analysisKindBadge(row.kind)}</td>
           <td class="px-4 py-3">
             <div class="flex items-center gap-2.5">
-              <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style="background:#F5F3FF;color:#7C3AED;">${_avatarInitials(p.nombre || p.email)}</div>
+              <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0" style="background:#F5F3FF;color:#7C3AED;">${_avatarInitials(row.name || row.email)}</div>
               <div class="min-w-0">
-                <p class="font-medium leading-tight" style="color:#111827;">${p.nombre || '<span style="color:#9CA3AF;">Sin nombre</span>'}</p>
-                <p class="text-xs mt-0.5 truncate max-w-[180px]" style="color:#9CA3AF;">${p.email || ''}</p>
+                <p class="font-medium leading-tight" style="color:#111827;">${name}</p>
+                <p class="text-xs mt-0.5 truncate max-w-[180px]" style="color:#9CA3AF;">${email}</p>
               </div>
             </div>
           </td>
-          <td class="px-4 py-3">
-            <p class="leading-tight" style="color:#374151;">${p.empresa || '—'}</p>
-            <p class="text-xs mt-0.5" style="color:#9CA3AF;">${[p.cargo, p.rubro].filter(Boolean).join(' · ') || ''}</p>
-          </td>
-          <td class="px-4 py-3">${sdrCategoriaBadge(p.sdr_categoria)}</td>
-          <td class="px-4 py-3">${scoreBar(p.score_potencial)}</td>
-          <td class="px-4 py-3 text-xs max-w-[140px]" style="color:#6B7280;">${p.oferta_estimada || '—'}</td>
-          <td class="px-4 py-3 text-xs" style="color:#6B7280;">${p.propuesta_id ? (p.propuesta_origen === 'manual' ? 'Manual' : 'Auto') : '—'}</td>
-          <td class="px-4 py-3 text-xs max-w-[200px]" style="color:#6B7280;" title="${(insight || '').replace(/"/g, '&quot;')}">${shortInsight || '—'}</td>
-          <td class="px-4 py-3 font-data text-xs" style="color:#9CA3AF;">${fmtDate(p.updated_at)}</td>
+          <td class="px-4 py-3">${row.signalHtml || '<span class="text-xs" style="color:#9CA3AF;">—</span>'}</td>
+          <td class="px-4 py-3 text-xs max-w-[280px]" style="color:#6B7280;" title="${summary}">${summary}</td>
+          <td class="px-4 py-3 font-data text-xs" style="color:#9CA3AF;">${fmtDate(row.updated_at)}</td>
         </tr>`;
       }).join('')}
     </tbody>
   </table>`;
+}
+
+function renderPerfilesTable(perfiles) {
+  // legacy helper — analyst page uses renderAnalystAnalysesTable
+  return renderAnalystAnalysesTable((perfiles || []).map((p) => ({
+    kind: 'perfil',
+    id: p.email || p.lead_id,
+    name: p.nombre,
+    email: p.email,
+    summary: (p.razones || p.oferta_estimada || '').trim().slice(0, 120),
+    signalHtml: sdrCategoriaBadge(p.sdr_categoria),
+    updated_at: p.updated_at,
+  })));
 }
 
 function renderPerfilDetail(p) {
@@ -300,6 +336,139 @@ function openPerfilModal(perfil) {
   window._currentPerfil = perfil;
 }
 
+function openAnalystPerfilById(id) {
+  const perfil = _analystAnalysesCache.perfil?.[id];
+  if (!perfil) {
+    showToast('Perfil no encontrado', 'error');
+    return;
+  }
+  openPerfilModal(perfil);
+}
+
+function _diagnosisList(arr, empty) {
+  if (Array.isArray(arr) && arr.length) {
+    return `<ul class="space-y-1.5">${arr.map((x) => {
+      if (typeof x === 'string') return `<li class="text-xs leading-relaxed" style="color:#374151;">• ${_analystEsc(x)}</li>`;
+      if (x && typeof x === 'object') {
+        const action = x.action || x.title || '';
+        const impact = x.expected_impact ? ` · impacto ${x.expected_impact}` : '';
+        const effort = x.effort ? ` · esfuerzo ${x.effort}` : '';
+        const label = action || JSON.stringify(x);
+        return `<li class="text-xs leading-relaxed" style="color:#374151;">• ${_analystEsc(label)}${_analystEsc(impact + effort)}</li>`;
+      }
+      return `<li class="text-xs leading-relaxed" style="color:#374151;">• ${_analystEsc(String(x))}</li>`;
+    }).join('')}</ul>`;
+  }
+  return `<p class="text-xs" style="color:#9CA3AF;">${empty}</p>`;
+}
+
+function renderDiagnosisDetail(diagnosis, meta = {}) {
+  const d = diagnosis && typeof diagnosis === 'object' ? diagnosis : {};
+  const pains = d.pain_points || d.pain_points_inferidos || [];
+  const opportunities = d.opportunities || [];
+  const priorities = d.priorities || [];
+  const pending = d.pending_questions || [];
+  const resumen = d.situation_summary || d.resumen || d.summary || '';
+
+  return `
+    <div class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+      <div>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Lead</p>
+        <p style="color:#374151;">${_analystEsc(meta.name || '—')}</p>
+        <p class="text-xs mt-0.5" style="color:#9CA3AF;">${_analystEsc(meta.email || '')}</p>
+      </div>
+      <div>
+        <p class="text-xs font-semibold mb-1 uppercase tracking-wider" style="color:#9CA3AF;">Fit Dana / Estado</p>
+        <div class="mt-0.5 flex items-center gap-2 flex-wrap">
+          ${_danaFitBadge(d.dana_fit)}
+          ${meta.status ? `<span class="badge bg-gray-100 text-gray-600 border border-gray-200">${_analystEsc(meta.status)}</span>` : ''}
+        </div>
+      </div>
+    </div>
+
+    ${resumen ? `
+    <div class="rounded-lg p-3.5 border" style="background:#F9FAFB;border-color:#E5E7EB;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#9CA3AF;">Resumen / situación</p>
+      <p class="text-xs leading-relaxed whitespace-pre-wrap" style="color:#374151;">${_analystEsc(resumen)}</p>
+    </div>` : ''}
+
+    ${d.dana_fit_reasoning ? `
+    <div class="rounded-lg p-3.5 border" style="background:#F5F3FF;border-color:#DDD6FE;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#7C3AED;">Por qué encaja con Dana</p>
+      <p class="text-xs leading-relaxed" style="color:#5B21B6;">${_analystEsc(d.dana_fit_reasoning)}</p>
+    </div>` : ''}
+
+    ${Array.isArray(pains) && pains.length ? `
+    <div class="rounded-lg p-3.5 border" style="background:#FEF3C7;border-color:#FDE68A;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B45309;">Pain points</p>
+      ${_diagnosisList(pains, 'Sin pain points')}
+    </div>` : ''}
+
+    <div class="rounded-lg p-3.5 border" style="background:#EFF6FF;border-color:#BFDBFE;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#2563EB;">Oportunidades</p>
+      ${_diagnosisList(opportunities, 'Sin oportunidades')}
+    </div>
+
+    <div class="rounded-lg p-3.5 border" style="background:#F0FDF4;border-color:#BBF7D0;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#15803D;">Prioridades</p>
+      ${_diagnosisList(priorities, 'Sin prioridades')}
+    </div>
+
+    <div class="rounded-lg p-3.5 border" style="background:#FEF2F2;border-color:#FECACA;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B91C1C;">Preguntas pendientes</p>
+      ${_diagnosisList(pending, 'Sin preguntas pendientes')}
+    </div>
+
+    ${d.raw_response ? `
+    <div class="rounded-lg p-3.5 border" style="background:#F9FAFB;border-color:#E5E7EB;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#9CA3AF;">Respuesta cruda</p>
+      <pre class="text-xs whitespace-pre-wrap leading-relaxed" style="color:#374151;max-height:240px;overflow:auto;">${_analystEsc(String(d.raw_response).slice(0, 4000))}</pre>
+    </div>` : ''}
+
+    ${meta.error ? `
+    <div class="rounded-lg p-3.5 border" style="background:#FEF2F2;border-color:#FECACA;">
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B91C1C;">Error</p>
+      <p class="text-xs" style="color:#991B1B;">${_analystEsc(meta.error)}</p>
+    </div>` : ''}
+  `;
+}
+
+async function openAnalystDiagnosisModal(runId) {
+  const cached = _analystAnalysesCache.diagnosis?.[runId] || _agentRunsCache?.[runId];
+  if (!cached) {
+    showToast('Diagnóstico no encontrado', 'error');
+    return;
+  }
+
+  let diagnosis = cached.output_data || cached.diagnosis || null;
+  const leadId = cached.lead_id || cached.leads?.id;
+  const meta = {
+    name: cached.leads?.name || cached.name || 'Diagnóstico',
+    email: cached.leads?.email || cached.email || '',
+    status: cached.status || '',
+    error: cached.error || '',
+  };
+
+  if ((!diagnosis || (typeof diagnosis === 'object' && !Object.keys(diagnosis).length)) && leadId) {
+    const res = await api(`/api/diagnosis/${leadId}`);
+    if (res?.ok && res.diagnosis) diagnosis = res.diagnosis;
+  }
+
+  if (!diagnosis && cached.status === 'running') {
+    diagnosis = { situation_summary: 'Diagnóstico en curso…' };
+  }
+  if (!diagnosis) diagnosis = {};
+
+  document.getElementById('modal-name').textContent = meta.name || 'Diagnóstico';
+  document.getElementById('modal-source').textContent =
+    ['Diagnóstico', meta.email, meta.status, fmtDate(cached.created_at || cached.updated_at)].filter(Boolean).join(' · ');
+  document.getElementById('modal-body').innerHTML = renderDiagnosisDetail(diagnosis, meta);
+  document.getElementById('modal-status-buttons').innerHTML = '';
+  const footer = document.getElementById('modal-footer');
+  if (footer) footer.style.display = 'none';
+  document.getElementById('lead-modal').classList.remove('hidden');
+}
+
 async function loadPropuestasIntoSelect(selectedId) {
   const sel = document.getElementById('perfil-prop-select');
   if (!sel) return;
@@ -357,19 +526,80 @@ async function clearPerfilPropuesta(email) {
 
 async function refreshPerfiles() {
   const params = new URLSearchParams({ limit: '100' });
-  const q = document.getElementById('pf-q')?.value?.trim();
+  const q = (document.getElementById('pf-q')?.value || '').trim().toLowerCase();
   const cat = document.getElementById('pf-cat')?.value;
+  const kind = document.getElementById('pf-kind')?.value || '';
   if (q) params.set('q', q);
   if (cat) params.set('categoria', cat);
 
-  const res = await api(`/api/agent-runs/perfiles?${params}`);
-  const perfiles = res?.perfiles || [];
+  // Category filter applies only to perfiles; skip diagnoses when a category is set.
+  const wantPerfiles = kind !== 'diagnosis';
+  const wantDiagnoses = kind !== 'perfil' && !cat;
+
+  const [pfRes, runsRes] = await Promise.all([
+    wantPerfiles ? api(`/api/agent-runs/perfiles?${params}`) : Promise.resolve({ ok: true, perfiles: [] }),
+    wantDiagnoses ? api('/api/agent-runs?agent_id=analyst&limit=40') : Promise.resolve({ ok: true, runs: [] }),
+  ]);
+
+  const perfiles = pfRes?.perfiles || [];
+  const runs = (runsRes?.runs || []).filter((r) => r.status === 'completed' || r.status === 'failed' || r.status === 'running');
+
+  _analystAnalysesCache = { diagnosis: {}, perfil: {} };
+  const rows = [];
+
+  for (const r of runs) {
+    _analystAnalysesCache.diagnosis[r.id] = r;
+    const d = r.output_data || {};
+    const name = r.leads?.name || 'Sin nombre';
+    const email = r.leads?.email || '';
+    if (q) {
+      const hay = `${name} ${email} ${d.situation_summary || ''}`.toLowerCase();
+      if (!hay.includes(q)) continue;
+    }
+    const summary = (d.situation_summary || d.resumen || d.raw_response || r.error || r.status || '').toString().trim().slice(0, 120);
+    rows.push({
+      kind: 'diagnosis',
+      id: r.id,
+      name,
+      email,
+      summary,
+      signalHtml: _danaFitBadge(d.dana_fit) + (r.status && r.status !== 'completed'
+        ? ` <span class="badge bg-gray-100 text-gray-600 border border-gray-200">${r.status}</span>`
+        : ''),
+      updated_at: r.created_at,
+      _ts: new Date(r.created_at || 0).getTime(),
+    });
+  }
+
+  for (const p of perfiles) {
+    const key = p.email || p.lead_id;
+    if (!key) continue;
+    _analystAnalysesCache.perfil[key] = p;
+    const insight = (p.razones || p.oferta_estimada || '').trim();
+    rows.push({
+      kind: 'perfil',
+      id: key,
+      name: p.nombre,
+      email: p.email,
+      summary: insight.slice(0, 120),
+      signalHtml: sdrCategoriaBadge(p.sdr_categoria),
+      updated_at: p.updated_at,
+      _ts: new Date(p.updated_at || 0).getTime(),
+    });
+  }
+
+  rows.sort((a, b) => (b._ts || 0) - (a._ts || 0));
+
+  const diagCount = rows.filter((r) => r.kind === 'diagnosis').length;
+  const pfCount = rows.filter((r) => r.kind === 'perfil').length;
   const countEl = document.getElementById('perfiles-count');
   if (countEl) {
-    countEl.innerHTML = `<span class="font-data font-semibold" style="color:#7C3AED;">${perfiles.length}</span> perfil${perfiles.length !== 1 ? 'es' : ''}`;
+    countEl.innerHTML =
+      `<span class="font-data font-semibold" style="color:#7C3AED;">${rows.length}</span> análisis` +
+      ` <span style="color:#9CA3AF;">(${diagCount} diag · ${pfCount} perfiles)</span>`;
   }
   const wrap = document.getElementById('perfiles-table-wrap');
-  if (wrap) wrap.innerHTML = renderPerfilesTable(perfiles);
+  if (wrap) wrap.innerHTML = renderAnalystAnalysesTable(rows);
 }
 
 async function runPerfilesBatch() {
@@ -690,10 +920,11 @@ async function submitAnalystDiagnosis() {
       return;
     }
 
-    _setAnalystDiagStatus('Diagnóstico en curso. El historial se actualiza en unos segundos.', 'ok');
+    _setAnalystDiagStatus('Diagnóstico en curso. El historial y la lista de análisis se actualizan en unos segundos.', 'ok');
     showToast('Diagnóstico iniciado');
-    setTimeout(() => loadAgentRuns('analyst'), 2000);
-    setTimeout(() => loadAgentRuns('analyst'), 8000);
+    const refreshAnalystViews = () => Promise.all([loadAgentRuns('analyst'), refreshPerfiles()]);
+    setTimeout(refreshAnalystViews, 2000);
+    setTimeout(refreshAnalystViews, 8000);
   } catch (err) {
     const msg = err?.message || 'Error inesperado';
     _setAnalystDiagStatus(msg, 'error');
@@ -742,6 +973,12 @@ window.onAnalystLeadSearch = onAnalystLeadSearch;
 window.onAnalystLeadSearchKey = onAnalystLeadSearchKey;
 window.submitAnalystDiagnosis = submitAnalystDiagnosis;
 window.runAgent = runAgent;
+window.openAnalystDiagnosisModal = openAnalystDiagnosisModal;
+window.openAnalystPerfilById = openAnalystPerfilById;
+window.openPerfilModal = openPerfilModal;
+window.refreshPerfiles = refreshPerfiles;
+
+let _agentRunsCache = {};
 
 async function loadAgentRuns(agentId) {
   const { runs } = await api(`/api/agent-runs?agent_id=${agentId}&limit=20`);
@@ -756,11 +993,22 @@ async function loadAgentRuns(agentId) {
     return;
   }
 
+  if (agentId === 'analyst') {
+    _agentRunsCache = {};
+    for (const r of runs) {
+      _agentRunsCache[r.id] = r;
+      if (!_analystAnalysesCache.diagnosis) _analystAnalysesCache.diagnosis = {};
+      _analystAnalysesCache.diagnosis[r.id] = r;
+    }
+  }
+
   const statusBadge = {
     running:   'bg-amber-100 text-amber-700 border border-amber-200',
     completed: 'bg-green-100 text-green-700 border border-green-200',
     failed:    'bg-red-100 text-red-700 border border-red-200',
   };
+
+  const clickable = agentId === 'analyst';
 
   wrap.innerHTML = `<table class="w-full text-sm">
     <thead>
@@ -773,10 +1021,17 @@ async function loadAgentRuns(agentId) {
       </tr>
     </thead>
     <tbody>
-      ${runs.map(r => `<tr class="data-row transition" style="border-top:1px solid #F3F4F6;">
+      ${runs.map(r => {
+        const rowClick = clickable
+          ? ` class="data-row transition" style="border-top:1px solid #F3F4F6;cursor:pointer;" onclick="openAnalystDiagnosisModal('${r.id}')"`
+          : ` class="data-row transition" style="border-top:1px solid #F3F4F6;"`;
+        const preview = clickable && r.output_data?.situation_summary
+          ? `<p class="text-xs mt-0.5 truncate max-w-[220px]" style="color:#9CA3AF;">${_analystEsc(String(r.output_data.situation_summary).slice(0, 80))}</p>`
+          : `<p class="text-xs" style="color:#9CA3AF;">${_analystEsc(r.leads?.source || r.agent_id || '')}</p>`;
+        return `<tr${rowClick}>
         <td class="px-4 py-3">
-          <p class="font-medium leading-tight" style="color:#111827;">${r.leads?.name || '<span style="color:#9CA3AF;">Sin nombre</span>'}</p>
-          <p class="text-xs" style="color:#9CA3AF;">${r.leads?.source || r.agent_id || ''}</p>
+          <p class="font-medium leading-tight" style="color:#111827;">${r.leads?.name ? _analystEsc(r.leads.name) : '<span style="color:#9CA3AF;">Sin nombre</span>'}</p>
+          ${preview}
         </td>
         <td class="px-4 py-3">
           <span class="badge ${statusBadge[r.status] || 'bg-gray-100 text-gray-500'}">${r.status}</span>
@@ -784,7 +1039,8 @@ async function loadAgentRuns(agentId) {
         <td class="px-4 py-3 font-data text-xs" style="color:#6B7280;">${r.tokens_used ? r.tokens_used.toLocaleString() : '—'}</td>
         <td class="px-4 py-3 font-data text-xs" style="color:#6B7280;">${r.duration_ms ? `${(r.duration_ms/1000).toFixed(1)}s` : '—'}</td>
         <td class="px-4 py-3 font-data text-xs" style="color:#9CA3AF;">${fmtDate(r.created_at)}</td>
-      </tr>`).join('')}
+      </tr>`;
+      }).join('')}
     </tbody>
   </table>`;
 }
