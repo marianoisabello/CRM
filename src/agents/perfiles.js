@@ -60,7 +60,8 @@ function normalizeLead(row) {
     id: row.id || null,
     email: String(row.email || '').toLowerCase().trim(),
     nombre: String(row.nombre_apellido || row.name || raw.nombre || '').trim(),
-    empresa: String(row.empresa || raw.empresa || '').trim(),
+    empresa: String(row.company_name || row.empresa || raw.empresa || raw.company || '').trim(),
+    company_id: row.company_id || null,
     cargo: String(row.cargo || raw.cargo || '').trim(),
     rubro: String(row.rubro || raw.rubro || '').trim(),
     objetivo: String(row.objetivo_necesidad || row.message || raw.objetivo || '').trim(),
@@ -71,6 +72,7 @@ function normalizeLead(row) {
     score: Number(row.score_total ?? row.score ?? 0) || 0,
     categoria: String(row.categoria_lead || row.classification || '').trim(),
     source: String(row.source || '').trim(),
+    converted_deal_id: row.converted_deal_id || null,
   };
 }
 
@@ -135,14 +137,36 @@ async function enrichOne(leadRow) {
   // Preserve manual propuesta assignment if present
   const { data: existing } = await supabase
     .from('perfiles')
-    .select('propuesta_id, propuesta_origen, propuesta_notas, propuesta_asignada_at')
+    .select('propuesta_id, propuesta_origen, propuesta_notas, propuesta_asignada_at, company_id')
     .eq('email', lead.email)
     .maybeSingle();
+
+  let companyId = lead.company_id || existing?.company_id || null;
+  if (!companyId && lead.empresa) {
+    try {
+      const { findOrCreateCompanyByName } = require('../db/companies');
+      const company = await findOrCreateCompanyByName(lead.empresa);
+      companyId = company?.id || null;
+      if (companyId && lead.id && !lead.company_id) {
+        await supabase
+          .from('leads')
+          .update({
+            company_id: companyId,
+            company_name: lead.empresa,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', lead.id);
+      }
+    } catch (err) {
+      logger.warn({ msg: 'No se pudo linkear company en perfil', email: lead.email, error: err.message });
+    }
+  }
 
   const perfil = {
     email: lead.email,
     nombre: lead.nombre,
     empresa: lead.empresa,
+    company_id: companyId,
     cargo: lead.cargo || enriched.cargo_inferido || '',
     rubro: lead.rubro,
     tamanio_empresa: lead.tamanio || enriched.tamanio_inferido || '',
@@ -173,6 +197,21 @@ async function enrichOne(leadRow) {
 
   const { error } = await supabase.from('perfiles').upsert(perfil, { onConflict: 'email' });
   if (error) throw new Error(error.message);
+
+  try {
+    const { createActivity } = require('../db/activities');
+    await createActivity({
+      type: 'agent',
+      title: `Perfil enriquecido — ${lead.nombre || lead.email}`,
+      body: enriched.razones || null,
+      lead_id: lead.id || null,
+      company_id: companyId,
+      agent_id: 'perfiles',
+    });
+  } catch (_) {
+    /* soft */
+  }
+
   return { perfil, tokensUsed, research };
 }
 

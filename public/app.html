@@ -439,7 +439,27 @@
         <div class="nav-group-children" id="nav-children-herramientas">
           <a href="#pipeline" class="nav-sub" data-view="pipeline">
             <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
-            Pipeline
+            Pipeline leads
+          </a>
+          <a href="#deals" class="nav-sub" data-view="deals">
+            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
+            Pipeline deals
+          </a>
+          <a href="#companies" class="nav-sub" data-view="companies">
+            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            Empresas
+          </a>
+          <a href="#contacts" class="nav-sub" data-view="contacts">
+            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            Contactos
+          </a>
+          <a href="#activities" class="nav-sub" data-view="activities">
+            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Actividades
+          </a>
+          <a href="#inbox" class="nav-sub" data-view="inbox">
+            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
+            Bandeja IA
           </a>
           <a href="#calendar" class="nav-sub" data-view="calendar">
             <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -514,6 +534,11 @@
   <script src="/js/views/calendar.js"></script>
   <script src="/js/views/settings.js"></script>
   <script src="/js/views/pipeline.js"></script>
+  <script src="/js/views/deals.js"></script>
+  <script src="/js/views/companies.js"></script>
+  <script src="/js/views/contacts.js"></script>
+  <script src="/js/views/activities.js"></script>
+  <script src="/js/views/inbox.js"></script>
   <script>
     const token = localStorage.getItem('crm_token');
     if (!token) window.location.href = '/login.html';
@@ -578,7 +603,7 @@
       });
 
       // Ensure Herramientas stays open when a child view is active
-      if (view === 'pipeline' || view === 'calendar' || view === 'chatbox') {
+      if (view === 'pipeline' || view === 'deals' || view === 'companies' || view === 'contacts' || view === 'activities' || view === 'inbox' || view === 'calendar' || view === 'chatbox') {
         const group = document.getElementById('nav-group-herramientas');
         if (group && !group.classList.contains('open')) {
           group.classList.add('open');
@@ -626,6 +651,11 @@
       else if (view === 'calendar')       pending = renderCalendar(root);
       else if (view === 'settings')       pending = Promise.resolve(renderSettings(root));
       else if (view === 'pipeline')       pending = renderPipeline(root);
+      else if (view === 'deals')          pending = renderDealsPipeline(root);
+      else if (view === 'companies')      pending = renderCompanies(root);
+      else if (view === 'contacts')       pending = renderContacts(root);
+      else if (view === 'activities')     pending = renderActivities(root);
+      else if (view === 'inbox')          pending = renderInbox(root);
       else if (view === 'propuestas')     pending = renderPropuestasMenu(root);
       else if (view.startsWith('agent/')) pending = renderAgent(root, view.split('/')[1]);
       else if (view.startsWith('leads')) {
@@ -690,7 +720,9 @@
       closeModal();
       if (status === 'won' && typeof celebrate === 'function') celebrate();
       if (status === 'qualified') {
-        showToast('Estado: Calificado — briefing encolado si hay email');
+        showToast('Calificado — contact + deal + briefing');
+      } else if (status === 'won') {
+        showToast('Ganado — contact + deal + client');
       } else {
         showToast(`Estado: ${statusLabel[status]}`);
       }

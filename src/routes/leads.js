@@ -10,7 +10,7 @@ router.get('/', async (req, res) => {
 
   let query = supabase
     .from('leads')
-    .select('id, name, email, contact, contact_type, source, status, score, classification, next_action, sdr_notes, message, created_at')
+    .select('id, name, email, contact, contact_type, source, status, score, classification, next_action, sdr_notes, message, created_at, company_name, company_id, converted_contact_id, converted_deal_id')
     .order('created_at', { ascending: false })
     .range(Number(offset), Number(offset) + Number(limit) - 1);
 
@@ -50,10 +50,17 @@ router.get('/stats', async (req, res) => {
 
   if (allLeads.error) return res.status(500).json({ ok: false, error: allLeads.error.message });
 
+  let deals = null;
+  try {
+    deals = await require('../db/deals').getDealMetrics();
+  } catch (_) {
+    deals = null;
+  }
+
   const data = allLeads.data;
   const stats = {
     total: data.length,
-    by_classification: { hot: 0, warm: 0, cold: 0, unqualified: 0, pending: 0 },
+    by_classification: { hot: 0, warm: 0, cold: 0, junk: 0, pending: 0 },
     by_status: { new: 0, contacted: 0, qualified: 0, lost: 0, won: 0 },
     by_source: {},
     avg_score: 0,
@@ -66,6 +73,7 @@ router.get('/stats', async (req, res) => {
       monthly_reports: monthlyC.count || 0,
       clients_active: clientsC.count || 0,
     },
+    deals,
   };
 
   let scoreSum = 0, scoreCount = 0;
@@ -96,6 +104,13 @@ router.patch('/:id/status', async (req, res) => {
 
   if (error) return res.status(500).json({ ok: false, error: error.message });
 
+  // CRM graph: qualified → contact+deal; won → +client + deal ganado
+  let crm = null;
+  if (status === 'qualified' || status === 'won') {
+    const { onLeadStatusChange } = require('../lib/crmConvert');
+    crm = await onLeadStatusChange(data, status, { ownerId: req.user?.id || null });
+  }
+
   // Wiring ligero: al pasar a qualified, encolar briefing en background (si hay email)
   if (status === 'qualified' && data?.email) {
     const logger = require('../lib/logger');
@@ -107,7 +122,7 @@ router.patch('/:id/status', async (req, res) => {
     });
   }
 
-  return res.json({ ok: true, lead: data });
+  return res.json({ ok: true, lead: data, crm });
 });
 
 module.exports = router;

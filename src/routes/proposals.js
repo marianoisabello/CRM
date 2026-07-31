@@ -72,14 +72,42 @@ router.get('/:lead_id', async (req, res) => {
  */
 router.post('/:lead_id/approve', async (req, res) => {
   const supabase = require('../db/client');
-  const { error } = await supabase
+  const leadId = req.params.lead_id;
+
+  const { data: lead, error: leadErr } = await supabase
     .from('leads')
     .update({ proposal_status: 'approved', updated_at: new Date().toISOString() })
-    .eq('id', req.params.lead_id);
+    .eq('id', leadId)
+    .select('id, converted_deal_id, company_id, converted_contact_id')
+    .single();
 
-  if (error) return res.status(500).json({ ok: false, error: error.message });
+  if (leadErr) return res.status(500).json({ ok: false, error: leadErr.message });
 
-  logger.info({ msg: 'Propuesta aprobada', leadId: req.params.lead_id });
+  if (lead?.converted_deal_id) {
+    try {
+      const { updateDealStage } = require('../db/deals');
+      await updateDealStage(lead.converted_deal_id, 'negociacion');
+    } catch (err) {
+      logger.warn({ msg: 'Deal stage post-approve soft-fail', error: err.message });
+    }
+  }
+
+  try {
+    const { createActivity } = require('../db/activities');
+    await createActivity({
+      type: 'note',
+      title: 'Propuesta aprobada',
+      lead_id: leadId,
+      deal_id: lead?.converted_deal_id || null,
+      contact_id: lead?.converted_contact_id || null,
+      company_id: lead?.company_id || null,
+      author_user_id: req.user?.id || null,
+    });
+  } catch (_) {
+    /* soft */
+  }
+
+  logger.info({ msg: 'Propuesta aprobada', leadId });
   return res.json({ ok: true, message: 'Propuesta aprobada. Lista para enviar.' });
 });
 

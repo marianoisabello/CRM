@@ -2,13 +2,19 @@
 
 /**
  * Normalizador para formularios web (Tally, Typeform, o formulario propio).
- * Campos esperados: name, email, message, phone (opcional).
+ * Campos esperados: name, email, message, phone (opcional), company/empresa (opcional).
  */
 function normalize(payload) {
   const name = payload.name || payload.full_name || null;
   const email = payload.email || payload.email_address || null;
   const phone = payload.phone || payload.phone_number || null;
   const message = payload.message || payload.body || payload.text || null;
+  const companyName =
+    payload.company ||
+    payload.company_name ||
+    payload.empresa ||
+    payload.organization ||
+    null;
 
   // Derivar external_id si el formulario lo provee (ej: Tally usa responseId)
   const externalId =
@@ -25,6 +31,7 @@ function normalize(payload) {
     contact: phone || email,
     contact_type: phone ? 'phone' : email ? 'email' : null,
     message,
+    company_name: companyName ? String(companyName).trim() : null,
     raw_payload: payload,
   };
 }

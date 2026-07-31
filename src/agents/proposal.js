@@ -24,15 +24,22 @@ const SYSTEM_PROMPT = fs.readFileSync(
  * Preferencia: diagnosis JSONB → perfil + última reunión (fallback post Agente 02/03).
  */
 async function generateProposal(leadId, { callNotes = '', budgetEstimate = null } = {}) {
-  const run = await AgentRun.start('proposal', { leadId, inputData: { budgetEstimate } });
+  const lead = await getLead(leadId);
+  const dealId = lead.converted_deal_id || null;
+  const run = await AgentRun.start('proposal', {
+    leadId,
+    dealId,
+    inputData: { budgetEstimate, deal_id: dealId },
+  });
 
   try {
-    const lead = await getLead(leadId);
     let perfil = null;
     let reunion = null;
+    let deal = null;
 
+    const tasks = [];
     if (lead.email) {
-      const [{ data: p }, { data: r }] = await Promise.all([
+      tasks.push(
         supabase.from('perfiles').select('*').eq('email', lead.email.toLowerCase()).maybeSingle(),
         supabase
           .from('reuniones')
@@ -40,11 +47,21 @@ async function generateProposal(leadId, { callNotes = '', budgetEstimate = null 
           .eq('lead_email', lead.email.toLowerCase())
           .eq('status', 'done')
           .order('updated_at', { ascending: false })
-          .limit(1),
-      ]);
-      perfil = p;
+          .limit(1)
+      );
+    }
+    if (dealId) {
+      tasks.push(supabase.from('deals').select('id, title, stage, status, value, currency').eq('id', dealId).maybeSingle());
+    }
+
+    const results = await Promise.all(tasks);
+    let idx = 0;
+    if (lead.email) {
+      perfil = results[idx++]?.data || null;
+      const r = results[idx++]?.data;
       reunion = (r && r[0]) || null;
     }
+    if (dealId) deal = results[idx++]?.data || null;
 
     if (!lead.diagnosis && !perfil && !reunion && !callNotes) {
       throw new Error(
@@ -58,8 +75,10 @@ async function generateProposal(leadId, { callNotes = '', budgetEstimate = null 
         email: lead.email,
         source: lead.source,
         classification: lead.classification,
-        empresa: lead.empresa || perfil?.empresa,
+        empresa: lead.company_name || lead.empresa || perfil?.empresa,
+        company_id: lead.company_id || null,
       },
+      deal: deal || null,
       diagnosis: lead.diagnosis || null,
       perfil: perfil
         ? {
@@ -88,8 +107,55 @@ async function generateProposal(leadId, { callNotes = '', budgetEstimate = null 
       proposal_status: 'pending_approval',
     });
 
+    if (dealId) {
+      try {
+        await supabase
+          .from('lead_propuestas')
+          .update({ deal_id: dealId, updated_at: new Date().toISOString() })
+          .eq('lead_id', leadId);
+      } catch (_) {
+        /* soft */
+      }
+
+      try {
+        const { updateDealStage } = require('../db/deals');
+        if (deal?.stage === 'prospeccion') await updateDealStage(dealId, 'propuesta');
+      } catch (err) {
+        logger.warn({ msg: 'No se pudo avanzar deal a propuesta', dealId, error: err.message });
+      }
+    }
+
+    try {
+      const { createDecision } = require('../db/agentDecisions');
+      const { createActivity } = require('../db/activities');
+      await createDecision({
+        agent_id: 'proposal',
+        decision_type: 'proposal_draft',
+        title: `Propuesta pendiente — ${lead.name || lead.email || leadId}`,
+        summary: proposal?.executive_summary || proposal?.titulo || null,
+        payload: { lead_id: leadId, proposal },
+        lead_id: leadId,
+        deal_id: dealId,
+        contact_id: lead.converted_contact_id || null,
+        company_id: lead.company_id || null,
+        agent_run_id: run.id,
+      });
+      await createActivity({
+        type: 'agent',
+        title: 'Propuesta generada (pendiente aprobación)',
+        lead_id: leadId,
+        deal_id: dealId,
+        contact_id: lead.converted_contact_id || null,
+        company_id: lead.company_id || null,
+        agent_id: 'proposal',
+        agent_run_id: run.id,
+      });
+    } catch (err) {
+      logger.warn({ msg: 'Decision/activity proposal soft-fail', error: err.message });
+    }
+
     await run.complete({ outputData: proposal, tokensUsed });
-    logger.info({ msg: 'Propuesta generada (pendiente aprobación)', leadId });
+    logger.info({ msg: 'Propuesta generada (pendiente aprobación)', leadId, dealId });
     return proposal;
   } catch (err) {
     await run.fail(err);

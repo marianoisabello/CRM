@@ -19,15 +19,18 @@ class AgentRun {
     this.startedAt = Date.now();
   }
 
-  static async start(agentId, { leadId = null, inputData = {} } = {}) {
+  static async start(agentId, { leadId = null, dealId = null, inputData = {} } = {}) {
+    const row = {
+      agent_id: agentId,
+      lead_id: leadId,
+      input_data: inputData,
+      status: 'running',
+    };
+    if (dealId) row.deal_id = dealId;
+
     const { data, error } = await supabase
       .from('agent_runs')
-      .insert({
-        agent_id: agentId,
-        lead_id: leadId,
-        input_data: inputData,
-        status: 'running',
-      })
+      .insert(row)
       .select()
       .single();
 
@@ -36,7 +39,7 @@ class AgentRun {
       throw new Error(`Error iniciando AgentRun: ${error.message}`);
     }
 
-    logger.info({ msg: 'AgentRun iniciado', runId: data.id, agent: agentId, leadId });
+    logger.info({ msg: 'AgentRun iniciado', runId: data.id, agent: agentId, leadId, dealId });
     return new AgentRun(data);
   }
 

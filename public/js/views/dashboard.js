@@ -114,6 +114,26 @@ async function renderDashboard(root) {
         </div>
       </div>
 
+      ${stats.deals ? `
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-px overflow-hidden rounded-xl border" style="border-color:var(--border);background:var(--border);">
+        <div class="kpi-card cursor-pointer" style="border:none;border-radius:0;border-left:3px solid var(--info);" onclick="navigate('deals')">
+          <p class="eyebrow" style="color:var(--muted-foreground);">Deals abiertos</p>
+          <p class="font-data text-2xl font-bold mt-2 tnum" style="color:var(--foreground);">${countUpHtml(stats.deals.open_count || 0)}</p>
+        </div>
+        <div class="kpi-card cursor-pointer" style="border:none;border-radius:0;border-left:3px solid var(--primary);" onclick="navigate('deals')">
+          <p class="eyebrow" style="color:var(--muted-foreground);">Pipeline $</p>
+          <p class="font-data text-2xl font-bold mt-2 tnum" style="color:var(--foreground);">${fmtMoney(stats.deals.pipeline_total || 0)}</p>
+        </div>
+        <div class="kpi-card cursor-pointer" style="border:none;border-radius:0;border-left:3px solid var(--success);" onclick="navigate('deals')">
+          <p class="eyebrow" style="color:var(--muted-foreground);">Win rate</p>
+          <p class="font-data text-2xl font-bold mt-2 tnum" style="color:var(--foreground);">${stats.deals.win_rate || 0}%</p>
+        </div>
+        <div class="kpi-card cursor-pointer" style="border:none;border-radius:0;border-left:3px solid var(--primary);" onclick="navigate('inbox')">
+          <p class="eyebrow" style="color:var(--muted-foreground);">Ganados (deals)</p>
+          <p class="font-data text-2xl font-bold mt-2 tnum" style="color:var(--foreground);">${countUpHtml(stats.deals.won_count || 0)}</p>
+        </div>
+      </div>` : ''}
+
       ${(() => {
         const a = stats.agents || {};
         const items = [

@@ -170,7 +170,10 @@ function leadContext(lead) {
     id: lead.id,
     email: lead.email,
     name: lead.name || lead.nombre_apellido || raw.nombre || null,
-    empresa: lead.empresa || raw.empresa || null,
+    empresa: lead.company_name || lead.empresa || raw.empresa || null,
+    company_id: lead.company_id || null,
+    converted_deal_id: lead.converted_deal_id || null,
+    converted_contact_id: lead.converted_contact_id || null,
     message: lead.message || lead.objetivo_necesidad || null,
     score: lead.score ?? lead.score_total ?? null,
     classification: lead.classification || lead.categoria_lead || null,
@@ -224,9 +227,11 @@ async function generateBriefing({ email, leadId, force = false } = {}) {
     }
   }
 
+  const dealId = lead?.converted_deal_id || null;
   const run = await AgentRun.start('briefing', {
     leadId: lead?.id || null,
-    inputData: { lead_email: leadEmail, reunion_id: reunion?.id || null, has_perfil: Boolean(perfil) },
+    dealId,
+    inputData: { lead_email: leadEmail, reunion_id: reunion?.id || null, has_perfil: Boolean(perfil), deal_id: dealId },
   });
 
   try {
@@ -288,6 +293,7 @@ async function generateBriefing({ email, leadId, force = false } = {}) {
     const row = {
       lead_email: leadEmail,
       lead_id: lead?.id || null,
+      deal_id: dealId,
       perfil_email: perfil?.email || null,
       reunion_id: reunion?.id || null,
       propuesta_id: propuestaId,
@@ -336,9 +342,38 @@ async function generateBriefing({ email, leadId, force = false } = {}) {
         lead_email: leadEmail,
         status: saved.status,
         servicios: brief.servicios_sugeridos,
+        deal_id: dealId,
       },
       tokensUsed,
     });
+
+    try {
+      const { createDecision } = require('../db/agentDecisions');
+      const { createActivity } = require('../db/activities');
+      await createDecision({
+        agent_id: 'briefing',
+        decision_type: 'briefing_draft',
+        title: `Briefing DRAFT — ${leadEmail}`,
+        summary: brief.resumen_ejecutivo || null,
+        payload: { briefing_id: saved.id, lead_id: lead?.id || null },
+        lead_id: lead?.id || null,
+        deal_id: dealId,
+        company_id: lead?.company_id || null,
+        agent_run_id: run.id,
+      });
+      await createActivity({
+        type: 'agent',
+        title: `Briefing generado v${version}`,
+        body: brief.resumen_ejecutivo || null,
+        lead_id: lead?.id || null,
+        deal_id: dealId,
+        company_id: lead?.company_id || null,
+        agent_id: 'briefing',
+        agent_run_id: run.id,
+      });
+    } catch (err) {
+      logger.warn({ msg: 'Decision/activity briefing soft-fail', error: err.message });
+    }
 
     return { briefing: saved, tokensUsed, provider };
   } catch (err) {

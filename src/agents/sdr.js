@@ -87,6 +87,23 @@ async function processLead(lead) {
         : reasons.join(', '),
     });
 
+    // Soft-link company si el lead ya trae company_name
+    if (lead.company_name && !lead.company_id) {
+      try {
+        const { findOrCreateCompanyByName } = require('../db/companies');
+        const supabase = require('../db/client');
+        const company = await findOrCreateCompanyByName(lead.company_name);
+        if (company?.id) {
+          await supabase
+            .from('leads')
+            .update({ company_id: company.id, updated_at: new Date().toISOString() })
+            .eq('id', lead.id);
+        }
+      } catch (err) {
+        logger.warn({ msg: 'SDR company link soft-fail', leadId: lead.id, error: err.message });
+      }
+    }
+
     const output = {
       score,
       classification: finalClassification,
@@ -113,6 +130,7 @@ function buildUserMessage(lead, score, classification, reasons) {
       email: lead.email,
       contact_type: lead.contact_type,
       message: lead.message,
+      company_name: lead.company_name || null,
     },
     deterministic_score: score,
     deterministic_classification: classification,

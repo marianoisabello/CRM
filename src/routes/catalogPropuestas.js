@@ -53,6 +53,7 @@ router.post('/assign', async (req, res) => {
   const origen = body.origen === 'auto' ? 'auto' : 'manual';
   const notas = body.notas != null ? String(body.notas) : null;
   const leadId = body.lead_id || null;
+  let dealId = body.deal_id || null;
   const ts = nowIso();
 
   const { data: prop, error: propErr } = await supabase
@@ -74,7 +75,7 @@ router.post('/assign', async (req, res) => {
     })
     .eq('email', email)
     .select(
-      'email, nombre, lead_id, propuesta_id, propuesta_origen, propuesta_notas, propuesta_asignada_at'
+      'email, nombre, lead_id, company_id, propuesta_id, propuesta_origen, propuesta_notas, propuesta_asignada_at'
     )
     .maybeSingle();
   if (perfilErr) return res.status(500).json({ ok: false, error: perfilErr.message });
@@ -85,10 +86,21 @@ router.post('/assign', async (req, res) => {
     });
   }
 
+  const resolvedLeadId = leadId || perfil.lead_id || null;
+  if (!dealId && resolvedLeadId) {
+    const { data: leadRow } = await supabase
+      .from('leads')
+      .select('converted_deal_id')
+      .eq('id', resolvedLeadId)
+      .maybeSingle();
+    dealId = leadRow?.converted_deal_id || null;
+  }
+
   const { error: junErr } = await supabase.from('lead_propuestas').upsert(
     {
       email,
-      lead_id: leadId || perfil.lead_id || null,
+      lead_id: resolvedLeadId,
+      deal_id: dealId,
       propuesta_id: propuestaId,
       origen,
       notas,

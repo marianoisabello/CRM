@@ -184,6 +184,7 @@ async function finishConversation(convoId, phone, answers) {
     contact: phone,
     contact_type: 'phone',
     message: buildLeadMessage(answers),
+    company_name: answers.empresa ? String(answers.empresa).trim() : null,
     raw_payload: { channel: 'whapi_bot', answers, score_chatbot: score, categoria_chatbot: category },
   });
 

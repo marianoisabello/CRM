@@ -26,6 +26,12 @@ const briefingsRouter = require('./routes/briefings');
 const integrationsRouter = require('./routes/integrations');
 const webhooksReunionesRouter = require('./routes/webhooksReuniones');
 const exportRouter = require('./routes/export');
+const companiesRouter = require('./routes/companies');
+const contactsRouter = require('./routes/contacts');
+const dealsRouter = require('./routes/deals');
+const pipelineStagesRouter = require('./routes/pipelineStages');
+const activitiesRouter = require('./routes/activities');
+const agentDecisionsRouter = require('./routes/agentDecisions');
 
 // Jobs
 const { runFollowups } = require('./jobs/followups');
@@ -141,6 +147,12 @@ app.use('/api/agent-runs/reuniones', reunionesRouter);
 app.use('/api/agent-runs/briefings', briefingsRouter);
 app.use('/api/integrations', integrationsRouter);
 app.use('/api/export', exportRouter);
+app.use('/api/companies', companiesRouter);
+app.use('/api/contacts', contactsRouter);
+app.use('/api/deals', dealsRouter);
+app.use('/api/pipeline-stages', pipelineStagesRouter);
+app.use('/api/activities', activitiesRouter);
+app.use('/api/agent-decisions', agentDecisionsRouter);
 
 // 404
 app.use((_req, res) => res.status(404).json({ ok: false, error: 'Ruta no encontrada' }));

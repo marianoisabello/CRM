@@ -4,7 +4,7 @@ async function renderPipeline(root) {
       <div class="flex items-center justify-between">
         <div>
           ${eyebrow('Herramientas')}
-          <h1 class="display text-3xl mt-1" style="color:var(--foreground);">Pipeline</h1>
+          <h1 class="display text-3xl mt-1" style="color:var(--foreground);">Pipeline leads</h1>
           <p class="text-sm mt-1" style="color:var(--muted-foreground);">Kanban de leads por estado</p>
         </div>
         <button onclick="renderPipeline(document.getElementById('view-root'))" class="btn-ghost flex items-center gap-1.5 text-xs">

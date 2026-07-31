@@ -249,8 +249,47 @@ function scoreBar(score) {
 
 function fmtDate(ts) {
   if (!ts) return '—';
-  return new Date(ts).toLocaleString('es-AR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+  try {
+    return new Date(ts).toLocaleString('es-AR', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch (_) {
+    return '—';
+  }
 }
+
+function fmtMoney(value, currency = 'USD') {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return '—';
+  try {
+    return new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: currency || 'USD',
+      maximumFractionDigits: 0,
+    }).format(n);
+  } catch (_) {
+    return `${currency} ${Math.round(n)}`;
+  }
+}
+
+const dealStageColors = {
+  prospeccion: { color: 'var(--info)', soft: 'var(--info-soft)' },
+  propuesta:   { color: '#a78bfa', soft: 'var(--accent-soft)' },
+  negociacion: { color: 'var(--warning)', soft: 'var(--warning-soft)' },
+  ganado:      { color: 'var(--primary)', soft: 'var(--primary-soft)' },
+  perdido:     { color: 'var(--muted-foreground)', soft: 'var(--secondary)' },
+};
+
+const dealStageLabel = {
+  prospeccion: 'Prospección',
+  propuesta: 'Propuesta',
+  negociacion: 'Negociación',
+  ganado: 'Ganado',
+  perdido: 'Perdido',
+};
 
 function classificationBadge(c) {
   if (!c) return '<span class="text-xs" style="color:var(--muted-foreground);">—</span>';
