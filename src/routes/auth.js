@@ -8,6 +8,7 @@ const supabase = require('../db/client');
 const config = require('../config');
 const logger = require('../lib/logger');
 const calendar = require('../integrations/calendar');
+const { requestPasswordReset, resetPassword } = require('../lib/passwordReset');
 
 // POST /api/auth/login
 router.post('/login', async (req, res) => {
@@ -62,6 +63,37 @@ router.post('/login', async (req, res) => {
     });
   } catch (err) {
     logger.error({ msg: 'Login falló', error: err.message });
+    return res.status(500).json({ ok: false, error: 'Error interno del servidor' });
+  }
+});
+
+// POST /api/auth/forgot-password — no revela si el email existe
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const result = await requestPasswordReset(req, req.body?.email);
+    if (!result.ok) {
+      return res.status(result.status || 500).json({ ok: false, error: result.error });
+    }
+    return res.json({
+      ok: true,
+      message: 'Si ese email está en el CRM, te enviamos un enlace para elegir una contraseña nueva. Revisá la bandeja y el spam. El enlace vence en 1 hora.',
+    });
+  } catch (err) {
+    logger.error({ msg: 'Forgot password falló', error: err.message });
+    return res.status(500).json({ ok: false, error: 'Error interno del servidor' });
+  }
+});
+
+// POST /api/auth/reset-password
+router.post('/reset-password', async (req, res) => {
+  try {
+    const result = await resetPassword(req.body?.token, req.body?.password);
+    if (!result.ok) {
+      return res.status(result.status || 400).json({ ok: false, error: result.error });
+    }
+    return res.json({ ok: true, message: 'Contraseña actualizada. Ya podés ingresar.' });
+  } catch (err) {
+    logger.error({ msg: 'Reset password falló', error: err.message });
     return res.status(500).json({ ok: false, error: 'Error interno del servidor' });
   }
 });

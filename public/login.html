@@ -90,7 +90,10 @@
           <input id="email" type="email" required placeholder="tu@email.com" class="input-field">
         </div>
         <div>
-          <label class="text-xs font-semibold uppercase tracking-wider mb-1.5 block" style="color:var(--muted-foreground);font-family:var(--font-mono);letter-spacing:0.14em;">Contraseña</label>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="text-xs font-semibold uppercase tracking-wider block" style="color:var(--muted-foreground);font-family:var(--font-mono);letter-spacing:0.14em;">Contraseña</label>
+            <button type="button" id="forgot-open" class="text-xs" style="color:var(--primary);background:none;border:none;cursor:pointer;padding:0;">¿Olvidaste tu contraseña?</button>
+          </div>
           <input id="password" type="password" required placeholder="••••••••" class="input-field">
         </div>
 
@@ -98,8 +101,32 @@
           <p id="error-msg" class="text-sm" style="color:var(--danger);"></p>
         </div>
 
+        <div id="info-wrap" class="hidden rounded-lg px-3 py-2.5" style="background:rgb(43 212 189 / 0.12);border:1px solid rgb(43 212 189 / 0.35);">
+          <p id="info-msg" class="text-sm" style="color:var(--primary);"></p>
+        </div>
+
         <button type="submit" id="login-btn" class="btn-login mt-1 flex items-center justify-center gap-2">
           Ingresar
+        </button>
+      </form>
+
+      <form id="forgot-form" class="space-y-4 hidden">
+        <p class="text-sm" style="color:var(--muted-foreground);">Te enviamos un enlace a tu email para elegir una contraseña nueva.</p>
+        <div>
+          <label class="text-xs font-semibold uppercase tracking-wider mb-1.5 block" style="color:var(--muted-foreground);font-family:var(--font-mono);letter-spacing:0.14em;">Email</label>
+          <input id="forgot-email" type="email" required placeholder="tu@email.com" class="input-field">
+        </div>
+        <div id="forgot-error-wrap" class="hidden rounded-lg px-3 py-2.5" style="background:var(--danger-soft);border:1px solid rgb(242 114 109 / 0.35);">
+          <p id="forgot-error-msg" class="text-sm" style="color:var(--danger);"></p>
+        </div>
+        <div id="forgot-info-wrap" class="hidden rounded-lg px-3 py-2.5" style="background:rgb(43 212 189 / 0.12);border:1px solid rgb(43 212 189 / 0.35);">
+          <p id="forgot-info-msg" class="text-sm" style="color:var(--primary);"></p>
+        </div>
+        <button type="submit" id="forgot-btn" class="btn-login mt-1 flex items-center justify-center gap-2">
+          Enviar enlace
+        </button>
+        <button type="button" id="forgot-back" class="w-full text-xs" style="color:var(--muted-foreground);background:none;border:none;cursor:pointer;">
+          Volver a ingresar
         </button>
       </form>
     </div>
@@ -109,6 +136,55 @@
 
   <script>
     if (localStorage.getItem('crm_token')) window.location.href = '/app.html';
+
+    if (new URLSearchParams(window.location.search).get('reset') === '1') {
+      document.getElementById('info-msg').textContent = 'Contraseña actualizada. Ingresá con la nueva.';
+      document.getElementById('info-wrap').classList.remove('hidden');
+    }
+
+    const loginForm = document.getElementById('login-form');
+    const forgotForm = document.getElementById('forgot-form');
+    document.getElementById('forgot-open').addEventListener('click', () => {
+      loginForm.classList.add('hidden');
+      forgotForm.classList.remove('hidden');
+      const current = document.getElementById('email').value;
+      if (current) document.getElementById('forgot-email').value = current;
+    });
+    document.getElementById('forgot-back').addEventListener('click', () => {
+      forgotForm.classList.add('hidden');
+      loginForm.classList.remove('hidden');
+    });
+
+    document.getElementById('forgot-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('forgot-btn');
+      const errWrap = document.getElementById('forgot-error-wrap');
+      const infoWrap = document.getElementById('forgot-info-wrap');
+      errWrap.classList.add('hidden');
+      infoWrap.classList.add('hidden');
+      btn.disabled = true;
+      btn.textContent = 'Enviando...';
+      try {
+        const res = await fetch('/api/auth/forgot-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: document.getElementById('forgot-email').value }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          document.getElementById('forgot-error-msg').textContent = data.error || 'No se pudo enviar el enlace';
+          errWrap.classList.remove('hidden');
+        } else {
+          document.getElementById('forgot-info-msg').textContent = data.message;
+          infoWrap.classList.remove('hidden');
+        }
+      } catch (err) {
+        document.getElementById('forgot-error-msg').textContent = 'No se pudo conectar. Probá de nuevo.';
+        errWrap.classList.remove('hidden');
+      }
+      btn.disabled = false;
+      btn.textContent = 'Enviar enlace';
+    });
 
     document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();

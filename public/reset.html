@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0A0A10">
+  <title>CRM — Nueva contraseña</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+      --font-serif: 'Instrument Serif', ui-serif, Georgia, serif;
+      --background: #0a0a10;
+      --foreground: #ffffff;
+      --card: #101018;
+      --muted-foreground: #8a8a9c;
+      --border: #22222e;
+      --input: #22222e;
+      --primary: #2bd4bd;
+      --primary-foreground: #04140f;
+      --accent: #8b5cf6;
+      --danger: #f2726d;
+      --danger-soft: rgb(242 114 109 / 0.14);
+      --radius-md: 0.75rem;
+    }
+    * { font-family: var(--font-sans); box-sizing: border-box; }
+    body { background: var(--background); color: var(--foreground); }
+    .display { font-family: var(--font-serif); font-weight: 400; letter-spacing: -0.01em; line-height: 1.05; }
+    .input-field {
+      width: 100%; background: #16161f; border: 1px solid var(--input);
+      border-radius: var(--radius-md); padding: 10px 14px; font-size: 14px;
+      color: var(--foreground); outline: none;
+    }
+    .input-field:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgb(43 212 189 / 0.15); }
+    .input-field::placeholder { color: var(--muted-foreground); }
+    .btn-login {
+      width: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      color: var(--primary-foreground);
+      border: none; border-radius: 999px;
+      padding: 10px 16px; font-size: 14px; font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
+    .label {
+      color: var(--muted-foreground);
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      letter-spacing: 0.14em;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+  <div class="w-full max-w-sm">
+    <div class="text-center mb-8">
+      <div class="w-14 h-14 rounded-full flex items-center justify-center text-xl mx-auto mb-5"
+           style="background:linear-gradient(135deg,var(--primary),var(--accent));">
+        <span class="w-11 h-11 rounded-full flex items-center justify-center display text-2xl"
+              style="background:var(--background);color:var(--primary);">D</span>
+      </div>
+      <h1 class="display text-3xl">Dana<span style="color:var(--primary);">.</span></h1>
+      <p class="text-sm mt-1.5" style="color:var(--muted-foreground);">Elegí una contraseña nueva</p>
+    </div>
+
+    <div class="rounded-xl p-7" style="background:var(--card);border:1px solid var(--border);">
+      <form id="reset-form" class="space-y-4">
+        <div>
+          <label class="text-xs font-semibold uppercase tracking-wider mb-1.5 block label">Nueva contraseña</label>
+          <input id="password" type="password" required minlength="8" placeholder="Mínimo 8 caracteres" class="input-field" autocomplete="new-password">
+        </div>
+        <div>
+          <label class="text-xs font-semibold uppercase tracking-wider mb-1.5 block label">Repetir contraseña</label>
+          <input id="confirm" type="password" required minlength="8" placeholder="Repetila" class="input-field" autocomplete="new-password">
+        </div>
+        <div id="error-wrap" class="hidden rounded-lg px-3 py-2.5" style="background:var(--danger-soft);border:1px solid rgb(242 114 109 / 0.35);">
+          <p id="error-msg" class="text-sm" style="color:var(--danger);"></p>
+        </div>
+        <button type="submit" id="reset-btn" class="btn-login">Guardar contraseña</button>
+      </form>
+      <p class="text-center text-xs mt-4">
+        <a href="/login.html" style="color:var(--muted-foreground);">Volver a ingresar</a>
+      </p>
+    </div>
+  </div>
+
+  <script>
+    const token = new URLSearchParams(window.location.search).get('token') || '';
+    const errWrap = document.getElementById('error-wrap');
+    const errMsg = document.getElementById('error-msg');
+
+    function showError(text) {
+      errMsg.textContent = text;
+      errWrap.classList.remove('hidden');
+    }
+
+    if (!/^[a-f0-9]{64}$/.test(token)) {
+      document.getElementById('reset-form').querySelectorAll('input,button').forEach((el) => { el.disabled = true; });
+      showError('Este enlace no es válido. Pedí uno nuevo desde el login.');
+    }
+
+    document.getElementById('reset-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errWrap.classList.add('hidden');
+      const password = document.getElementById('password').value;
+      const confirm = document.getElementById('confirm').value;
+      if (password.length < 8) {
+        showError('La contraseña nueva tiene que tener al menos 8 caracteres.');
+        return;
+      }
+      if (password !== confirm) {
+        showError('Las contraseñas no coinciden.');
+        return;
+      }
+      const btn = document.getElementById('reset-btn');
+      btn.disabled = true;
+      btn.textContent = 'Guardando...';
+      try {
+        const res = await fetch('/api/auth/reset-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token, password }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          showError(data.error || 'No se pudo actualizar la contraseña');
+          btn.disabled = false;
+          btn.textContent = 'Guardar contraseña';
+          return;
+        }
+        window.location.href = '/login.html?reset=1';
+      } catch (err) {
+        showError('No se pudo conectar. Probá de nuevo.');
+        btn.disabled = false;
+        btn.textContent = 'Guardar contraseña';
+      }
+    });
+  </script>
+</body>
+</html>
