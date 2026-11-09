@@ -89,8 +89,8 @@ function renderShell() {
             <p class="text-xs leading-relaxed text-left" style="color:var(--sidebar-muted);">Cargando objetivo…</p>
           </button>
 
-          <nav aria-label="CRM" class="flex flex-col gap-1" id="crm-sidebar-more">
-            <p class="eyebrow px-4 pb-1" style="color:var(--sidebar-muted);font-size:10px;">CRM</p>
+          <nav aria-label="IA" class="flex flex-col gap-1" id="crm-sidebar-more">
+            <p class="eyebrow px-4 pb-1" style="color:var(--sidebar-muted);font-size:10px;">IA</p>
             ${SHELL_GROUPS.map((g) => `
               <div class="sb-group" id="nav-group-${g.id}">
                 <button type="button" class="sb-item sb-group-toggle" onclick="toggleNavGroup('${g.id}')" aria-expanded="false">
