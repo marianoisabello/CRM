@@ -22,3 +22,6 @@ CREATE TABLE IF NOT EXISTS user_oauth_tokens (
 );
 
 CREATE INDEX IF NOT EXISTS idx_user_oauth_tokens_user ON user_oauth_tokens (user_email);
+
+-- Igual que el resto de las tablas: RLS activo, solo accede la service key del backend.
+ALTER TABLE user_oauth_tokens ENABLE ROW LEVEL SECURITY;

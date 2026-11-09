@@ -33,3 +33,6 @@ DO $$ BEGIN
     FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
+
+-- Igual que el resto de las tablas: RLS activo, solo accede la service key del backend.
+ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;

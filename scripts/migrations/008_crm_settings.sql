@@ -9,3 +9,6 @@ CREATE TABLE IF NOT EXISTS crm_settings (
   updated_by  UUID REFERENCES users(id) ON DELETE SET NULL,
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Igual que el resto de las tablas: RLS activo, solo accede la service key del backend.
+ALTER TABLE crm_settings ENABLE ROW LEVEL SECURITY;
