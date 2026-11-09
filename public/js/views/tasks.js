@@ -25,8 +25,8 @@ async function renderTasks(root) {
     <div class="space-y-4 anim-fade-up">
       <div class="flex flex-wrap items-end justify-between gap-3">
         <div>
-          ${eyebrow('Herramientas')}
-          <h1 class="display text-3xl mt-1" style="color:var(--foreground);">Tareas</h1>
+          ${eyebrow('Agenda')}
+          <h1 class="display text-4xl md:text-5xl mt-2" style="color:var(--foreground);">Tareas</h1>
           <p class="text-sm mt-1" style="color:var(--muted-foreground);">Tus tareas + todo lo que el CRM tiene pendiente · <span id="tasks-count">…</span></p>
         </div>
         <div class="flex gap-2 no-print">

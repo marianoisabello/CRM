@@ -27,7 +27,7 @@ async function listContacts({ q, company_id, limit = 50, offset = 0 } = {}) {
 async function getContact(id) {
   const { data, error } = await supabase
     .from('contacts')
-    .select('*, companies(id, name, website, industry), leads(id, name, email, status, score)')
+    .select('*, companies(id, name, website, industry), leads!contacts_lead_id_fkey(id, name, email, status, score)')
     .eq('id', id)
     .single();
   if (error) throw new Error(`Error obteniendo contact: ${error.message}`);

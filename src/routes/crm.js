@@ -126,11 +126,11 @@ router.get('/dashboard', async (req, res) => {
     const [stages, dealsR, actsR, leadsR, settingR, users, decR, meetR] = await Promise.all([
       listStages({ activeOnly: true }),
       safeSelect('deals', (q) =>
-        q.select('id, title, value, currency, stage, status, probability, stage_entered_at, won_at, lost_at, created_at, updated_at, expected_close, contact_id, company_id, lead_id, owner_id, contacts(id, name, email), companies(id, name)')
+        q.select('id, title, value, currency, stage, status, probability, stage_entered_at, won_at, lost_at, created_at, updated_at, expected_close, contact_id, company_id, lead_id, owner_id, source, contacts(id, name, email, phone, role), companies(id, name)')
           .order('updated_at', { ascending: false })
           .limit(400)
       ),
-      safeSelect('activities', (q) => q.select('id, type, occurred_at, author_user_id, agent_id').gte('occurred_at', since60)),
+      safeSelect('activities', (q) => q.select('id, type, occurred_at, author_user_id, agent_id, deal_id').gte('occurred_at', since60)),
       supabase.from('leads').select('id, name, status, classification, score, source, created_at, updated_at, next_action').limit(2000),
       safeSelect('crm_settings', (q) => q.select('key, value').eq('key', targetKey).limit(1)),
       usersMap(),
@@ -203,12 +203,17 @@ router.get('/dashboard', async (req, res) => {
 
     // Kanban resumido: todos los deals abiertos + ganados/perdidos de los últimos 30 días
     const cut30 = now.getTime() - 30 * 86400000;
+    const lastActByDeal = {};
+    for (const a of acts) {
+      if (a.deal_id && (!lastActByDeal[a.deal_id] || a.occurred_at > lastActByDeal[a.deal_id])) lastActByDeal[a.deal_id] = a.occurred_at;
+    }
     const board = deals
       .filter((d) => d.status === 'open' || new Date(d.won_at || d.lost_at || d.updated_at).getTime() >= cut30)
       .map((d) => ({
         ...d,
         owner: d.owner_id ? users[d.owner_id] || null : null,
         days_in_stage: d.stage_entered_at ? Math.max(0, Math.floor((now - new Date(d.stage_entered_at)) / 86400000)) : null,
+        last_activity_at: lastActByDeal[d.id] || null,
       }));
 
     // Headline: calientes hoy

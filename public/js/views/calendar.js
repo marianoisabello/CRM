@@ -3,7 +3,7 @@ async function renderCalendar(root) {
     <div class="space-y-5">
       <div class="flex items-center justify-between">
         <div>
-          <h1 class="display text-3xl" style="color:var(--foreground);">Calendario</h1>
+          <h1 class="display text-4xl md:text-5xl" style="color:var(--foreground);">Calendario</h1>
           <p class="text-sm mt-0.5" style="color:var(--muted-foreground);">Reuniones y seguimientos</p>
         </div>
         <button onclick="openNewMeetingForm()" class="btn-primary flex items-center gap-1.5 text-xs">

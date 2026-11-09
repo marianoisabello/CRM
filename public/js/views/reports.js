@@ -32,8 +32,8 @@ async function renderReports(root) {
     <div class="space-y-5 anim-fade-up">
       <div class="flex flex-wrap items-end justify-between gap-3">
         <div>
-          ${eyebrow('Herramientas')}
-          <h1 class="display text-3xl mt-1" style="color:var(--foreground);">Informes</h1>
+          ${eyebrow('Análisis')}
+          <h1 class="display text-4xl md:text-5xl mt-2" style="color:var(--foreground);">Informes</h1>
           <p class="text-sm mt-1" style="color:var(--muted-foreground);" id="rp-range">…</p>
         </div>
         <div class="flex flex-wrap gap-2 no-print">
@@ -58,6 +58,10 @@ async function renderReports(root) {
       </div>
       <div id="rp-body"><div class="skeleton h-96 rounded-xl"></div></div>
     </div>`;
+  if (window._reportsPreset) {
+    document.getElementById('rp-period').value = window._reportsPreset;
+    window._reportsPreset = null;
+  }
   await _loadReports();
 }
 

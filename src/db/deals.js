@@ -35,7 +35,7 @@ async function listDeals({
 async function getDeal(id) {
   const { data, error } = await supabase
     .from('deals')
-    .select('*, contacts(id, name, email, phone, role), companies(id, name, website), leads(id, name, email, status, score)')
+    .select('*, contacts(id, name, email, phone, role), companies(id, name, website), leads!deals_lead_id_fkey(id, name, email, status, score)')
     .eq('id', id)
     .single();
   if (error) throw new Error(`Error obteniendo deal: ${error.message}`);

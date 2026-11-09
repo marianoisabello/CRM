@@ -7,9 +7,10 @@ async function renderInbox(root) {
     <div class="space-y-4 anim-fade-up">
       <div class="flex flex-wrap items-end justify-between gap-3">
         <div>
-          ${eyebrow('Herramientas')}
-          <h1 class="display text-3xl mt-1" style="color:var(--foreground);">Bandeja IA</h1>
-          <p class="text-sm mt-1" style="color:var(--muted-foreground);">Decisiones pendientes de agentes</p>
+          ${eyebrow('Bandeja')}
+          <h1 class="display text-4xl md:text-5xl mt-2" style="color:var(--foreground);">Bandeja</h1>
+          ${bandejaTabs('inbox')}
+          <p class="text-sm mt-1" style="color:var(--muted-foreground);">Propuestas, briefings y acciones de los agentes IA que esperan tu aprobación</p>
         </div>
         <div class="flex gap-2">
           <select id="inbox-status" onchange="_inboxStatusFilter=this.value;renderInbox(document.getElementById('view-root'))"

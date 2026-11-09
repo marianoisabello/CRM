@@ -12,8 +12,8 @@ async function renderContacts(root, leadId = null) {
     <div class="space-y-4 anim-fade-up">
       <div class="flex flex-wrap items-end justify-between gap-3">
         <div>
-          ${eyebrow('Herramientas')}
-          <h1 class="display text-3xl mt-1" style="color:var(--foreground);">Contactos</h1>
+          ${eyebrow('Clientes ganados')}
+          <h1 class="display text-4xl md:text-5xl mt-2" style="color:var(--foreground);">Contactos</h1>
           <p class="text-sm mt-1" style="color:var(--muted-foreground);">Clientes ganados · <span id="contacts-count">…</span></p>
         </div>
         <div class="flex gap-2 no-print">

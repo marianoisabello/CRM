@@ -16,9 +16,10 @@ async function renderMail(root) {
   const header = (right = '') => `
     <div class="flex flex-wrap items-end justify-between gap-3">
       <div>
-        ${eyebrow('Herramientas')}
-        <h1 class="display text-3xl mt-1" style="color:var(--foreground);">Bandeja</h1>
+        ${eyebrow('Bandeja')}
+        <h1 class="display text-4xl md:text-5xl mt-2" style="color:var(--foreground);">Bandeja</h1>
         <p class="text-sm mt-1" style="color:var(--muted-foreground);">Mails de tu cuenta de Google · solo lectura${st.account_email ? ` · <span class="font-data" style="color:var(--foreground);">${_escHtml(st.account_email)}</span>` : ''}</p>
+        ${bandejaTabs('mail')}
       </div>
       <div class="flex gap-2 no-print">${right}</div>
     </div>`;

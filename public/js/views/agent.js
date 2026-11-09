@@ -26,7 +26,7 @@ async function renderAgent(root, agentId) {
       <div class="flex items-center gap-4">
         <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:var(--card);border:1px solid var(--border);">${info.emoji}</div>
         <div>
-          <h1 class="display text-3xl" style="color:var(--foreground);">Agente ${info.name}</h1>
+          <h1 class="display text-4xl md:text-5xl" style="color:var(--foreground);">Agente ${info.name}</h1>
           <p class="text-sm mt-0.5" style="color:var(--muted-foreground);">${info.desc}</p>
         </div>
       </div>
@@ -64,7 +64,7 @@ async function renderAnalystPerfiles(root) {
         <div class="flex items-center gap-4">
           <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:var(--card);border:1px solid var(--border);">${info.emoji}</div>
           <div>
-            <h1 class="display text-3xl" style="color:var(--foreground);">Agente ${info.name}</h1>
+            <h1 class="display text-4xl md:text-5xl" style="color:var(--foreground);">Agente ${info.name}</h1>
             <p class="text-sm mt-0.5" style="color:var(--muted-foreground);">${info.desc}</p>
           </div>
         </div>
@@ -1055,7 +1055,7 @@ async function renderReunionesAgent(root) {
         <div class="flex items-center gap-4">
           <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:var(--card);border:1px solid var(--border);">${info.emoji}</div>
           <div>
-            <h1 class="display text-3xl" style="color:var(--foreground);">Agente ${info.name}</h1>
+            <h1 class="display text-4xl md:text-5xl" style="color:var(--foreground);">Agente ${info.name}</h1>
             <p class="text-sm mt-0.5" style="color:var(--muted-foreground);">${info.desc}</p>
           </div>
         </div>
@@ -1371,7 +1371,7 @@ async function renderBriefingAgent(root) {
         <div class="flex items-center gap-4">
           <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:var(--card);border:1px solid var(--border);">${info.emoji}</div>
           <div>
-            <h1 class="display text-3xl" style="color:var(--foreground);">Agente ${info.name}</h1>
+            <h1 class="display text-4xl md:text-5xl" style="color:var(--foreground);">Agente ${info.name}</h1>
             <p class="text-sm mt-0.5" style="color:var(--muted-foreground);">${info.desc}</p>
           </div>
         </div>
@@ -1690,7 +1690,7 @@ async function renderPerformanceAgent(root) {
         <div class="flex items-center gap-4">
           <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:var(--card);border:1px solid var(--border);">${info.emoji}</div>
           <div>
-            <h1 class="display text-3xl" style="color:var(--foreground);">Agente ${info.name}</h1>
+            <h1 class="display text-4xl md:text-5xl" style="color:var(--foreground);">Agente ${info.name}</h1>
             <p class="text-sm mt-0.5" style="color:var(--muted-foreground);">${info.desc}</p>
           </div>
         </div>
@@ -1959,7 +1959,7 @@ async function renderReportingAgent(root) {
         <div class="flex items-center gap-4">
           <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:var(--card);border:1px solid var(--border);">${info.emoji}</div>
           <div>
-            <h1 class="display text-3xl" style="color:var(--foreground);">Agente ${info.name}</h1>
+            <h1 class="display text-4xl md:text-5xl" style="color:var(--foreground);">Agente ${info.name}</h1>
             <p class="text-sm mt-0.5" style="color:var(--muted-foreground);">${info.desc}</p>
           </div>
         </div>
@@ -2212,7 +2212,7 @@ async function renderProposalAgent(root) {
         <div class="flex items-center gap-4">
           <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:var(--card);border:1px solid var(--border);">${info.emoji}</div>
           <div>
-            <h1 class="display text-3xl" style="color:var(--foreground);">Agente ${info.name}</h1>
+            <h1 class="display text-4xl md:text-5xl" style="color:var(--foreground);">Agente ${info.name}</h1>
             <p class="text-sm mt-0.5" style="color:var(--muted-foreground);">${info.desc} Usa perfil/reunión si no hay diagnóstico legacy.</p>
           </div>
         </div>

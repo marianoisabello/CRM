@@ -10,7 +10,7 @@ async function renderLeads(root, sourceFilter = null) {
       <div class="flex items-center justify-between flex-wrap gap-3">
         <div>
           ${eyebrow('Leads')}
-          <h1 class="display text-3xl mt-1" style="color:var(--foreground);">${title}</h1>
+          <h1 class="display text-4xl md:text-5xl mt-2" style="color:var(--foreground);">${title}</h1>
           <p id="leads-count" class="text-sm mt-1" style="color:var(--muted-foreground);">Cargando...</p>
         </div>
         <div class="flex gap-2">

@@ -8,7 +8,7 @@ async function renderActivities(root) {
       <div class="flex flex-wrap items-end justify-between gap-3">
         <div>
           ${eyebrow('CRM')}
-          <h1 class="display text-3xl mt-1" style="color:var(--foreground);">Actividades</h1>
+          <h1 class="display text-4xl md:text-5xl mt-2" style="color:var(--foreground);">Actividades</h1>
           <p class="text-sm mt-1" style="color:var(--muted-foreground);">Timeline de notas, llamadas y agentes</p>
         </div>
         <div class="flex gap-2">

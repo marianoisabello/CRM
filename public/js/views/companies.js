@@ -10,8 +10,8 @@ async function renderCompanies(root) {
     <div class="space-y-4 anim-fade-up">
       <div class="flex flex-wrap items-end justify-between gap-3">
         <div>
-          ${eyebrow('Herramientas')}
-          <h1 class="display text-3xl mt-1" style="color:var(--foreground);">Empresas</h1>
+          ${eyebrow('Cuentas')}
+          <h1 class="display text-4xl md:text-5xl mt-2" style="color:var(--foreground);">Empresas</h1>
           <p class="text-sm mt-1" style="color:var(--muted-foreground);">Cuentas con contactos asignados · <span id="companies-count">…</span></p>
         </div>
         <div class="flex gap-2 no-print">
@@ -138,7 +138,7 @@ async function openCompanyDetail(id) {
         <p class="eyebrow mb-2">Oportunidades (${(deals?.deals || []).length})</p>
         ${(deals?.deals || []).slice(0, 12).map((d) => `
           <button type="button" class="block w-full text-left py-1" style="color:var(--foreground);border-bottom:1px solid var(--border);"
-            onclick="openDealDrawer('${d.id}')">${_escHtml(d.title)} · <span style="color:var(--muted-foreground);">${dealStageLabel[d.stage] || _escHtml(d.stage)} · ${fmtMoney(d.value, d.currency)}</span></button>
+            onclick="closeModal();openDealDrawer('${d.id}')">${_escHtml(d.title)} · <span style="color:var(--muted-foreground);">${dealStageLabel[d.stage] || _escHtml(d.stage)} · ${fmtMoney(d.value, d.currency)}</span></button>
         `).join('') || '<p style="color:var(--muted-foreground);">Ninguna</p>'}
       </div>
       <div>
