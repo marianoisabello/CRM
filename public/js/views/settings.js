@@ -43,6 +43,18 @@ function renderSettings(root) {
         </p>
       </div>
 
+      <!-- Integraciones / Bandeja Gmail -->
+      <div class="card">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h2 class="font-semibold text-sm" style="color:var(--foreground);">Integraciones · Bandeja Gmail</h2>
+            <p class="text-xs mt-1" style="color:var(--muted-foreground);">Lectura de tu Gmail (solo lectura) en Herramientas → Bandeja. Cada usuario conecta su propia cuenta.</p>
+            <p id="gmail-integration-status" class="text-xs mt-2" style="color:var(--muted-foreground);">Cargando…</p>
+          </div>
+          <a href="#mail" class="btn-ghost text-xs shrink-0" style="text-decoration:none;">Abrir Bandeja</a>
+        </div>
+      </div>
+
       <!-- Integraciones / Performance multi-canal -->
       <div class="card">
         <div class="flex items-start justify-between gap-3 mb-4">
@@ -102,6 +114,21 @@ function renderSettings(root) {
 
   refreshMeetingIntegrations();
   refreshPerformanceIntegrations();
+  refreshGmailIntegration();
+}
+
+async function refreshGmailIntegration() {
+  const el = document.getElementById('gmail-integration-status');
+  if (!el) return;
+  const st = await api('/api/mail/status');
+  if (!st?.ok) { el.textContent = st?.error || 'No disponible'; return; }
+  el.innerHTML = st.connected
+    ? `${statusPill('connected')} <span class="ml-1">${_escHtml(st.account_email || '')}</span>`
+    : st.missing_table
+      ? `${statusPill('pending_config')} <span class="ml-1">falta migración 010_user_oauth_tokens.sql</span>`
+      : !st.env_ready
+        ? `${statusPill('pending_config')} <span class="ml-1">faltan credenciales OAuth de Google</span>`
+        : `${statusPill('disconnected')}`;
 }
 
 function renderIntegration(name, active, note) {
@@ -132,7 +159,7 @@ function statusPill(status) {
     connected: { label: 'Conectado', bg: 'var(--success-soft)', color: 'var(--success)', border: 'rgb(43 212 189 / 0.35)' },
     pending_config: { label: 'Configurar en Vercel', bg: 'var(--warning-soft)', color: 'var(--warning)', border: 'rgb(245 177 76 / 0.35)' },
     disconnected: { label: 'Desconectado', bg: 'var(--elevated)', color: 'var(--muted-foreground)', border: 'var(--border)' },
-    error: { label: 'Error', bg: 'var(--danger-soft)', color: '#B91C1C', border: 'rgb(242 114 109 / 0.35)' },
+    error: { label: 'Error', bg: 'var(--danger-soft)', color: 'var(--danger)', border: 'rgb(242 114 109 / 0.35)' },
   };
   const s = map[status] || map.disconnected;
   return `<span class="text-xs font-semibold px-2.5 py-1 rounded-lg" style="background:${s.bg};color:${s.color};border:1px solid ${s.border};">${s.label}</span>`;
@@ -157,7 +184,7 @@ function renderMeetingIntegrationCard(integ) {
 
   const steps = (integ.setup?.steps || []).map((s) => `<li class="text-xs leading-relaxed" style="color:var(--muted-foreground);">${s}</li>`).join('');
 
-  return `<div class="rounded-lg border p-4" style="border-color:var(--border);background:#FAFAFA;">
+  return `<div class="rounded-lg border p-4" style="border-color:var(--border);background:var(--elevated);">
     <div class="flex items-start justify-between gap-3">
       <div class="min-w-0">
         <div class="flex items-center gap-2 flex-wrap">
@@ -167,7 +194,7 @@ function renderMeetingIntegrationCard(integ) {
         <p class="text-xs mt-1" style="color:var(--muted-foreground);">${meta.blurb}</p>
         ${integ.external_account ? `<p class="text-xs mt-1" style="color:var(--foreground);">Cuenta: ${integ.external_account}</p>` : ''}
         ${integ.last_sync_at ? `<p class="text-xs mt-0.5" style="color:var(--muted-foreground);">Último sync: ${fmtDate(integ.last_sync_at)}</p>` : ''}
-        ${integ.last_error ? `<p class="text-xs mt-1" style="color:#B91C1C;">${integ.last_error}</p>` : ''}
+        ${integ.last_error ? `<p class="text-xs mt-1" style="color:var(--danger);">${integ.last_error}</p>` : ''}
       </div>
       <div class="flex flex-col gap-1.5 items-end shrink-0">${actions}</div>
     </div>
@@ -185,7 +212,7 @@ async function refreshMeetingIntegrations() {
   if (!wrap) return;
   const res = await api('/api/integrations/reuniones');
   if (!res?.ok) {
-    wrap.innerHTML = `<p class="text-sm" style="color:#B91C1C;">${res?.error || 'No se pudieron cargar integraciones (¿tabla user_integrations creada?)'}</p>`;
+    wrap.innerHTML = `<p class="text-sm" style="color:var(--danger);">${res?.error || 'No se pudieron cargar integraciones (¿tabla user_integrations creada?)'}</p>`;
     return;
   }
   wrap.innerHTML = (res.integrations || []).map(renderMeetingIntegrationCard).join('');
@@ -196,7 +223,7 @@ function renderPerformanceIntegrationCard(integ) {
   const steps = (integ.setup?.steps || []).map((s) => `<li class="text-xs leading-relaxed" style="color:var(--muted-foreground);">${s}</li>`).join('');
   const vars = (integ.env_vars || []).map((v) => `<code class="text-xs">${v}</code>`).join(' · ');
 
-  return `<div class="rounded-lg border p-4" style="border-color:var(--border);background:#FAFAFA;">
+  return `<div class="rounded-lg border p-4" style="border-color:var(--border);background:var(--elevated);">
     <div class="flex items-start justify-between gap-3">
       <div class="min-w-0">
         <div class="flex items-center gap-2 flex-wrap">
@@ -224,7 +251,7 @@ async function refreshPerformanceIntegrations() {
   if (!wrap) return;
   const res = await api('/api/integrations/performance');
   if (!res?.ok) {
-    wrap.innerHTML = `<p class="text-sm" style="color:#B91C1C;">${res?.error || 'No se pudieron cargar fuentes'}</p>`;
+    wrap.innerHTML = `<p class="text-sm" style="color:var(--danger);">${res?.error || 'No se pudieron cargar fuentes'}</p>`;
     return;
   }
   wrap.innerHTML = (res.integrations || []).map(renderPerformanceIntegrationCard).join('');

@@ -59,11 +59,7 @@ async function renderCalendar(root) {
 
   await loadMeetings();
 
-  api('/api/settings/integrations').then(res => {
-    if (res?.calendar) {
-      document.getElementById('m-calendar-hint')?.classList.remove('hidden');
-    }
-  }).catch(() => {});
+  // (antes consultaba /api/settings/integrations, endpoint inexistente → 404 en consola)
 }
 
 function openNewMeetingForm() {

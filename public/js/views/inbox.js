@@ -7,7 +7,7 @@ async function renderInbox(root) {
     <div class="space-y-4 anim-fade-up">
       <div class="flex flex-wrap items-end justify-between gap-3">
         <div>
-          ${eyebrow('CRM')}
+          ${eyebrow('Herramientas')}
           <h1 class="display text-3xl mt-1" style="color:var(--foreground);">Bandeja IA</h1>
           <p class="text-sm mt-1" style="color:var(--muted-foreground);">Decisiones pendientes de agentes</p>
         </div>
@@ -78,6 +78,7 @@ async function _decideInbox(id, action) {
   if (res?.ok) {
     showToast(action === 'approve' ? 'Decisión aprobada' : 'Decisión rechazada');
     renderInbox(document.getElementById('view-root'));
+    if (typeof refreshNavBadges === 'function') refreshNavBadges();
   } else {
     showToast(res?.error || 'Error', 'error');
   }

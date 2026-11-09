@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#0A0A10">
-  <title>CRM</title>
+  <title>Dana. — CRM Pampai</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%230a0a10' stroke='%232bd4bd' stroke-width='2'/%3E%3Ctext x='16' y='22' font-size='16' text-anchor='middle' fill='%232bd4bd' font-family='Georgia'%3ED%3C/text%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -354,6 +355,55 @@
       animation: modalIn 0.22s ease-out;
     }
     #toast.toast-in { animation: toastIn 0.28s ease-out both; }
+    .nav-group-toggle { margin-top: 6px; }
+    .nav-group-children .nav-sub { padding-left: 14px; }
+    .nav-badge {
+      margin-left: auto; font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+      padding: 0 7px; border-radius: 999px; background: var(--warning-soft); color: var(--warning);
+      border: 1px solid rgb(245 177 76 / 0.3);
+    }
+    .nav-sub { justify-content: flex-start; }
+
+    /* Layout responsive: sidebar off-canvas < lg */
+    .crm-mobilebar { display: none; }
+    .crm-scrim { display: none; }
+    @media (max-width: 1023px) {
+      .crm-sidebar { transform: translateX(-100%); transition: transform 0.22s ease; box-shadow: none; }
+      body.nav-open .crm-sidebar { transform: none; box-shadow: 0 0 60px rgb(0 0 0 / 0.6); }
+      body.nav-open .crm-scrim { display: block; position: fixed; inset: 0; background: rgb(0 0 0 / 0.5); z-index: 25; }
+      .crm-main { margin-left: 0 !important; }
+      .crm-mobilebar {
+        display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 20;
+        padding: 10px 16px; background: rgb(10 10 16 / 0.9); backdrop-filter: blur(8px);
+        border-bottom: 1px solid var(--border);
+      }
+      #view-root.p-7 { padding: 16px !important; }
+    }
+    .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    /* Timeline (ficha de contacto) */
+    .timeline { position: relative; padding-left: 26px; }
+    .timeline::before { content: ''; position: absolute; left: 9px; top: 6px; bottom: 6px; width: 2px; background: var(--border); border-radius: 2px; }
+    .timeline-item { position: relative; padding-bottom: 18px; }
+    .timeline-dot {
+      position: absolute; left: -26px; top: 2px; width: 20px; height: 20px; border-radius: 999px;
+      display: grid; place-items: center; background: var(--elevated); border: 1px solid var(--border);
+      font-size: 10px;
+    }
+
+    /* Objetivo trimestre (anillo) */
+    .ring-track { stroke: var(--secondary); }
+    .ring-fill { stroke: url(#ringGrad); transition: stroke-dashoffset 1.1s cubic-bezier(0.22, 1, 0.36, 1); }
+
+    /* Lector de mails: aislado del tema */
+    .mail-frame { width: 100%; border: 0; background: #fff; border-radius: 10px; min-height: 240px; }
+
+    @media print {
+      .crm-sidebar, .crm-mobilebar, .no-print, #toast { display: none !important; }
+      .crm-main { margin-left: 0 !important; }
+      body { background: #fff !important; color: #111 !important; }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       .anim-fade-up, .kpi-card, .view-enter, .stagger-row, #toast.toast-in,
       #lead-modal .modal-panel, .kanban-col.drop-pulse { animation: none !important; }
@@ -380,97 +430,76 @@
 
     <nav class="crm-sidebar-nav px-3 py-4" id="crm-sidebar-nav">
       <a href="#dashboard" class="nav-item" data-view="dashboard">
-        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M4 5a1 1 0 011-1h5a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm9 0a1 1 0 011-1h5a1 1 0 011 1v3a1 1 0 01-1 1h-5a1 1 0 01-1-1V5zm0 8a1 1 0 011-1h5a1 1 0 011 1v6a1 1 0 01-1 1h-5a1 1 0 01-1-1v-6zm-9 3a1 1 0 011-1h5a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3z"/></svg>
         Dashboard
       </a>
 
-      <p class="nav-section">Leads</p>
-      <a href="#leads" class="nav-item" data-view="leads">
-        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-        Todos
-      </a>
-      <a href="#leads/web_form"        class="nav-sub" data-view="leads/web_form">Formulario web</a>
-      <a href="#leads/manychat"        class="nav-sub" data-view="leads/manychat">ManyChat</a>
-      <a href="#leads/instagram"       class="nav-sub" data-view="leads/instagram">Instagram</a>
-      <a href="#leads/whatsapp"        class="nav-sub" data-view="leads/whatsapp">WhatsApp</a>
-      <a href="#leads/linkedin"        class="nav-sub" data-view="leads/linkedin">LinkedIn</a>
-      <a href="#leads/email"           class="nav-sub" data-view="leads/email">Email</a>
-      <a href="#leads/database_import" class="nav-sub" data-view="leads/database_import">Importación</a>
-
-      <p class="nav-section">Agentes IA</p>
-      <a href="#agent/sdr" class="nav-item" data-view="agent/sdr">
-        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-        SDR
-      </a>
-      <a href="#agent/analyst" class="nav-item" data-view="agent/analyst">
-        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-        Analista
-      </a>
-      <a href="#agent/reuniones" class="nav-item" data-view="agent/reuniones">
-        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
-        Reuniones
-      </a>
-      <a href="#agent/briefing" class="nav-item" data-view="agent/briefing">
-        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-        Briefing
-      </a>
-      <a href="#propuestas" class="nav-sub" data-view="propuestas">Menú · Propuestas</a>
-      <a href="#agent/proposal" class="nav-item" data-view="agent/proposal">
-        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-        Propuestas IA
-      </a>
-      <a href="#agent/performance" class="nav-item" data-view="agent/performance">
-        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
-        Performance
-      </a>
-      <a href="#agent/reporting" class="nav-item" data-view="agent/reporting">
-        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-        Reporting
-      </a>
-
-      <div class="nav-group open" id="nav-group-herramientas">
-        <div class="nav-item nav-group-toggle" onclick="toggleNavGroup('herramientas')" title="Expandir / contraer Herramientas" role="button" aria-expanded="true">
+      <!-- ── Leads ─────────────────────────────────────────── -->
+      <div class="nav-group" id="nav-group-leads">
+        <div class="nav-item nav-group-toggle" onclick="toggleNavGroup('leads')" role="button" aria-expanded="false">
           <span class="nav-group-label">
-            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            Leads
+          </span>
+          <svg class="nav-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </div>
+        <div class="nav-group-children">
+          <a href="#leads"                 class="nav-sub" data-view="leads">Todos</a>
+          <a href="#leads/web_form"        class="nav-sub" data-view="leads/web_form">Formulario web</a>
+          <a href="#leads/manychat"        class="nav-sub" data-view="leads/manychat">ManyChat</a>
+          <a href="#leads/instagram"       class="nav-sub" data-view="leads/instagram">Instagram</a>
+          <a href="#leads/whatsapp"        class="nav-sub" data-view="leads/whatsapp">WhatsApp</a>
+          <a href="#leads/linkedin"        class="nav-sub" data-view="leads/linkedin">LinkedIn</a>
+          <a href="#leads/email"           class="nav-sub" data-view="leads/email">Email</a>
+          <a href="#leads/database_import" class="nav-sub" data-view="leads/database_import">Importación</a>
+        </div>
+      </div>
+
+      <!-- ── Agentes IA ────────────────────────────────────── -->
+      <div class="nav-group" id="nav-group-agentes">
+        <div class="nav-item nav-group-toggle" onclick="toggleNavGroup('agentes')" role="button" aria-expanded="false">
+          <span class="nav-group-label">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5"/></svg>
+            Agentes IA
+          </span>
+          <svg class="nav-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </div>
+        <div class="nav-group-children">
+          <a href="#agent/sdr"         class="nav-sub" data-view="agent/sdr">SDR</a>
+          <a href="#agent/analyst"     class="nav-sub" data-view="agent/analyst">Analista</a>
+          <a href="#agent/reuniones"   class="nav-sub" data-view="agent/reuniones">Reuniones</a>
+          <a href="#agent/briefing"    class="nav-sub" data-view="agent/briefing">Briefing</a>
+          <a href="#propuestas"        class="nav-sub" data-view="propuestas" title="Catálogo de servicios y propuestas (antes «Menú · Propuestas»)">Propuestas</a>
+          <a href="#agent/proposal"    class="nav-sub" data-view="agent/proposal">Propuestas IA</a>
+          <a href="#agent/performance" class="nav-sub" data-view="agent/performance">Performance</a>
+          <a href="#agent/reporting"   class="nav-sub" data-view="agent/reporting">Reporting</a>
+        </div>
+      </div>
+
+      <!-- ── Herramientas ──────────────────────────────────── -->
+      <div class="nav-group" id="nav-group-herramientas">
+        <div class="nav-item nav-group-toggle" onclick="toggleNavGroup('herramientas')" role="button" aria-expanded="false">
+          <span class="nav-group-label">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085"/></svg>
             Herramientas
           </span>
           <svg class="nav-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
         </div>
-        <div class="nav-group-children" id="nav-children-herramientas">
-          <a href="#pipeline" class="nav-sub" data-view="pipeline">
-            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
-            Pipeline leads
-          </a>
-          <a href="#deals" class="nav-sub" data-view="deals">
-            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
-            Pipeline deals
-          </a>
-          <a href="#companies" class="nav-sub" data-view="companies">
-            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-            Empresas
-          </a>
-          <a href="#contacts" class="nav-sub" data-view="contacts">
-            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-            Contactos
-          </a>
-          <a href="#activities" class="nav-sub" data-view="activities">
-            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            Actividades
-          </a>
-          <a href="#inbox" class="nav-sub" data-view="inbox">
-            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
-            Bandeja IA
-          </a>
-          <a href="#calendar" class="nav-sub" data-view="calendar">
-            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-            Calendario
-          </a>
-          <a href="#chatbox" class="nav-sub nav-chatbox" data-view="chatbox" title="Lead scoring Chatbox">
-            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-            Chatbox
-          </a>
+        <div class="nav-group-children">
+          <a href="#pipeline"   class="nav-sub" data-view="pipeline">Pipeline leads</a>
+          <a href="#deals"      class="nav-sub" data-view="deals">Pipeline deals</a>
+          <a href="#contacts"   class="nav-sub" data-view="contacts">Contactos</a>
+          <a href="#companies"  class="nav-sub" data-view="companies">Empresas</a>
+          <a href="#activities" class="nav-sub" data-view="activities">Actividades</a>
+          <a href="#inbox"      class="nav-sub" data-view="inbox">Bandeja IA <span class="nav-badge" id="nav-badge-inbox" hidden></span></a>
+          <a href="#mail"       class="nav-sub" data-view="mail">Bandeja <span class="text-[10px] opacity-70">· Gmail</span></a>
+          <a href="#calendar"   class="nav-sub" data-view="calendar">Calendario</a>
+          <a href="#chatbox"    class="nav-sub nav-chatbox" data-view="chatbox" title="Lead scoring Chatbox">Chatbox <span class="text-[10px] opacity-70">· Lead scoring</span></a>
+          <a href="#tasks"      class="nav-sub" data-view="tasks">Tareas</a>
+          <a href="#reports"    class="nav-sub" data-view="reports">Informes</a>
         </div>
       </div>
+
       <a href="#settings" class="nav-item" data-view="settings">
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         Configuración
@@ -491,8 +520,16 @@
     </div>
   </aside>
 
+  <div class="crm-scrim" onclick="toggleMobileNav(false)"></div>
+
   <!-- Main -->
-  <main class="ml-64 flex-1 min-h-screen" style="background:var(--background);">
+  <main class="crm-main ml-64 flex-1 min-h-screen min-w-0" style="background:var(--background);">
+    <div class="crm-mobilebar">
+      <button type="button" onclick="toggleMobileNav()" aria-label="Abrir menú" class="p-1.5 rounded-lg" style="color:var(--foreground);border:1px solid var(--border);">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <p class="display text-lg" style="color:var(--foreground);">Dana<span style="color:var(--primary);">.</span> <span class="eyebrow text-[9px]" style="color:var(--sidebar-muted);">CRM Pampai</span></p>
+    </div>
     <div id="view-root" class="p-7 max-w-7xl mx-auto"></div>
   </main>
 
@@ -539,6 +576,9 @@
   <script src="/js/views/contacts.js"></script>
   <script src="/js/views/activities.js"></script>
   <script src="/js/views/inbox.js"></script>
+  <script src="/js/views/mail.js"></script>
+  <script src="/js/views/tasks.js"></script>
+  <script src="/js/views/reports.js"></script>
   <script>
     const token = localStorage.getItem('crm_token');
     if (!token) window.location.href = '/login.html';
@@ -573,44 +613,55 @@
       navigate(el.dataset.view);
     });
 
+    function setNavGroupOpen(id, open, persist) {
+      const group = document.getElementById('nav-group-' + id);
+      if (!group) return;
+      group.classList.toggle('open', open);
+      const toggle = group.querySelector('.nav-group-toggle');
+      if (toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (persist) { try { localStorage.setItem('crm_nav_' + id, open ? '1' : '0'); } catch (_) {} }
+    }
+
     function toggleNavGroup(id) {
       const group = document.getElementById('nav-group-' + id);
       if (!group) return;
-      const open = group.classList.toggle('open');
-      const toggle = group.querySelector('.nav-group-toggle');
-      if (toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-      try { localStorage.setItem('crm_nav_' + id, open ? '1' : '0'); } catch (_) {}
+      setNavGroupOpen(id, !group.classList.contains('open'), true);
+    }
+
+    function toggleMobileNav(force) {
+      const open = typeof force === 'boolean' ? force : !document.body.classList.contains('nav-open');
+      document.body.classList.toggle('nav-open', open);
     }
 
     (function restoreNavGroups() {
-      try {
-        const saved = localStorage.getItem('crm_nav_herramientas');
-        const group = document.getElementById('nav-group-herramientas');
-        if (!group) return;
-        // Default open so Chatbox is always visible on first visit
-        const open = saved == null ? true : saved === '1';
-        group.classList.toggle('open', open);
-        const toggle = group.querySelector('.nav-group-toggle');
-        if (toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-      } catch (_) {}
+      // Herramientas abierto por defecto (Chatbox visible en la primera visita)
+      const defaults = { leads: false, agentes: false, herramientas: true };
+      for (const id of Object.keys(defaults)) {
+        let open = defaults[id];
+        try {
+          const saved = localStorage.getItem('crm_nav_' + id);
+          if (saved != null) open = saved === '1';
+        } catch (_) {}
+        setNavGroupOpen(id, open, false);
+      }
     })();
 
     async function renderView(hash) {
       const view = (hash || '').replace(/^#/, '') || 'dashboard';
 
-      document.querySelectorAll('.nav-item, .nav-sub').forEach(el => {
-        el.classList.toggle('active', el.dataset.view === view);
-      });
+      // Activo: match exacto; si no hay (ej. contacts/<id>), el segmento base
+      const navEls = document.querySelectorAll('.nav-item, .nav-sub');
+      let activeView = view;
+      if (![...navEls].some((el) => el.dataset.view === view)) activeView = view.split('/')[0];
+      navEls.forEach((el) => el.classList.toggle('active', el.dataset.view === activeView));
 
-      // Ensure Herramientas stays open when a child view is active
-      if (view === 'pipeline' || view === 'deals' || view === 'companies' || view === 'contacts' || view === 'activities' || view === 'inbox' || view === 'calendar' || view === 'chatbox') {
-        const group = document.getElementById('nav-group-herramientas');
-        if (group && !group.classList.contains('open')) {
-          group.classList.add('open');
-          const toggle = group.querySelector('.nav-group-toggle');
-          if (toggle) toggle.setAttribute('aria-expanded', 'true');
-        }
+      // Abrir el grupo que contiene la vista activa (sin persistir)
+      const activeEl = [...navEls].find((el) => el.dataset.view === activeView);
+      const parentGroup = activeEl?.closest('.nav-group');
+      if (parentGroup && !parentGroup.classList.contains('open')) {
+        setNavGroupOpen(parentGroup.id.replace('nav-group-', ''), true, false);
       }
+      toggleMobileNav(false);
 
       const root = document.getElementById('view-root');
       if (!root) return;
@@ -653,16 +704,19 @@
       else if (view === 'pipeline')       pending = renderPipeline(root);
       else if (view === 'deals')          pending = renderDealsPipeline(root);
       else if (view === 'companies')      pending = renderCompanies(root);
-      else if (view === 'contacts')       pending = renderContacts(root);
+      else if (view === 'contacts' || view.startsWith('contacts/')) pending = renderContacts(root, view.split('/')[1] || null);
       else if (view === 'activities')     pending = renderActivities(root);
       else if (view === 'inbox')          pending = renderInbox(root);
+      else if (view === 'mail')           pending = renderMail(root);
+      else if (view === 'tasks')          pending = renderTasks(root);
+      else if (view === 'reports')        pending = renderReports(root);
       else if (view === 'propuestas')     pending = renderPropuestasMenu(root);
       else if (view.startsWith('agent/')) pending = renderAgent(root, view.split('/')[1]);
       else if (view.startsWith('leads')) {
         const source = view.includes('/') ? view.split('/')[1] : null;
         pending = renderLeads(root, source);
       } else {
-        root.innerHTML = `<div class="p-8 text-sm" style="color:var(--muted-foreground);">Vista no encontrada: <code>${view}</code></div>`;
+        root.innerHTML = `<div class="p-8 text-sm" style="color:var(--muted-foreground);">Vista no encontrada: <code>${_escHtml(view)}</code></div>`;
       }
 
       try { if (pending && typeof pending.then === 'function') await pending; } catch (_) {}
@@ -748,9 +802,24 @@
       }, 3500);
     }
 
+    // Auto-refresh del dashboard: no interrumpir drag & drop ni modales abiertos
     setInterval(() => {
-      if ((window.location.hash || '#dashboard') === '#dashboard') renderView('#dashboard');
+      if ((window.location.hash || '#dashboard') !== '#dashboard') return;
+      if (window._kanbanDragging) return;
+      if (!document.getElementById('lead-modal').classList.contains('hidden')) return;
+      if (typeof refreshDashboard === 'function') refreshDashboard();
+      else renderView('#dashboard');
     }, 60000);
+
+    // Badge de aprobaciones pendientes en "Bandeja IA"
+    async function refreshNavBadges() {
+      const res = await api('/api/agent-decisions?status=pending&limit=100');
+      const n = res?.decisions?.length || 0;
+      const b = document.getElementById('nav-badge-inbox');
+      if (b) { b.hidden = !n; b.textContent = n; }
+    }
+    refreshNavBadges();
+    setInterval(refreshNavBadges, 120000);
   </script>
 </body>
 </html>

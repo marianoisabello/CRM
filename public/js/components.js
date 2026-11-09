@@ -176,6 +176,17 @@ function countUpHtml(value, className = '') {
   return `<span class="font-data tnum ${className}" data-count-up="${n}">${prefersReducedMotion() ? n : 0}</span>`;
 }
 
+/** Importe que anima de 0 → value con formato de moneda */
+function countUpMoneyHtml(value, currency = 'USD', className = '') {
+  const n = Number(value) || 0;
+  return `<span class="font-data tnum ${className}" data-count-up="${n}" data-count-format="money" data-count-currency="${_escHtml(currency || 'USD')}">${fmtMoney(prefersReducedMotion() ? n : 0, currency)}</span>`;
+}
+
+function _countFormat(el, v) {
+  if (el.dataset.countFormat === 'money') return fmtMoney(v, el.dataset.countCurrency || 'USD');
+  return String(Math.round(v)) + (el.dataset.countSuffix || '');
+}
+
 /** Barra de progreso animable — pct 0–100 */
 function progressBar(pct, color = 'var(--primary)', height = 6) {
   const w = Math.max(0, Math.min(100, Number(pct) || 0));
@@ -207,7 +218,7 @@ function hydrateMotion(scope) {
     const target = parseFloat(el.dataset.countUp);
     if (!Number.isFinite(target)) return;
     if (reduce) {
-      el.textContent = String(Math.round(target));
+      el.textContent = _countFormat(el, target);
       return;
     }
     const duration = 900;
@@ -215,9 +226,9 @@ function hydrateMotion(scope) {
     const tick = (now) => {
       const p = Math.min(1, (now - start) / duration);
       const eased = 1 - Math.pow(1 - p, 3);
-      el.textContent = String(Math.round(target * eased));
+      el.textContent = _countFormat(el, target * eased);
       if (p < 1) requestAnimationFrame(tick);
-      else el.textContent = String(Math.round(target));
+      else el.textContent = _countFormat(el, target);
     };
     requestAnimationFrame(tick);
   });
@@ -272,6 +283,286 @@ function fmtMoney(value, currency = 'USD') {
     }).format(n);
   } catch (_) {
     return `${currency} ${Math.round(n)}`;
+  }
+}
+
+/** "hace 2 h", "ayer", "hace 4 días", "en 3 días" */
+function fmtRelative(ts) {
+  if (!ts) return '—';
+  const t = new Date(ts).getTime();
+  if (!Number.isFinite(t)) return '—';
+  const diff = Date.now() - t;
+  const abs = Math.abs(diff);
+  const future = diff < 0;
+  const min = Math.round(abs / 60000);
+  const h = Math.round(abs / 3600000);
+  const d = Math.round(abs / 86400000);
+  let s;
+  if (min < 1) return 'recién';
+  if (min < 60) s = `${min} min`;
+  else if (h < 24) s = `${h} h`;
+  else if (d === 1) return future ? 'mañana' : 'ayer';
+  else if (d < 30) s = `${d} días`;
+  else if (d < 365) s = `${Math.round(d / 30)} meses`;
+  else s = `${Math.round(d / 365)} años`;
+  return future ? `en ${s}` : `hace ${s}`;
+}
+
+function fmtDay(ts) {
+  if (!ts) return '—';
+  try {
+    return new Date(ts).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' });
+  } catch (_) {
+    return '—';
+  }
+}
+
+/** Δ vs período anterior → chip coloreado. mode: 'pct' | 'abs' | 'pts' */
+function deltaChip(curr, prev, { mode = 'pct', label = 'vs mes anterior' } = {}) {
+  if (curr == null || prev == null) {
+    return `<span class="text-xs" style="color:var(--muted-foreground);">sin dato ${_escHtml(label)}</span>`;
+  }
+  let diff;
+  let txt;
+  if (mode === 'pct') {
+    if (!prev) {
+      if (!curr) return `<span class="text-xs" style="color:var(--muted-foreground);">= ${_escHtml(label)}</span>`;
+      return `<span class="text-xs font-data" style="color:var(--success);">nuevo</span> <span class="text-xs" style="color:var(--muted-foreground);">${_escHtml(label)}</span>`;
+    }
+    diff = Math.round(((curr - prev) / Math.abs(prev)) * 100);
+    txt = `${diff > 0 ? '+' : ''}${diff}%`;
+  } else if (mode === 'pts') {
+    diff = Math.round(curr - prev);
+    txt = `${diff > 0 ? '+' : ''}${diff} pts`;
+  } else {
+    diff = Math.round(curr - prev);
+    txt = `${diff > 0 ? '+' : ''}${diff}`;
+  }
+  const color = diff > 0 ? 'var(--success)' : diff < 0 ? 'var(--danger)' : 'var(--muted-foreground)';
+  const arrow = diff > 0 ? '↑' : diff < 0 ? '↓' : '→';
+  return `<span class="text-xs font-data" style="color:${color};">${arrow} ${txt}</span> <span class="text-xs" style="color:var(--muted-foreground);">${_escHtml(label)}</span>`;
+}
+
+/** Descarga CSV en el navegador. rows: array de objetos; cols: [{key,label}] */
+function downloadCsv(filename, rows, cols) {
+  const esc = (v) => {
+    if (v == null) return '';
+    const s = typeof v === 'object' ? JSON.stringify(v) : String(v);
+    return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const head = cols.map((c) => esc(c.label)).join(',');
+  const body = (rows || []).map((r) => cols.map((c) => esc(typeof c.get === 'function' ? c.get(r) : r[c.key])).join(',')).join('\n');
+  const blob = new Blob(['﻿' + head + '\n' + body], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+
+/** Abre el modal compartido con contenido arbitrario (sin botones de estado). */
+function openModalShell(title, subtitle, bodyHtml) {
+  const modal = document.getElementById('lead-modal');
+  document.getElementById('modal-name').textContent = title || '';
+  document.getElementById('modal-source').textContent = subtitle || '';
+  document.getElementById('modal-body').innerHTML = bodyHtml || '';
+  const footer = document.getElementById('modal-footer');
+  if (footer) footer.style.display = 'none';
+  modal.classList.remove('hidden');
+  requestAnimationFrame(() => {
+    modal.classList.add('is-open');
+    hydrateMotion(modal);
+  });
+}
+
+// ─── Kanban de oportunidades (deals) — compartido por Dashboard y Pipeline deals ─
+
+let _kanbanState = { stages: [], deals: [], onChange: null };
+
+function _dealStageCols(stages) {
+  const list = (stages || []).filter((s) => s.active !== false);
+  if (list.length) {
+    return list.map((s) => ({
+      key: s.key,
+      label: s.name || dealStageLabel[s.key] || s.key,
+      celebrate: Boolean(s.celebrate || s.is_won),
+      ...(dealStageColors[s.key] || { color: 'var(--muted-foreground)', soft: 'var(--secondary)' }),
+    }));
+  }
+  return Object.keys(dealStageLabel).map((key) => ({ key, label: dealStageLabel[key], celebrate: key === 'ganado', ...(dealStageColors[key] || {}) }));
+}
+
+function _dealCardHtml(d, col) {
+  const contact = d.contacts?.name || '';
+  const company = d.companies?.name || '';
+  const sub = [company, contact].filter(Boolean).join(' · ') || 'Sin empresa ni contacto';
+  const days = d.days_in_stage != null
+    ? d.days_in_stage
+    : d.stage_entered_at ? Math.max(0, Math.floor((Date.now() - new Date(d.stage_entered_at)) / 86400000)) : null;
+  const owner = d.owner?.name || null;
+  return `<div class="kanban-card rounded-xl p-3 mb-2 cursor-grab border" data-deal-id="${d.id}"
+      style="background:var(--card);border-color:var(--border);"
+      draggable="true"
+      ondragstart="_kanbanDragStart(event,'${d.id}','${d.stage}')"
+      ondragend="this.classList.remove('card-dragging')"
+      onmouseover="this.style.borderColor='${col.color}'"
+      onmouseout="this.style.borderColor='var(--border)'"
+      onclick="openDealDrawer('${d.id}')">
+    <p class="font-medium text-sm leading-tight mb-1" style="color:var(--foreground);">${_escHtml(d.title || 'Sin título')}</p>
+    <p class="text-xs truncate mb-2.5" style="color:var(--muted-foreground);">${_escHtml(sub)}</p>
+    <div class="flex items-center justify-between gap-2">
+      <span class="font-data text-sm font-semibold tnum" style="color:${col.color};">${fmtMoney(d.value, d.currency)}</span>
+      <div class="flex items-center gap-1.5">
+        ${days != null ? `<span class="font-data text-[11px]" style="color:var(--muted-foreground);" title="Días en esta etapa">${days} d</span>` : ''}
+        ${owner ? avatarHtml(owner, { size: 20 }) : ''}
+      </div>
+    </div>
+  </div>`;
+}
+
+/**
+ * Renderiza el Kanban de deals en `board`.
+ * opts: { stages, deals, onChange(), compact?: bool, hideLost?: bool }
+ */
+function renderDealKanban(board, opts = {}) {
+  if (!board) return;
+  _kanbanState = { stages: opts.stages || [], deals: opts.deals || [], onChange: opts.onChange || null };
+  let cols = _dealStageCols(opts.stages);
+  if (opts.hideLost) cols = cols.filter((c) => c.key !== 'perdido');
+
+  const grouped = {};
+  cols.forEach((c) => { grouped[c.key] = []; });
+  (opts.deals || []).forEach((d) => {
+    const k = d.stage || 'prospeccion';
+    if (grouped[k]) grouped[k].push(d);
+  });
+
+  const width = opts.compact ? 'w-60' : 'w-64';
+  board.innerHTML = cols.map((col) => {
+    const items = grouped[col.key] || [];
+    const total = items.reduce((s, d) => s + (Number(d.value) || 0), 0);
+    const currency = items[0]?.currency || 'USD';
+    return `<div class="kanban-col shrink-0 ${width} flex flex-col rounded-xl p-3" data-stage="${col.key}"
+        style="background:var(--elevated);border:1px solid var(--border);"
+        ondragover="event.preventDefault();this.querySelector('.kanban-drop-zone').style.background='${col.soft}';"
+        ondragleave="this.querySelector('.kanban-drop-zone').style.background='';"
+        ondrop="this.querySelector('.kanban-drop-zone').style.background='';_kanbanDrop(event,'${col.key}')">
+      <div class="flex items-center justify-between mb-1">
+        <div class="flex items-center gap-2">
+          <div class="w-2 h-2 rounded-full" style="background:${col.color};"></div>
+          <span class="eyebrow" style="color:var(--muted-foreground);">${_escHtml(col.label)}</span>
+        </div>
+        <span class="font-data text-xs font-semibold px-2 py-0.5 rounded-full" style="background:${col.soft};color:${col.color};border:1px solid var(--border);">${items.length}</span>
+      </div>
+      <p class="font-data text-xs mb-3 tnum" style="color:var(--muted-foreground);">${fmtMoney(total, currency)}</p>
+      <div class="kanban-drop-zone flex-1 overflow-y-auto transition-colors rounded-lg nice-scroll" style="max-height:${opts.compact ? '420px' : 'calc(100vh - 300px)'};min-height:80px;">
+        ${items.map((d) => _dealCardHtml(d, col)).join('') || `<div class="text-xs text-center py-6 rounded-xl border-2 border-dashed" style="color:var(--muted-foreground);border-color:var(--border);">Soltá acá</div>`}
+      </div>
+      <button type="button" class="mt-2 text-xs rounded-lg py-1.5 transition" style="color:var(--muted-foreground);border:1px dashed var(--border);"
+        onmouseover="this.style.color='var(--primary)';this.style.borderColor='rgb(43 212 189 / 0.4)'"
+        onmouseout="this.style.color='var(--muted-foreground)';this.style.borderColor='var(--border)'"
+        onclick="openDealForm('${col.key}')">+ Añadir</button>
+    </div>`;
+  }).join('');
+  hydrateMotion(board);
+}
+
+function _kanbanDragStart(event, dealId, fromStage) {
+  event.currentTarget.classList.add('card-dragging');
+  event.dataTransfer.setData('dealId', dealId);
+  event.dataTransfer.setData('fromStage', fromStage);
+  event.dataTransfer.effectAllowed = 'move';
+  window._kanbanDragging = true;
+}
+
+async function _kanbanDrop(event, toStage) {
+  event.preventDefault();
+  window._kanbanDragging = false;
+  const dealId = event.dataTransfer.getData('dealId');
+  const fromStage = event.dataTransfer.getData('fromStage');
+  if (!dealId || fromStage === toStage) return;
+
+  const col = event.currentTarget;
+  const card = document.querySelector(`.kanban-card[data-deal-id="${dealId}"]`);
+  // Movimiento optimista
+  const zone = col?.querySelector('.kanban-drop-zone');
+  const prevParent = card?.parentElement;
+  if (card && zone) {
+    zone.querySelector('.border-dashed')?.remove();
+    zone.prepend(card);
+    card.classList.remove('card-dragging');
+  }
+  if (col?.classList) {
+    col.classList.remove('drop-pulse');
+    void col.offsetWidth;
+    col.classList.add('drop-pulse');
+  }
+
+  const stageCol = _dealStageCols(_kanbanState.stages).find((c) => c.key === toStage);
+  const res = await api(`/api/deals/${dealId}/stage`, { method: 'PATCH', body: { stage: toStage } });
+  if (res?.ok) {
+    if (stageCol?.celebrate) {
+      const r = col?.getBoundingClientRect?.();
+      celebrate(r ? { x: (r.left + r.width / 2) / window.innerWidth, y: (r.top + 80) / window.innerHeight } : undefined);
+    }
+    showToast(`Etapa: ${stageCol?.label || toStage}`);
+  } else {
+    if (card && prevParent) prevParent.prepend(card);
+    showToast(res?.error || 'Error cambiando etapa', 'error');
+  }
+  if (typeof _kanbanState.onChange === 'function') _kanbanState.onChange();
+}
+
+/** Form "Nueva oportunidad" (POST /api/deals, mecanismo existente). */
+function openDealForm(stage = 'prospeccion') {
+  const stages = _dealStageCols(_kanbanState.stages);
+  openModalShell('Nueva oportunidad', 'Se guarda en Pipeline deals', `
+    <div class="space-y-3">
+      <div><label class="eyebrow block mb-1.5" style="color:var(--muted-foreground);">Título</label>
+        <input id="df-title" class="input" placeholder="Ej. Estrategia 360 · Aura Moda"></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="eyebrow block mb-1.5" style="color:var(--muted-foreground);">Importe</label>
+          <input id="df-value" type="number" min="0" class="input" placeholder="0"></div>
+        <div><label class="eyebrow block mb-1.5" style="color:var(--muted-foreground);">Moneda</label>
+          <select id="df-currency" class="input"><option>USD</option><option>ARS</option><option>EUR</option></select></div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="eyebrow block mb-1.5" style="color:var(--muted-foreground);">Etapa</label>
+          <select id="df-stage" class="input">${stages.map((s) => `<option value="${s.key}" ${s.key === stage ? 'selected' : ''}>${_escHtml(s.label)}</option>`).join('')}</select></div>
+        <div><label class="eyebrow block mb-1.5" style="color:var(--muted-foreground);">Probabilidad %</label>
+          <input id="df-prob" type="number" min="0" max="100" class="input" value="25"></div>
+      </div>
+      <div><label class="eyebrow block mb-1.5" style="color:var(--muted-foreground);">Cierre previsto</label>
+        <input id="df-close" type="date" class="input"></div>
+      <div class="flex gap-2 pt-1">
+        <button type="button" class="btn-primary" onclick="_submitDealForm()">Crear oportunidad</button>
+        <button type="button" class="btn-ghost" onclick="closeModal()">Cancelar</button>
+      </div>
+    </div>`);
+  setTimeout(() => document.getElementById('df-title')?.focus(), 50);
+}
+
+async function _submitDealForm() {
+  const title = document.getElementById('df-title')?.value?.trim();
+  if (!title) { showToast('El título es obligatorio', 'error'); return; }
+  const body = {
+    title,
+    value: Number(document.getElementById('df-value')?.value) || 0,
+    currency: document.getElementById('df-currency')?.value || 'USD',
+    stage: document.getElementById('df-stage')?.value || 'prospeccion',
+    probability: Number(document.getElementById('df-prob')?.value) || 0,
+    expected_close: document.getElementById('df-close')?.value || null,
+    status: 'open',
+  };
+  const res = await api('/api/deals', { method: 'POST', body });
+  if (res?.ok) {
+    closeModal();
+    showToast('Oportunidad creada');
+    if (typeof _kanbanState.onChange === 'function') _kanbanState.onChange();
+    else renderView(window.location.hash);
+  } else {
+    showToast(res?.error || 'Error creando oportunidad', 'error');
   }
 }
 
@@ -475,7 +766,7 @@ async function initLeadPropuestaAssign(lead) {
   const res = await api('/api/propuestas?activo=true&limit=100');
   const rows = res?.propuestas || [];
   if (!rows.length) {
-    sel.innerHTML = '<option value="">Sin propuestas (creá en Menú · Propuestas)</option>';
+    sel.innerHTML = '<option value="">Sin propuestas (creá en Agentes IA → Propuestas)</option>';
     return;
   }
   sel.innerHTML =

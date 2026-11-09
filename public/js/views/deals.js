@@ -5,12 +5,14 @@ async function renderDealsPipeline(root) {
     <div class="space-y-4 anim-fade-up">
       <div class="flex flex-wrap items-end justify-between gap-3">
         <div>
-          ${eyebrow('CRM')}
+          ${eyebrow('Herramientas')}
           <h1 class="display text-3xl mt-1" style="color:var(--foreground);">Pipeline deals</h1>
-          <p class="text-sm mt-1" style="color:var(--muted-foreground);">Oportunidades comerciales por etapa</p>
+          <p class="text-sm mt-1" style="color:var(--muted-foreground);">Arrastrá cada oportunidad a su etapa: se guarda al soltar.</p>
         </div>
         <div class="flex items-center gap-2">
-          <button type="button" onclick="_openCreateDeal()" class="btn-primary text-xs px-3 py-2">+ Deal</button>
+          <input id="deals-q" type="search" placeholder="Buscar oportunidad…" class="input" style="width:200px;"
+            oninput="clearTimeout(window._dealsQT);window._dealsQT=setTimeout(_renderDealsBoard,200)">
+          <button type="button" onclick="openDealForm('prospeccion')" class="btn-primary text-xs px-3 py-2">+ Oportunidad</button>
           <button type="button" onclick="renderDealsPipeline(document.getElementById('view-root'))" class="btn-ghost flex items-center gap-1.5 text-xs">Actualizar</button>
         </div>
       </div>
@@ -20,108 +22,50 @@ async function renderDealsPipeline(root) {
       </div>
     </div>`;
 
-  const [stagesRes, dealsRes, metricsRes] = await Promise.all([
+  const [stagesRes, dealsRes, metricsRes, usersRes] = await Promise.all([
     api('/api/pipeline-stages'),
     api('/api/deals?limit=300'),
     api('/api/deals/metrics'),
+    api('/api/crm/users'),
   ]);
 
-  const stages = (stagesRes?.stages || []).filter((s) => s.active !== false);
-  const deals = dealsRes?.deals || [];
+  const users = Object.fromEntries((usersRes?.users || []).map((u) => [u.id, { id: u.id, name: u.name || u.email }]));
+  window._dealsData = {
+    stages: (stagesRes?.stages || []).filter((s) => s.active !== false),
+    deals: (dealsRes?.deals || []).map((d) => ({ ...d, owner: d.owner_id ? users[d.owner_id] || null : null })),
+  };
   const m = metricsRes?.metrics || {};
 
   const metricsEl = document.getElementById('deals-metrics');
   if (metricsEl) {
     metricsEl.innerHTML = [
-      { label: 'Abiertos', val: m.open_count || 0, color: 'var(--info)' },
-      { label: 'Pipeline', val: fmtMoney(m.pipeline_total || 0), color: 'var(--primary)', raw: false },
-      { label: 'Win rate', val: `${m.win_rate || 0}%`, color: 'var(--success)', raw: false },
-      { label: 'Ganados', val: m.won_count || 0, color: 'var(--primary)' },
+      { label: 'Abiertas', html: countUpHtml(m.open_count || 0), color: 'var(--info)' },
+      { label: 'Pipeline', html: countUpMoneyHtml(m.pipeline_total || 0), color: 'var(--primary)' },
+      { label: 'Tasa de cierre', html: `<span data-count-up="${m.win_rate || 0}" data-count-suffix="%">0%</span>`, color: 'var(--success)' },
+      { label: 'Ganadas', html: `${countUpHtml(m.won_count || 0)} <span class="text-sm font-normal" style="color:var(--muted-foreground);">· ${fmtMoney(m.won_value || 0)}</span>`, color: 'var(--primary)' },
     ].map((k) => `
       <div class="kpi-card" style="border:none;border-radius:0;border-left:3px solid ${k.color};">
         <p class="eyebrow" style="color:var(--muted-foreground);">${k.label}</p>
-        <p class="font-data text-2xl font-bold mt-2 tnum" style="color:var(--foreground);">${k.raw === false ? k.val : countUpHtml(k.val)}</p>
+        <p class="font-data text-2xl font-bold mt-2 tnum" style="color:var(--foreground);">${k.html}</p>
       </div>`).join('');
+    hydrateMotion(metricsEl);
   }
 
-  const cols = stages.length
-    ? stages.map((s) => ({
-        key: s.key,
-        label: s.name || dealStageLabel[s.key] || s.key,
-        ...(dealStageColors[s.key] || { color: 'var(--muted-foreground)', soft: 'var(--secondary)' }),
-      }))
-    : Object.keys(dealStageLabel).map((key) => ({
-        key,
-        label: dealStageLabel[key],
-        ...(dealStageColors[key] || {}),
-      }));
-
-  const grouped = {};
-  cols.forEach((c) => { grouped[c.key] = []; });
-  deals.forEach((d) => {
-    const k = d.stage || 'prospeccion';
-    if (!grouped[k]) grouped[k] = [];
-    grouped[k].push(d);
-  });
-
-  const board = document.getElementById('deals-kanban');
-  if (!board) return;
-
-  board.innerHTML = cols.map((col) => {
-    const items = grouped[col.key] || [];
-    const cards = items.map((d) => {
-      const contact = d.contacts?.name || d.contact_name || '—';
-      const company = d.companies?.name || '—';
-      return `<div class="kanban-card rounded-xl p-3 mb-2 cursor-pointer border"
-                   style="background:var(--card);border-color:var(--border);"
-                   draggable="true"
-                   ondragstart="this.classList.add('card-dragging');event.dataTransfer.setData('dealId','${d.id}');event.dataTransfer.setData('fromStage','${d.stage}');"
-                   ondragend="this.classList.remove('card-dragging')"
-                   onmouseover="this.style.borderColor='${col.color}'"
-                   onmouseout="this.style.borderColor='var(--border)'"
-                   onclick="openDealDrawer('${d.id}')">
-        <p class="font-medium text-sm leading-tight mb-1" style="color:var(--foreground);">${_escHtml(d.title || 'Sin título')}</p>
-        <p class="text-xs truncate mb-2" style="color:var(--muted-foreground);">${_escHtml(company)} · ${_escHtml(contact)}</p>
-        <div class="flex items-center justify-between">
-          <span class="font-data text-xs" style="color:${col.color};">${fmtMoney(d.value, d.currency)}</span>
-          <span class="font-data text-xs" style="color:var(--muted-foreground);">${d.probability != null ? d.probability + '%' : ''}</span>
-        </div>
-      </div>`;
-    }).join('');
-
-    return `<div class="kanban-col shrink-0 w-64 flex flex-col rounded-xl p-3" data-stage="${col.key}" style="background:var(--elevated);border:1px solid var(--border);"
-                ondragover="event.preventDefault();this.querySelector('.kanban-drop-zone').style.background='${col.soft}';"
-                ondragleave="this.querySelector('.kanban-drop-zone').style.background='';"
-                ondrop="this.querySelector('.kanban-drop-zone').style.background='';_dealsDrop(event,'${col.key}');">
-      <div class="flex items-center justify-between mb-3">
-        <div class="flex items-center gap-2">
-          <div class="w-2 h-2 rounded-full" style="background:${col.color};"></div>
-          <span class="eyebrow" style="color:var(--muted-foreground);">${_escHtml(col.label)}</span>
-        </div>
-        <span class="font-data text-xs font-semibold px-2 py-0.5 rounded-full" style="background:${col.soft};color:${col.color};border:1px solid var(--border);">${items.length}</span>
-      </div>
-      <div class="kanban-drop-zone flex-1 overflow-y-auto transition-colors rounded-lg nice-scroll" style="max-height:calc(100vh - 280px);">
-        ${cards || `<div class="text-xs text-center py-8 rounded-xl border-2 border-dashed" style="color:var(--muted-foreground);border-color:var(--border);">Sin deals</div>`}
-      </div>
-    </div>`;
-  }).join('');
-  hydrateMotion(board);
+  _renderDealsBoard();
 }
 
-async function _dealsDrop(event, toStage) {
-  event.preventDefault();
-  const dealId = event.dataTransfer.getData('dealId');
-  const fromStage = event.dataTransfer.getData('fromStage');
-  if (!dealId || fromStage === toStage) return;
-
-  const res = await api(`/api/deals/${dealId}/stage`, { method: 'PATCH', body: { stage: toStage } });
-  if (res?.ok) {
-    if (toStage === 'ganado' && typeof celebrate === 'function') celebrate();
-    showToast(`Stage: ${dealStageLabel[toStage] || toStage}`);
-    renderDealsPipeline(document.getElementById('view-root'));
-  } else {
-    showToast(res?.error || 'Error cambiando stage', 'error');
-  }
+function _renderDealsBoard() {
+  const board = document.getElementById('deals-kanban');
+  if (!board || !window._dealsData) return;
+  const q = (document.getElementById('deals-q')?.value || '').trim().toLowerCase();
+  const deals = q
+    ? window._dealsData.deals.filter((d) => `${d.title} ${d.companies?.name || ''} ${d.contacts?.name || ''}`.toLowerCase().includes(q))
+    : window._dealsData.deals;
+  renderDealKanban(board, {
+    stages: window._dealsData.stages,
+    deals,
+    onChange: () => renderDealsPipeline(document.getElementById('view-root')),
+  });
 }
 
 async function openDealDrawer(dealId) {
@@ -160,6 +104,17 @@ async function openDealDrawer(dealId) {
         <div><p class="eyebrow mb-1">Estado</p><p style="color:var(--foreground);">${_escHtml(deal.status)}</p></div>
         <div><p class="eyebrow mb-1">Prob.</p><p class="font-data" style="color:var(--foreground);">${deal.probability != null ? deal.probability + '%' : '—'}</p></div>
       </div>
+      <div class="flex flex-wrap items-end gap-2">
+        <div class="flex-1 min-w-[160px]">
+          <p class="eyebrow mb-1.5">Mover a etapa</p>
+          <select id="deal-stage-select" class="input">
+            ${_dealStageCols(_kanbanState.stages?.length ? _kanbanState.stages : (window._dealsData?.stages || []))
+              .map((s) => `<option value="${s.key}" ${s.key === deal.stage ? 'selected' : ''}>${_escHtml(s.label)}</option>`).join('')}
+          </select>
+        </div>
+        <button type="button" class="btn-primary text-xs" onclick="_moveDealFromDrawer('${deal.id}','${deal.stage}')">Mover</button>
+        ${deal.leads?.id ? `<a href="${deal.leads.status === 'won' ? `#contacts/${deal.leads.id}` : '#leads'}" class="btn-ghost text-xs" style="text-decoration:none;" onclick="closeModal()">${deal.leads.status === 'won' ? 'Ficha del contacto' : 'Ver lead'}</a>` : ''}
+      </div>
       <div>
         <p class="eyebrow mb-2">Actividad</p>
         ${acts.length ? acts.map((a) => `
@@ -178,6 +133,18 @@ async function openDealDrawer(dealId) {
     </div>`;
 }
 
+async function _moveDealFromDrawer(dealId, fromStage) {
+  const toStage = document.getElementById('deal-stage-select')?.value;
+  if (!toStage || toStage === fromStage) return;
+  const res = await api(`/api/deals/${dealId}/stage`, { method: 'PATCH', body: { stage: toStage } });
+  if (!res?.ok) { showToast(res?.error || 'Error cambiando etapa', 'error'); return; }
+  const col = _dealStageCols(_kanbanState.stages?.length ? _kanbanState.stages : (window._dealsData?.stages || [])).find((c) => c.key === toStage);
+  if (col?.celebrate) celebrate();
+  showToast(`Etapa: ${col?.label || toStage}`);
+  closeModal();
+  if (typeof _kanbanState.onChange === 'function') _kanbanState.onChange();
+}
+
 async function _addDealNote(dealId) {
   const input = document.getElementById('deal-note-input');
   const title = (input?.value || '').trim();
@@ -194,17 +161,5 @@ async function _addDealNote(dealId) {
   }
 }
 
-async function _openCreateDeal() {
-  const title = prompt('Título del deal:');
-  if (!title || !title.trim()) return;
-  const res = await api('/api/deals', {
-    method: 'POST',
-    body: { title: title.trim(), stage: 'prospeccion', status: 'open', probability: 25 },
-  });
-  if (res?.ok) {
-    showToast('Deal creado');
-    renderDealsPipeline(document.getElementById('view-root'));
-  } else {
-    showToast(res?.error || 'Error creando deal', 'error');
-  }
-}
+// Compat: llamadas viejas a _openCreateDeal
+function _openCreateDeal() { openDealForm('prospeccion'); }

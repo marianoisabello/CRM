@@ -32,6 +32,8 @@ const dealsRouter = require('./routes/deals');
 const pipelineStagesRouter = require('./routes/pipelineStages');
 const activitiesRouter = require('./routes/activities');
 const agentDecisionsRouter = require('./routes/agentDecisions');
+const crmRouter = require('./routes/crm');
+const mailRouter = require('./routes/mail');
 
 // Jobs
 const { runFollowups } = require('./jobs/followups');
@@ -68,6 +70,12 @@ app.use('/api/hooks/reuniones', webhooksReunionesRouter);
 app.get('/api/integrations/oauth/:provider/callback', (req, res, next) => {
   req.url = `/oauth/${req.params.provider}/callback`;
   integrationsRouter(req, res, next);
+});
+
+// OAuth callback Gmail (Bandeja) — público, el state firmado lleva el usuario
+app.get('/api/mail/oauth/callback', (req, res, next) => {
+  req.url = '/oauth/callback';
+  mailRouter(req, res, next);
 });
 
 // Trigger Analista/Perfiles desde n8n (header x-crm-internal-key)
@@ -153,6 +161,8 @@ app.use('/api/deals', dealsRouter);
 app.use('/api/pipeline-stages', pipelineStagesRouter);
 app.use('/api/activities', activitiesRouter);
 app.use('/api/agent-decisions', agentDecisionsRouter);
+app.use('/api/crm', crmRouter);
+app.use('/api/mail', mailRouter);
 
 // 404
 app.use((_req, res) => res.status(404).json({ ok: false, error: 'Ruta no encontrada' }));

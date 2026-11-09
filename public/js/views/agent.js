@@ -70,7 +70,7 @@ async function renderAnalystPerfiles(root) {
         </div>
         <div class="flex gap-2">
           <button onclick="navigate('propuestas')" class="btn-ghost flex items-center gap-1.5 text-xs">
-            Menú propuestas
+            Catálogo de propuestas
           </button>
           <button onclick="runPerfilesBatch()" class="btn-primary flex items-center gap-1.5 text-xs">
             Ejecutar batch
@@ -284,7 +284,7 @@ function renderPerfilDetail(p) {
     ${pains.length ? `
     <div class="rounded-lg p-3.5 border" style="background:var(--warning-soft);border-color:rgb(245 177 76 / 0.35);">
       <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--warning);">Pain points</p>
-      <ul class="space-y-1.5">${pains.map(x => `<li class="text-xs leading-relaxed" style="color:#92400E;">• ${typeof x === 'string' ? x : JSON.stringify(x)}</li>`).join('')}</ul>
+      <ul class="space-y-1.5">${pains.map(x => `<li class="text-xs leading-relaxed" style="color:var(--warning);">• ${typeof x === 'string' ? x : JSON.stringify(x)}</li>`).join('')}</ul>
     </div>` : ''}
 
     ${servicios.length ? `
@@ -296,13 +296,13 @@ function renderPerfilDetail(p) {
     ${p.razones ? `
     <div class="rounded-lg p-3.5 border" style="background:var(--accent-soft);border-color:rgb(139 92 246 / 0.35);">
       <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#a78bfa;">Razones / insight</p>
-      <p class="whitespace-pre-wrap text-xs leading-relaxed" style="color:#5B21B6;">${p.razones}</p>
+      <p class="whitespace-pre-wrap text-xs leading-relaxed" style="color:#c4b5fd;">${p.razones}</p>
     </div>` : ''}
 
     ${p.research_summary ? `
     <div class="rounded-lg p-3.5 border" style="background:var(--success-soft);border-color:rgb(43 212 189 / 0.35);">
       <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--success);">Research (scrape / búsqueda)</p>
-      <p class="whitespace-pre-wrap text-xs leading-relaxed" style="color:#166534;">${String(p.research_summary).slice(0, 1200)}${String(p.research_summary).length > 1200 ? '…' : ''}</p>
+      <p class="whitespace-pre-wrap text-xs leading-relaxed" style="color:var(--success);">${String(p.research_summary).slice(0, 1200)}${String(p.research_summary).length > 1200 ? '…' : ''}</p>
     </div>` : ''}
 
     <div class="rounded-lg p-3.5 border" style="background:var(--elevated);border-color:var(--border);" id="perfil-assign-box">
@@ -395,7 +395,7 @@ function renderDiagnosisDetail(diagnosis, meta = {}) {
     ${d.dana_fit_reasoning ? `
     <div class="rounded-lg p-3.5 border" style="background:var(--accent-soft);border-color:rgb(139 92 246 / 0.35);">
       <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#a78bfa;">Por qué encaja con Dana</p>
-      <p class="text-xs leading-relaxed" style="color:#5B21B6;">${_analystEsc(d.dana_fit_reasoning)}</p>
+      <p class="text-xs leading-relaxed" style="color:#c4b5fd;">${_analystEsc(d.dana_fit_reasoning)}</p>
     </div>` : ''}
 
     ${Array.isArray(pains) && pains.length ? `
@@ -415,7 +415,7 @@ function renderDiagnosisDetail(diagnosis, meta = {}) {
     </div>
 
     <div class="rounded-lg p-3.5 border" style="background:var(--danger-soft);border-color:rgb(242 114 109 / 0.35);">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B91C1C;">Preguntas pendientes</p>
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--danger);">Preguntas pendientes</p>
       ${_diagnosisList(pending, 'Sin preguntas pendientes')}
     </div>
 
@@ -427,8 +427,8 @@ function renderDiagnosisDetail(diagnosis, meta = {}) {
 
     ${meta.error ? `
     <div class="rounded-lg p-3.5 border" style="background:var(--danger-soft);border-color:rgb(242 114 109 / 0.35);">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B91C1C;">Error</p>
-      <p class="text-xs" style="color:#991B1B;">${_analystEsc(meta.error)}</p>
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--danger);">Error</p>
+      <p class="text-xs" style="color:var(--danger);">${_analystEsc(meta.error)}</p>
     </div>` : ''}
   `;
 }
@@ -475,7 +475,7 @@ async function loadPropuestasIntoSelect(selectedId) {
   const res = await api('/api/propuestas?activo=true&limit=100');
   const rows = res?.propuestas || [];
   if (!rows.length) {
-    sel.innerHTML = '<option value="">Sin propuestas (creá en Menú)</option>';
+    sel.innerHTML = '<option value="">Sin propuestas (creá en Agentes IA → Propuestas)</option>';
     return;
   }
   sel.innerHTML =
@@ -750,7 +750,7 @@ function _setAnalystDiagStatus(msg, kind = 'info') {
     el.textContent = '';
     return;
   }
-  const colors = { info: 'var(--muted-foreground)', ok: '#047857', error: '#B91C1C' };
+  const colors = { info: 'var(--muted-foreground)', ok: 'var(--success)', error: 'var(--danger)' };
   el.style.display = 'block';
   el.style.color = colors[kind] || colors.info;
   el.textContent = msg;
@@ -809,7 +809,7 @@ function renderAnalystLeadResults(leads) {
     const src = _analystEsc(l.source || l.classification || '');
     return `<button type="button" data-idx="${i}"
         onclick="pickAnalystLead(${i})"
-        class="w-full text-left px-3 py-2.5 transition hover:bg-gray-50"
+        class="w-full text-left px-3 py-2.5 transition hover:bg-white/5"
         style="border-top:1px solid var(--secondary);">
       <p class="text-sm font-medium leading-tight" style="color:var(--foreground);">${name}</p>
       <p class="text-xs mt-0.5 truncate" style="color:var(--muted-foreground);">${email}${src ? ' · ' + src : ''}</p>
@@ -853,7 +853,7 @@ async function onAnalystLeadSearch(raw) {
     const res = await api(`/api/leads?q=${encodeURIComponent(q)}&limit=12`);
     if (!res?.ok) {
       if (results) {
-        results.innerHTML = `<div class="px-3 py-2.5 text-xs" style="color:#B91C1C;">${_analystEsc(res?.error || 'Error al buscar')}</div>`;
+        results.innerHTML = `<div class="px-3 py-2.5 text-xs" style="color:var(--danger);">${_analystEsc(res?.error || 'Error al buscar')}</div>`;
         _analystShow(results, true);
       }
       return;
@@ -1236,7 +1236,7 @@ function renderReunionDetail(r) {
     </div>
 
     <div class="rounded-lg p-3.5 border" style="background:var(--danger-soft);border-color:rgb(242 114 109 / 0.35);">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B91C1C;">Objeciones</p>
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--danger);">Objeciones</p>
       ${list(r.objeciones, 'Sin objeciones')}
     </div>
 
@@ -1252,8 +1252,8 @@ function renderReunionDetail(r) {
 
     ${r.error_message ? `
     <div class="rounded-lg p-3.5 border" style="background:var(--danger-soft);border-color:rgb(242 114 109 / 0.35);">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B91C1C;">Error</p>
-      <p class="text-xs" style="color:#991B1B;">${r.error_message}</p>
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--danger);">Error</p>
+      <p class="text-xs" style="color:var(--danger);">${r.error_message}</p>
     </div>` : ''}
 
     <div class="flex gap-2">
@@ -1547,8 +1547,8 @@ function renderBriefingDetail(b) {
 
     ${b.error_message ? `
     <div class="rounded-lg p-3.5 border" style="background:var(--danger-soft);border-color:rgb(242 114 109 / 0.35);">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B91C1C;">Error</p>
-      <p class="text-xs" style="color:#991B1B;">${b.error_message}</p>
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--danger);">Error</p>
+      <p class="text-xs" style="color:var(--danger);">${b.error_message}</p>
     </div>` : ''}
 
     <div class="flex gap-2 flex-wrap">
@@ -1866,7 +1866,7 @@ function renderPerfReportDetail(r) {
     </div>` : ''}
     ${breakdown}
     <div class="rounded-lg p-3.5 border" style="background:var(--danger-soft);border-color:rgb(242 114 109 / 0.35);">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#B91C1C;">Alertas por canal</p>
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--danger);">Alertas por canal</p>
       ${list(a.alerts, 'Sin alertas')}
     </div>
     <div class="rounded-lg p-3.5 border" style="background:var(--info-soft);border-color:rgb(106 166 255 / 0.35);">
@@ -2108,7 +2108,7 @@ function renderMonthlyReportDetail(r) {
     </div>
     ${Array.isArray(rep.channel_highlights) && rep.channel_highlights.length ? `
     <div class="rounded-lg p-3.5 border" style="background:var(--success-soft);border-color:rgb(43 212 189 / 0.35);">
-      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:#047857;">Highlights por canal</p>
+      <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:var(--success);">Highlights por canal</p>
       <ul class="space-y-1.5">${rep.channel_highlights.map((h) =>
         `<li class="text-xs" style="color:var(--foreground);">• <strong>${h.channel || ''}</strong> — ${h.note || ''}</li>`
       ).join('')}</ul>
@@ -2217,7 +2217,7 @@ async function renderProposalAgent(root) {
           </div>
         </div>
         <div class="flex gap-2">
-          <button onclick="navigate('propuestas')" class="btn-ghost flex items-center gap-1.5 text-xs">Menú · Propuestas</button>
+          <button onclick="navigate('propuestas')" class="btn-ghost flex items-center gap-1.5 text-xs">Catálogo de propuestas</button>
           <button onclick="navigate('agent/briefing')" class="btn-ghost flex items-center gap-1.5 text-xs">Briefing</button>
           <button onclick="refreshIaProposals()" class="btn-ghost flex items-center gap-1.5 text-xs">Actualizar</button>
         </div>
@@ -2268,7 +2268,7 @@ function renderIaProposalsTable(rows) {
   if (!rows?.length) {
     return `<div class="flex flex-col items-center justify-center py-16" style="color:var(--muted-foreground);">
       <p class="text-sm">Sin propuestas IA aún</p>
-      <p class="text-xs mt-1">Para brief comercial usá Briefing; el catálogo vive en Menú · Propuestas</p>
+      <p class="text-xs mt-1">Para brief comercial usá Briefing; el catálogo vive en Agentes IA → Propuestas</p>
     </div>`;
   }
 
