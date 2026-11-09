@@ -8,7 +8,6 @@ const express = require('express');
 const router = express.Router();
 const logger = require('../lib/logger');
 const { createPending, analyzeReunion } = require('../agents/reuniones');
-
 function authorize(req) {
   const expected = process.env.CRM_INTERNAL_KEY || process.env.JWT_SECRET;
   const got = req.headers['x-crm-internal-key'];
@@ -48,6 +47,87 @@ async function ingestAndMaybeAnalyze(payload, { autoAnalyze = true } = {}) {
   return reunion;
 }
 
+// ─── Zoom nativo: firma, descarga de transcript, procesamiento en background ───
+
+/** Verifica x-zm-signature = v0=HMAC_SHA256(secret, "v0:{timestamp}:{rawBody}") */
+function verifyZoomSignature(req) {
+  const secret = process.env.ZOOM_WEBHOOK_SECRET;
+  const signature = req.headers['x-zm-signature'];
+  const timestamp = req.headers['x-zm-request-timestamp'];
+  if (!secret || !signature || !timestamp) return false;
+  const crypto = require('crypto');
+  const raw = req.rawBody ? req.rawBody.toString('utf8') : JSON.stringify(req.body);
+  const expected = `v0=${crypto.createHmac('sha256', secret).update(`v0:${timestamp}:${raw}`).digest('hex')}`;
+  const a = Buffer.from(String(signature));
+  const b = Buffer.from(expected);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+/** Mantiene viva la función de Vercel hasta que termine la promesa (sin dependencias extra). */
+function runInBackground(promise) {
+  const ctx = globalThis[Symbol.for('@vercel/request-context')]?.get?.();
+  if (ctx?.waitUntil) ctx.waitUntil(promise);
+  return promise;
+}
+
+/** WebVTT de Zoom → texto plano "Hablante: frase" */
+function vttToText(vtt) {
+  const lines = String(vtt).replace(/\r/g, '').split('\n');
+  const out = [];
+  for (const line of lines) {
+    const l = line.trim();
+    if (!l || l === 'WEBVTT' || /^\d+$/.test(l) || l.includes('-->')) continue;
+    out.push(l);
+  }
+  return out.join('\n');
+}
+
+async function downloadZoomTranscript(url, downloadToken) {
+  const res = await fetch(url, {
+    headers: downloadToken ? { Authorization: `Bearer ${downloadToken}` } : {},
+    redirect: 'follow',
+  });
+  if (!res.ok) throw new Error(`Descarga de transcript Zoom falló: HTTP ${res.status}`);
+  return vttToText(await res.text());
+}
+
+async function handleZoomRecording(body) {
+  const obj = body.payload?.object || {};
+  const files = obj.recording_files || [];
+  const transcriptFile = files.find((f) => f.file_type === 'TRANSCRIPT' && f.download_url);
+  const base = {
+    source: 'zoom',
+    external_id: String(obj.uuid || obj.id),
+    titulo: obj.topic || 'Reunión Zoom',
+    fecha: obj.start_time || new Date().toISOString(),
+    duracion_min: obj.duration || null,
+    transcript_url: transcriptFile?.download_url || null,
+    recording_url: obj.share_url || null,
+    raw_payload: {
+      event: body.event,
+      meeting_id: obj.id || null,
+      host_email: obj.host_email || null,
+      received_at: new Date().toISOString(),
+    },
+  };
+  const reunion = await createPending(base);
+
+  // Descarga + análisis fuera del tiempo de respuesta (Zoom exige responder en ~3s)
+  if (transcriptFile) {
+    runInBackground(
+      (async () => {
+        const transcript = await downloadZoomTranscript(transcriptFile.download_url, body.download_token);
+        if (!transcript || transcript.trim().length < 40) return;
+        const updated = await createPending({ ...base, transcript: transcript.slice(0, 200000) });
+        if (updated.status !== 'done') await analyzeReunion(updated.id);
+      })().catch((err) =>
+        logger.error({ msg: 'Zoom transcript/análisis falló', reunion_id: reunion.id, error: err.message })
+      )
+    );
+  }
+  return reunion;
+}
+
 // POST /api/hooks/reuniones/zoom
 router.post('/zoom', async (req, res) => {
   // Zoom endpoint validation
@@ -65,8 +145,24 @@ router.post('/zoom', async (req, res) => {
     return res.json({ plainToken: plainToken || '', encryptedToken: '' });
   }
 
-  if (!authorize(req)) {
+  const signedByZoom = verifyZoomSignature(req);
+  if (!signedByZoom && !authorize(req)) {
     return res.status(401).json({ ok: false, error: 'unauthorized' });
+  }
+
+  // Eventos nativos de grabación de Zoom (recording.completed / recording.transcript_completed)
+  if (String(req.body?.event || '').startsWith('recording.')) {
+    try {
+      const reunion = await handleZoomRecording(req.body);
+      return res.json({ ok: true, reunion_id: reunion.id, status: reunion.status });
+    } catch (err) {
+      logger.error({ msg: 'Zoom webhook error', error: err.message });
+      return res.status(500).json({ ok: false, error: err.message });
+    }
+  }
+  if (signedByZoom && req.body?.event) {
+    // Otros eventos de Zoom (meeting.started, etc.): se aceptan y se ignoran
+    return res.json({ ok: true, skipped: true, event: req.body.event });
   }
 
   try {

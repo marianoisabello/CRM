@@ -42,7 +42,11 @@ const { runMonthlyReports } = require('./jobs/monthlyReport');
 
 const app = express();
 
-app.use(express.json({ limit: '2mb' }));
+app.use(express.json({
+  limit: '2mb',
+  // Guarda el body crudo para verificar firmas de webhooks (Zoom x-zm-signature)
+  verify: (req, _res, buf) => { req.rawBody = buf; },
+}));
 app.use(express.static(path.join(__dirname, '../public')));
 
 // SPA fallback for embedded chatbox (Vite base /chatbox/)
